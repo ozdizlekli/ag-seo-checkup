@@ -614,11 +614,9 @@ navItems.forEach(btn => {
  * için 'mockResponseFactory' (sahte veri) ile yola devam ederiz.
  * ============================================================ */
 async function callGemini(userPrompt, mockResponseFactory){
-  //  GOOGLE AI STUDIO'DAN ALDIĞIM API ANAHTARI
-  const apiKey = 'BURAYA_API_KEY_GELECEK'; 
-  
-  // Gemini 3.6 Flash modelini kullanıyoruz
-  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
+  // API anahtarımız güvenlik için .env dosyasında duruyor.
+  // İstekleri kendi sunucumuzdaki proxy dosyasına atıyoruz.
+  const endpoint = 'gemini_proxy.php';
 
   const requestBody = {
     contents: [{
