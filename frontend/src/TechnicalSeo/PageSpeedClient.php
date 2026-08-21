@@ -187,18 +187,36 @@ final class PageSpeedClient
             'speed_index' => 'speed-index',
         ];
 
+        // CrUX (gerçek kullanıcı) alan verisi - varsa. Önce sayfaya özel
+        // (loadingExperience), o yoksa site geneline ait (originLoadingExperience)
+        // veriyi kullanıyoruz. Yeterli trafiği olmayan siteler/sayfalar için
+        // Google ikisini de döndürmeyebilir.
+        $fieldData = $raw['loadingExperience']['metrics'] ?? $raw['originLoadingExperience']['metrics'] ?? null;
+        $fieldDataIsOriginLevel = !isset($raw['loadingExperience']['metrics']) && isset($raw['originLoadingExperience']['metrics']);
+
         $webVitals = [];
         foreach ($vitalsAuditKeys as $key => $auditKey) {
             $audit = $audits[$auditKey] ?? null;
+            $numericValue = is_array($audit) && isset($audit['numericValue']) ? (float) $audit['numericValue'] : null;
+            $displayValue = is_array($audit) ? ($audit['displayValue'] ?? null) : null;
+
+            // INP, Lighthouse'un laboratuvar (simüle) testinde neredeyse hiç
+            // bulunmaz - çünkü gerçek bir kullanıcı tıklaması/dokunuşu
+            // gerektirir, sayfayı sadece açıp kapatan bir test bunu üretemez.
+            // Lab verisi yoksa, varsa CrUX saha verisine (gerçek kullanıcı
+            // ölçümlerine) düşüyoruz - INP'nin saha metriği zaten milisaniye
+            // cinsinden geliyor, lab'daki numericValue ile aynı birim.
+            if ($key === 'inp' && $numericValue === null && is_array($fieldData) && isset($fieldData['INTERACTION_TO_NEXT_PAINT']['percentile'])) {
+                $numericValue = (float) $fieldData['INTERACTION_TO_NEXT_PAINT']['percentile'];
+                $displayValue = round($numericValue) . ' ms (gerçek kullanıcı verisi'
+                    . ($fieldDataIsOriginLevel ? ', site geneli' : '') . ')';
+            }
+
             $webVitals[$key] = [
-                'numeric_value' => is_array($audit) && isset($audit['numericValue']) ? (float) $audit['numericValue'] : null,
-                'display_value' => is_array($audit) ? ($audit['displayValue'] ?? null) : null,
+                'numeric_value' => $numericValue,
+                'display_value' => $displayValue,
             ];
         }
-
-        // CrUX (gerçek kullanıcı) alan verisi - varsa. Yeterli trafiği olmayan
-        // siteler için Google bunu döndürmez.
-        $fieldData = $raw['loadingExperience']['metrics'] ?? null;
 
         return [
             'category_scores' => $categoryScores,

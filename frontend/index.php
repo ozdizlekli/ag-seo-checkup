@@ -414,10 +414,38 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
           </div>
         </div>
 
+        <div class="card mt-20 hidden" id="t3-fullcrawl-card">
+          <div class="card__head">
+            <div class="card__title">Tarama Kısmi Kaldı</div>
+            <span class="small muted" id="t3-fullcrawl-note">Standart mod sınırına ulaşıldı.</span>
+          </div>
+          <div class="mt-16 flex gap-12" style="align-items:center; flex-wrap:wrap;">
+            <span class="small">Sitenin tamamını taramak ister misiniz? Bu biraz zaman alabilir.</span>
+            <button class="btn btn--dark btn--sm" id="t3-fullcrawl-btn">
+              <span id="t3-fullcrawl-label">Evet, Tüm Siteyi Tara</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="card mt-20 hidden" id="t3-progress-card">
+          <div class="card__head">
+            <div class="card__title">Analiz Sürüyor…</div>
+            <span class="small muted">Şu an hangi kontrolün yapıldığını aşağıda canlı olarak görebilirsiniz</span>
+          </div>
+          <div class="mt-16" id="t3-progress-body"></div>
+        </div>
+
         <div class="card mt-20" id="t3-output-card">
           <div class="card__head">
             <div class="card__title">Lighthouse & PageSpeed Denetim Sonuçları</div>
             <span class="small muted" id="t3-audit-url">Henüz bir tarama yapılmadı...</span>
+          </div>
+
+          <div class="mt-12">
+            <div class="toggle-group" id="t3-psi-strategy-toggle">
+              <button type="button" class="toggle-btn active" data-strategy="mobile">Mobil</button>
+              <button type="button" class="toggle-btn" data-strategy="desktop">Masaüstü</button>
+            </div>
           </div>
 
           <div class="mt-16 hidden" id="t3-psi-warning"></div>
@@ -536,28 +564,6 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
           </div>
         </div>
 
-        
-        <div class="card mt-20 hidden" id="t3-fullcrawl-card">
-          <div class="card__head">
-            <div class="card__title">Tarama Kısmi Kaldı</div>
-            <span class="small muted" id="t3-fullcrawl-note">Standart mod sınırına ulaşıldı.</span>
-          </div>
-          <div class="mt-16 flex gap-12" style="align-items:center; flex-wrap:wrap;">
-            <span class="small">Sitenin tamamını taramak ister misiniz? Bu biraz zaman alabilir.</span>
-            <button class="btn btn--dark btn--sm" id="t3-fullcrawl-btn">
-              <span id="t3-fullcrawl-label">Evet, Tüm Siteyi Tara</span>
-            </button>
-          </div>
-        </div>
-
-        <div class="card mt-20 hidden" id="t3-progress-card">
-          <div class="card__head">
-            <div class="card__title">Analiz Sürüyor…</div>
-            <span class="small muted">Şu an hangi kontrolün yapıldığını aşağıda canlı olarak görebilirsiniz</span>
-          </div>
-          <div class="mt-16" id="t3-progress-body"></div>
-        </div>
-
         <div class="card mt-20 hidden" id="t3-composite-score-card">
           <div class="card__head">
             <div class="card__title">Genel Teknik SEO Skoru</div>
@@ -581,7 +587,14 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
           <div class="mt-16" id="t3-findings-body"></div>
         </div>
 
-        <div class="card mt-20" id="t3-schema-card">
+        <!-- Bu kart kullanicidan gizlendi: localhost:3000/api/... adresine
+             istek atiyor, bu proje pure-PHP oldugu icin boyle bir servis hic
+             yok ve buton hicbir sonuc uretmiyor. DOM'dan tamamen silmedik
+             cunku app.js'deki 8 adimli Auto-Pilot akisi bu id'lere .click()
+             ile programatik olarak erisiyor (bkz. runEnterpriseAutoPilot,
+             Adim 6/8) - silinirse tum try/catch bloğu patlar ve Auto-Pilot'un
+             kalan adimlari (7 ve 8) hic calismaz. -->
+        <div class="card mt-20 hidden" id="t3-schema-card">
           <div class="card__head">
             <div class="card__title">Toplu Şema (Schema) Denetleyici & Onarıcı</div>
             <button class="btn btn--dark btn--sm" id="t3-schema-audit-btn">
@@ -597,7 +610,11 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
         </div>
 
         <!-- SCHEMA ÜRETİCİ (Tab 4\'ten Taşındı) -->
-        <div class="card mt-20">
+        <!-- Bu kart da yukarisiyla ayni sebeple gizlendi (kullaniciya Teknik
+             SEO'da gorunmesin istendi) - kendisi calisiyor (saf JS, backend'e
+             ihtiyaci yok) ama Auto-Pilot'un t4-* id'lerine bagimli oldugu icin
+             DOM'dan silinmedi, sadece hidden class'i ile gizlendi. -->
+        <div class="card mt-20 hidden">
           <div class="card__head">
             <div class="card__title">Schema Üretici & JSON-LD</div>
             <button class="btn btn--dark btn--sm" id="t4-ai-extract-btn" title="İçerikten otomatik çıkarır">

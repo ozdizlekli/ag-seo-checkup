@@ -375,21 +375,63 @@ async function runFullSiteCrawl() {
   }
 }
 
-function renderTechnicalSeoResult(inputUrl, data) {
-  const psiMobile = (data.psi && data.psi.mobile) || null;
-  const categoryScores = (psiMobile && psiMobile.category_scores) || {};
+// PSI, mobil ve masaustu sonuclarini PARALEL cekip ikisini de donduruyor
+// (PageSpeedClient::analyzeBoth) ama eskiden arayuz sadece mobili gosterip
+// masaustu veriyi cekilmesine ragmen hic kullanmadan atiyordu. Ozellikle
+// mobilde CrUX (gercek kullanici) alan verisi olmayan sitelerde (INP gibi
+// metrikler icin sik rastlanan bir durum) kullanici hicbir sey goremiyordu,
+// oysa masaustunde gercek veri olabiliyordu. Simdi ikisini de sakliyoruz ve
+// kucuk bir Mobil/Masaustu anahtari ile ayni karti iki veriden biriyle
+// yeniden ciziyoruz (yeniden tarama yapmadan, anlik).
+let t3LastPsiData = null;
+let t3LastPsiStrategy = 'mobile';
+
+function renderPsiStrategyCard(strategy) {
+  const psi = t3LastPsiData || {};
+  const result = psi[strategy] || null;
+  const categoryScores = (result && result.category_scores) || {};
 
   setSmallGauge('t3-perf', categoryScores.performance ?? 0);
   setSmallGauge('t3-seo', categoryScores.seo ?? 0);
   setSmallGauge('t3-a11y', categoryScores.accessibility ?? 0);
   setSmallGauge('t3-bp', categoryScores['best-practices'] ?? 0);
 
-  const vitals = (psiMobile && psiMobile.web_vitals) || {};
+  const vitals = (result && result.web_vitals) || {};
   renderVital('t3-lcp', vitals.lcp, 'lcp');
   renderVital('t3-fcp', vitals.fcp, 'fcp');
   renderVital('t3-cls', vitals.cls, 'cls');
   renderVital('t3-ttfb', vitals.ttfb, 'ttfb');
   renderVital('t3-inp', vitals.inp, 'inp');
+}
+
+function initPsiStrategyToggle() {
+  const wrap = document.getElementById('t3-psi-strategy-toggle');
+  if (!wrap || wrap.dataset.wired) return;
+  wrap.dataset.wired = '1';
+  wrap.addEventListener('click', (e) => {
+    const btn = e.target.closest('.toggle-btn');
+    if (!btn || !wrap.contains(btn)) return;
+    const strategy = btn.dataset.strategy;
+    if (!strategy || strategy === t3LastPsiStrategy) return;
+    t3LastPsiStrategy = strategy;
+    wrap.querySelectorAll('.toggle-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.strategy === strategy);
+    });
+    renderPsiStrategyCard(strategy);
+  });
+}
+
+function renderTechnicalSeoResult(inputUrl, data) {
+  t3LastPsiData = data.psi || null;
+  t3LastPsiStrategy = 'mobile';
+  initPsiStrategyToggle();
+  const toggleWrap = document.getElementById('t3-psi-strategy-toggle');
+  if (toggleWrap) {
+    toggleWrap.querySelectorAll('.toggle-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.strategy === 'mobile');
+    });
+  }
+  renderPsiStrategyCard('mobile');
 
   document.getElementById('t3-audit-url').textContent = data.url || inputUrl;
   document.getElementById('t3-output-card').classList.remove('hidden');
