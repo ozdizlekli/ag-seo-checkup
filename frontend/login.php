@@ -15,6 +15,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Default admin override for quick test
     if ($username === 'admin' && $password === 'admin123') {
         $_SESSION['loggedin'] = true;
+        $_SESSION['username'] = 'admin';
         header("Location: index.php");
         exit;
     }
@@ -26,6 +27,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $user = $stmt->fetch(PDO::FETCH_ASSOC);
             if ($user && password_verify($password, $user['password'])) {
                 $_SESSION['loggedin'] = true;
+                $_SESSION['username'] = $username;
                 header("Location: index.php");
                 exit;
             } else {
@@ -42,6 +44,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
         if (isset($users[$username]) && password_verify($password, $users[$username])) {
             $_SESSION['loggedin'] = true;
+            $_SESSION['username'] = $username;
             header("Location: index.php");
             exit;
         } else {

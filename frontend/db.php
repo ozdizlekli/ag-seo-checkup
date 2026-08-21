@@ -3,6 +3,7 @@ $host = 'localhost';
 $dbname = 'ag_seo_db';
 $user = 'root';
 $pass = '';
+$pdo = null;
 
 try {
     $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $user, $pass);

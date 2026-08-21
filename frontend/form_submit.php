@@ -11,6 +11,9 @@ if (file_exists($envPath)) {
 }
 
 header('Content-Type: application/json');
+set_time_limit(0);
+ini_set('max_execution_time', '0');
+error_log("gemini_proxy.php hit!");
 
 // Gelen isteği al
 $inputJSON = file_get_contents('php://input');
@@ -27,10 +30,11 @@ if (empty($apiKey) || $apiKey === 'BURAYA_API_KEY_GELECEK') {
 }
 
 // Gemini API'ye istek at
-$url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=" . $apiKey;
+$url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=" . $apiKey;
 
 $ch = curl_init($url);
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_TIMEOUT, 300);
 curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
 curl_setopt($ch, CURLOPT_POST, true);
 curl_setopt($ch, CURLOPT_POSTFIELDS, $inputJSON);
@@ -42,7 +46,7 @@ $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 if(curl_errno($ch)){
     echo json_encode(['error' => curl_error($ch)]);
 } else {
-    http_response_code($httpCode);
+    // http_response_code($httpCode);
     echo $response;
 }
 
