@@ -419,7 +419,9 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
             <div class="card__title">Lighthouse & PageSpeed Denetim Sonuçları</div>
             <span class="small muted" id="t3-audit-url">Henüz bir tarama yapılmadı...</span>
           </div>
-          
+
+          <div class="mt-16 hidden" id="t3-psi-warning"></div>
+
           <!-- 4 Ana Kategori Skoru -->
           <div class="score-grid">
             <div class="score-card">
@@ -495,14 +497,14 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
 
         <div class="card mt-20 hidden" id="t3-quick-audit-card">
           <div class="card__head">
-            <div class="card__title">Hızlı Teknik Denetim (İstemci Taraflı)</div>
-            <span class="small muted">robots.txt, sitemap.xml ve SSL durumu</span>
+            <div class="card__title">Hızlı Teknik Denetim (Sunucu Taraflı)</div>
+            <span class="small muted">robots.txt, sitemap.xml, SSL, canonical</span>
           </div>
           <div class="table-wrap mt-16">
             <table class="table" style="width: 100%; text-align: left; border-collapse: collapse;">
               <tbody>
                 <tr style="border-bottom: 1px solid var(--border-soft);">
-                  <td style="padding:12px; font-weight:600; width:150px;">SSL (HTTPS)</td>
+                  <td style="padding:12px; font-weight:600; width:220px;">SSL (HTTPS)</td>
                   <td style="padding:12px;" id="t3-qa-ssl"><span class="tag">Bekleniyor</span></td>
                 </tr>
                 <tr style="border-bottom: 1px solid var(--border-soft);">
@@ -512,6 +514,22 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
                 <tr style="border-bottom: 1px solid var(--border-soft);">
                   <td style="padding:12px; font-weight:600;">Sitemap.xml</td>
                   <td style="padding:12px;" id="t3-qa-sitemap"><span class="tag">Bekleniyor</span></td>
+                </tr>
+                <tr style="border-bottom: 1px solid var(--border-soft);">
+                  <td style="padding:12px; font-weight:600;">Noindex</td>
+                  <td style="padding:12px;" id="t3-qa-noindex"><span class="tag">Bekleniyor</span></td>
+                </tr>
+                <tr style="border-bottom: 1px solid var(--border-soft);">
+                  <td style="padding:12px; font-weight:600;">Canonical</td>
+                  <td style="padding:12px;" id="t3-qa-canonical"><span class="tag">Bekleniyor</span></td>
+                </tr>
+                <tr style="border-bottom: 1px solid var(--border-soft);">
+                  <td style="padding:12px; font-weight:600;">Mobil-Öncelikli Uyum</td>
+                  <td style="padding:12px;" id="t3-qa-mobile"><span class="tag">Bekleniyor</span></td>
+                </tr>
+                <tr>
+                  <td style="padding:12px; font-weight:600;">Kırık Linkler</td>
+                  <td style="padding:12px;" id="t3-qa-links"><span class="tag">Bekleniyor</span></td>
                 </tr>
               </tbody>
             </table>
