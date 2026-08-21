@@ -344,12 +344,35 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
           </div>
         </div>
 
+        <div class="card mt-20 hidden" id="t3-fullcrawl-card">
+          <div class="card__head">
+            <div class="card__title">Tarama Kısmi Kaldı</div>
+            <span class="small muted" id="t3-fullcrawl-note">Standart mod sınırına ulaşıldı.</span>
+          </div>
+          <div class="mt-16 flex gap-12" style="align-items:center; flex-wrap:wrap;">
+            <span class="small">Sitenin tamamını taramak ister misiniz? Bu biraz zaman alabilir.</span>
+            <button class="btn btn--dark btn--sm" id="t3-fullcrawl-btn">
+              <span id="t3-fullcrawl-label">Evet, Tüm Siteyi Tara</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="card mt-20 hidden" id="t3-progress-card">
+          <div class="card__head">
+            <div class="card__title">Analiz Sürüyor…</div>
+            <span class="small muted">Şu an hangi kontrolün yapıldığını aşağıda canlı olarak görebilirsiniz</span>
+          </div>
+          <div class="mt-16" id="t3-progress-body"></div>
+        </div>
+
         <div class="card mt-20" id="t3-output-card">
           <div class="card__head">
             <div class="card__title">Lighthouse & PageSpeed Denetim Sonuçları</div>
             <span class="small muted" id="t3-audit-url">Henüz bir tarama yapılmadı...</span>
           </div>
-          
+
+          <div class="mt-16 hidden" id="t3-psi-warning"></div>
+
           <!-- 4 Ana Kategori Skoru -->
           <div class="score-grid">
             <div class="score-card">
@@ -425,14 +448,14 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
 
         <div class="card mt-20 hidden" id="t3-quick-audit-card">
           <div class="card__head">
-            <div class="card__title">Hızlı Teknik Denetim (İstemci Taraflı)</div>
-            <span class="small muted">robots.txt, sitemap.xml ve SSL durumu</span>
+            <div class="card__title">Hızlı Teknik Denetim (Sunucu Taraflı)</div>
+            <span class="small muted">robots.txt, sitemap.xml, SSL, canonical</span>
           </div>
           <div class="table-wrap mt-16">
             <table class="table" style="width: 100%; text-align: left; border-collapse: collapse;">
               <tbody>
                 <tr style="border-bottom: 1px solid var(--border-soft);">
-                  <td style="padding:12px; font-weight:600; width:150px;">SSL (HTTPS)</td>
+                  <td style="padding:12px; font-weight:600; width:220px;">SSL (HTTPS)</td>
                   <td style="padding:12px;" id="t3-qa-ssl"><span class="tag">Bekleniyor</span></td>
                 </tr>
                 <tr style="border-bottom: 1px solid var(--border-soft);">
@@ -443,9 +466,48 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
                   <td style="padding:12px; font-weight:600;">Sitemap.xml</td>
                   <td style="padding:12px;" id="t3-qa-sitemap"><span class="tag">Bekleniyor</span></td>
                 </tr>
+                <tr style="border-bottom: 1px solid var(--border-soft);">
+                  <td style="padding:12px; font-weight:600;">Noindex</td>
+                  <td style="padding:12px;" id="t3-qa-noindex"><span class="tag">Bekleniyor</span></td>
+                </tr>
+                <tr style="border-bottom: 1px solid var(--border-soft);">
+                  <td style="padding:12px; font-weight:600;">Canonical</td>
+                  <td style="padding:12px;" id="t3-qa-canonical"><span class="tag">Bekleniyor</span></td>
+                </tr>
+                <tr style="border-bottom: 1px solid var(--border-soft);">
+                  <td style="padding:12px; font-weight:600;">Mobil-Öncelikli Uyum</td>
+                  <td style="padding:12px;" id="t3-qa-mobile"><span class="tag">Bekleniyor</span></td>
+                </tr>
+                <tr>
+                  <td style="padding:12px; font-weight:600;">Kırık Linkler</td>
+                  <td style="padding:12px;" id="t3-qa-links"><span class="tag">Bekleniyor</span></td>
+                </tr>
               </tbody>
             </table>
           </div>
+        </div>
+
+        <div class="card mt-20 hidden" id="t3-composite-score-card">
+          <div class="card__head">
+            <div class="card__title">Genel Teknik SEO Skoru</div>
+            <span class="small muted">Ağırlıklı kategori ortalaması + kritik kapı kontrolleri — Lighthouse'un düz ortalaması DEĞİLDİR</span>
+          </div>
+          <div class="flex gap-24 mt-16" style="align-items:center; flex-wrap:wrap;">
+            <div class="svg-wrap" style="width:110px; height:110px; flex-shrink:0;">
+              <svg viewBox="0 0 36 36"><circle class="bg" cx="18" cy="18" r="15.9155"/><circle class="fill" id="t3-final-score-circle" cx="18" cy="18" r="15.9155" stroke-dasharray="100 100" stroke-dashoffset="100"/></svg>
+              <div class="val" id="t3-final-score-val" style="font-size:22px;">—</div>
+            </div>
+            <div style="flex:1; min-width:260px;" id="t3-gates-warning"></div>
+          </div>
+          <div class="mt-16" id="t3-category-breakdown"></div>
+        </div>
+
+<div class="card mt-20 hidden" id="t3-findings-card">
+          <div class="card__head">
+            <div class="card__title">Önceliklendirilmiş Teknik SEO Bulguları</div>
+            <span class="small muted">önce önem derecesi (yüksek → orta → düşük), sonra aynı derece içinde etkilenen sayfa oranı × güven seviyesine göre sıralanmıştır</span>
+          </div>
+          <div class="mt-16" id="t3-findings-body"></div>
         </div>
 
         </section>
@@ -723,8 +785,13 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
 
 <div id="toast-container"></div>
 
+<div class="t3-info-popup hidden" id="t3-info-popup">
+  <div class="t3-info-popup__body" id="t3-info-popup-body"></div>
+</div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="js/app.js?v=1.4"></script>
+<script src="js/technical-seo.js?v=1.0"></script>
 </body>
 </html>
     </div>
@@ -735,5 +802,6 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="js/app.js?v=1.4"></script>
+<script src="js/technical-seo.js?v=1.0"></script>
 </body>
 </html>
