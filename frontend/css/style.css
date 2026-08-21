@@ -278,6 +278,24 @@ textarea.tall{ min-height:180px; }
 .tag--transaction{ background:var(--success-soft); color:var(--success); }
 .tag-wrap{ display:flex; flex-wrap:wrap; gap:8px; }
 
+/* Öncelendirilmiş bulgu kartları (Teknik SEO > Bulgular) */
+.finding-summary{
+  display:flex; flex-wrap:wrap; gap:8px 20px;
+  margin-bottom:16px; padding-bottom:16px; border-bottom:1px solid var(--border-soft);
+}
+.finding-summary__item{ display:flex; align-items:center; gap:7px; font-size:12.5px; font-weight:600; color:var(--ink-soft, var(--muted)); }
+.finding-summary__dot{ width:8px; height:8px; border-radius:50%; display:inline-block; flex-shrink:0; }
+.finding-card{
+  border-left-width:4px; border-left-style:solid; padding:16px 18px;
+}
+.finding-card--critical{ border-left-color:var(--danger); }
+.finding-card--major{ border-left-color:var(--warn); }
+.finding-card--minor{ border-left-color:var(--border-soft); }
+.finding-card__meta{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.finding-card__title{ font-weight:700; margin-top:10px; font-size:14px; }
+.finding-card__detail{ margin-top:4px; }
+.finding-card__fix{ margin-top:10px; padding-top:10px; border-top:1px solid var(--border-soft); }
+
 /* Cluster group */
 .cluster-col{ background:var(--paper); border:1px solid var(--border-soft); border-radius:var(--radius); padding:16px; }
 .cluster-col h4{ font-size:12.5px; text-transform:uppercase; letter-spacing:.04em; margin-bottom:12px; display:flex; align-items:center; gap:7px;}
@@ -313,10 +331,30 @@ textarea.tall{ min-height:180px; }
 /* Meter / progress */
 .meter-row{ margin-bottom:18px; }
 .meter-row:last-child{ margin-bottom:0; }
-.meter-row__head{ display:flex; justify-content:space-between; align-items:baseline; margin-bottom:6px; }
+.meter-row__head{ display:flex; justify-content:space-between; align-items:baseline; margin-bottom:6px; gap:10px; }
 .meter-row__head .label{ font-size:13px; font-weight:600; }
+.meter-row__head .value-wrap{ display:flex; align-items:center; gap:8px; flex-shrink:0; }
 .meter-row__head .value{ font-family:var(--font-mono); font-size:13px; font-weight:600; }
 .meter-track{ height:9px; border-radius:999px; background:#EDEFF3; overflow:hidden; }
+
+/* Category "how is this calculated" info button + popup */
+.t3-info-btn{
+  display:inline-flex; align-items:center; justify-content:center;
+  width:17px; height:17px; border-radius:50%; flex-shrink:0;
+  background:#EDEFF3; color:var(--muted); border:none;
+  font-family:var(--font-display); font-size:11px; font-weight:700; line-height:1;
+  cursor:pointer; padding:0; transition:background .15s, color .15s;
+}
+.t3-info-btn:hover, .t3-info-btn:focus-visible, .t3-info-btn.active{
+  background:var(--ink); color:#fff; outline:none;
+}
+.t3-info-popup{
+  position:fixed; z-index:60; width:280px; max-width:calc(100vw - 24px);
+  background:#fff; border:1px solid var(--border); border-radius:var(--radius);
+  box-shadow:0 8px 24px rgba(20,22,30,.14); padding:12px 14px;
+}
+.t3-info-popup.hidden{ display:none; }
+.t3-info-popup__body{ font-size:12.5px; line-height:1.55; color:var(--ink); }
 .meter-fill{ height:100%; border-radius:999px; transition:width .7s cubic-bezier(.4,0,.2,1); }
 .status-chip{ font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; }
 .status-good{ background:var(--success-soft); color:var(--success); }
@@ -325,6 +363,7 @@ textarea.tall{ min-height:180px; }
 .fill-good{ background:var(--success); }
 .fill-mid{ background:var(--warn); }
 .fill-bad{ background:var(--danger); }
+.fill-none{ background:var(--muted-2); }
 
 /* Table */
 .table-wrap{ overflow:auto; border:1px solid var(--border); border-radius:var(--radius); }
@@ -381,6 +420,18 @@ tbody td input.input{ padding:7px 9px; font-size:12.5px; }
 .score-card .lbl { font-size: 11.5px; font-weight: 600; color: var(--muted); text-align: center; line-height: 1.3; }
 @media (max-width:760px){ .score-grid { grid-template-columns: repeat(2, 1fr); } }
 
+/* Genel Teknik SEO Skoru dairesi (t3-composite-score-card) - .score-card
+   İÇİNDE değil, bu yüzden yukarıdaki ".score-card .svg-wrap"/".score-card .val"
+   kuralları buraya uygulanmıyordu: sayı, dairenin İÇİNDE ortalanmak yerine
+   normal akışta dairenin ALTINA taşıp bir sonraki kartın metniyle çakışıyordu.
+   Aynı ".svg-wrap" + ".val" markup'ı burada da kullanıldığı için, konumlamayı
+   bu karta özel olarak (diğer küçük gösterge kartlarını etkilemeden) veriyoruz. */
+#t3-composite-score-card .svg-wrap { position: relative; }
+#t3-composite-score-card .svg-wrap svg { transform: rotate(-90deg); width: 100%; height: 100%; }
+#t3-composite-score-card .svg-wrap circle.bg { fill: none; stroke: #EDEFF3; stroke-width: 3.5; }
+#t3-composite-score-card .svg-wrap circle.fill { fill: none; stroke: var(--accent); stroke-width: 3.5; stroke-linecap: round; transition: stroke-dashoffset 1s ease, stroke .3s; }
+#t3-composite-score-card .svg-wrap .val { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-weight: 700; }
+
 
 /* Dropzone */
 .dropzone{
@@ -435,6 +486,20 @@ tbody td input.input{ padding:7px 9px; font-size:12.5px; }
 .toast.error{ background:var(--danger); }
 .toast.success .dot-toast{ background:var(--success); }
 @keyframes toastIn{ from{ opacity:0; transform:translateY(8px);} to{ opacity:1; transform:none; } }
+
+/* Teknik SEO - canlı ilerleme checklist'i (bkz. technical-seo.js) */
+.t3-progress-item{ display:flex; align-items:center; gap:11px; padding:9px 6px; border-bottom:1px solid var(--border-soft); font-size:13.5px; color:var(--ink-soft); transition:color .15s; }
+.t3-progress-item:last-child{ border-bottom:none; }
+.t3-progress-item[data-status="pending"]{ color:var(--muted-2); }
+.t3-progress-item[data-status="done"]{ color:var(--ink-soft); }
+.t3-progress-item[data-status="skipped"]{ color:var(--muted-2); font-style:italic; }
+.t3-progress-icon{ width:16px; height:16px; flex:none; display:flex; align-items:center; justify-content:center; font-size:12.5px; font-weight:700; color:var(--muted-2); }
+.t3-progress-item[data-status="done"] .t3-progress-icon{ color:var(--success); }
+.spinner--dark{
+  width:13px; height:13px; border-radius:50%;
+  border:2px solid var(--border-soft); border-top-color:var(--accent);
+  animation:spin .7s linear infinite;
+}
 
 @media (max-width:880px){
   .app{ grid-template-columns:1fr; }

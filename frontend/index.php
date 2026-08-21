@@ -518,6 +518,51 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
           </div>
         </div>
 
+        
+        <div class="card mt-20 hidden" id="t3-fullcrawl-card">
+          <div class="card__head">
+            <div class="card__title">Tarama Kısmi Kaldı</div>
+            <span class="small muted" id="t3-fullcrawl-note">Standart mod sınırına ulaşıldı.</span>
+          </div>
+          <div class="mt-16 flex gap-12" style="align-items:center; flex-wrap:wrap;">
+            <span class="small">Sitenin tamamını taramak ister misiniz? Bu biraz zaman alabilir.</span>
+            <button class="btn btn--dark btn--sm" id="t3-fullcrawl-btn">
+              <span id="t3-fullcrawl-label">Evet, Tüm Siteyi Tara</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="card mt-20 hidden" id="t3-progress-card">
+          <div class="card__head">
+            <div class="card__title">Analiz Sürüyor…</div>
+            <span class="small muted">Şu an hangi kontrolün yapıldığını aşağıda canlı olarak görebilirsiniz</span>
+          </div>
+          <div class="mt-16" id="t3-progress-body"></div>
+        </div>
+
+        <div class="card mt-20 hidden" id="t3-composite-score-card">
+          <div class="card__head">
+            <div class="card__title">Genel Teknik SEO Skoru</div>
+            <span class="small muted">Ağırlıklı kategori ortalaması + kritik kapı kontrolleri — Lighthouse un düz ortalaması DEĞİLDİR</span>
+          </div>
+          <div class="flex gap-24 mt-16" style="align-items:center; flex-wrap:wrap;">
+            <div class="svg-wrap" style="width:110px; height:110px; flex-shrink:0;">
+              <svg viewBox="0 0 36 36"><circle class="bg" cx="18" cy="18" r="15.9155"/><circle class="fill" id="t3-final-score-circle" cx="18" cy="18" r="15.9155" stroke-dasharray="100 100" stroke-dashoffset="100"/></svg>
+              <div class="val" id="t3-final-score-val" style="font-size:22px;">—</div>
+            </div>
+            <div style="flex:1; min-width:260px;" id="t3-gates-warning"></div>
+          </div>
+          <div class="mt-16" id="t3-category-breakdown"></div>
+        </div>
+
+        <div class="card mt-20 hidden" id="t3-findings-card">
+          <div class="card__head">
+            <div class="card__title">Önceliklendirilmiş Teknik SEO Bulguları</div>
+            <span class="small muted">önce önem derecesi (yüksek → orta → düşük), sonra aynı derece içinde etkilenen sayfa oranı × güven seviyesine göre sıralanmıştır</span>
+          </div>
+          <div class="mt-16" id="t3-findings-body"></div>
+        </div>
+
         <div class="card mt-20" id="t3-schema-card">
           <div class="card__head">
             <div class="card__title">Toplu Şema (Schema) Denetleyici & Onarıcı</div>
@@ -704,7 +749,14 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
 
 <div id="toast-container"></div>
 
+
+<div class="t3-info-popup hidden" id="t3-info-popup">
+  <div class="t3-info-popup__body" id="t3-info-popup-body"></div>
+</div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="js/technical-seo.js?v=1.0"></script>
+
 <script src="js/app.js?v=1787294257"></script>
 <script src="js/welcome.js"></script>
 </body>
