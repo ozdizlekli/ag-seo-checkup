@@ -230,7 +230,10 @@ document.addEventListener('DOMContentLoaded', () => {
         // Fallback for old history
         reportData = chatMessages.filter(m => m.sender === 'ai' && m.text.length > 200).map(m => m.text);
       }
+      const llmsC = document.getElementById('copilot-llms-container');
+      if (llmsC) llmsC.style.display = 'none';
       const msgContainer = document.getElementById('copilot-chat-messages-container');
+      if (msgContainer) msgContainer.style.display = 'block';
       if (msgContainer) msgContainer.innerHTML = '';
       chatMessages.forEach(msg => { addMessage(msg.text, msg.sender, msg.isHtml, false); });
       
@@ -256,7 +259,10 @@ document.addEventListener('DOMContentLoaded', () => {
     reportData = [];
     
     updateProgressUI(0);
+    const llmsC = document.getElementById('copilot-llms-container');
+    if (llmsC) llmsC.style.display = 'none';
     const msgContainer = document.getElementById('copilot-chat-messages-container');
+    if (msgContainer) msgContainer.style.display = 'block';
     if (msgContainer) msgContainer.innerHTML = '';
     addMessage(`👋 Merhaba! Ben <strong>GEO SEO Asistanı</strong>.<br><br>Web siteni tarayıp yapay zeka (LLM) arama motorları için optimize edelim. Lütfen analiz etmemi istediğin sayfanın <strong>URL'sini</strong> aşağıya yaz.`, 'ai', true, false);
     
@@ -554,10 +560,19 @@ Son olarak, önceki 4 adımda çıkardığın tüm analizleri (İş bağlamı, k
       reportData[step - 1] = htmlText;
 
       completedSteps.add(step); if(step === 5) completedSteps.add(6);
-      // Removed auto-save
       if (completedSteps.size >= 6) {
         updateProgressUI(7);
-        addMessage(`🎉 Harika! Tüm AI SEO Entegrasyon zinciri dahil 6 adımın tamamını bitirdik.`, 'ai', true);
+        let llmsHtml = `🎉 Harika! Tüm AI SEO Entegrasyon zinciri dahil 6 adımın tamamını bitirdik.<br><br>Sitenizin ChatGPT ve Gemini gibi yapay zekalar tarafından %100 doğru anlaşılması için kök dizininize bir <strong>llms.txt</strong> dosyası eklemenizi öneririz.<br><br><button id="btn-generate-llms" class="btn btn--primary" style="margin-top:10px; background:#10b981; border:none; padding:8px 16px; font-weight:600; color:#fff; border-radius:6px; cursor:pointer;">🤖 Özel llms.txt Üret</button>`;
+        addMessage(llmsHtml, 'ai', true);
+        
+        setTimeout(() => {
+          let btn = document.getElementById('btn-generate-llms');
+          if(btn) {
+            btn.addEventListener('click', () => {
+              if(typeof window.openLlmsGenerator === 'function') window.openLlmsGenerator();
+            });
+          }
+        }, 100);
       }
       renderAiSeoActions();
       if (window.isAutoAnalyzing) {
@@ -574,68 +589,134 @@ Son olarak, önceki 4 adımda çıkardığın tüm analizleri (İş bağlamı, k
 
   function downloadReportPDF() {
     if (!reportData || reportData.length < 5) {
-      alert("Rapor oluşturulacak yeterli veri yok.");
+      alert("Rapor oluşturulacak yeterli veri yok. Lütfen analizi tamamlayın.");
       return;
     }
+
+    // 1. Fetch Todos
+    let todos = JSON.parse(localStorage.getItem('ag_seo_todos') || '{}');
+    let siteTodos = todos[targetUrl] || { tech: [], text: [], general: [] };
+    
+    let todoHtml = '';
+    if (siteTodos.tech.length > 0 || siteTodos.text.length > 0 || siteTodos.general.length > 0) {
+        todoHtml += '<div class="pdf-page" style="page-break-before: always;"><div class="pdf-header"><h2>🚀 Aksiyon Planı (Yapılacaklar)</h2></div>';
+        
+        if (siteTodos.tech.length > 0) {
+            todoHtml += '<div class="todo-box"><h3 class="todo-title" style="color:#ef4444;">🚨 Teknik Görevler</h3><ul class="todo-list">';
+            siteTodos.tech.forEach(t => todoHtml += `<li>${t.text}</li>`);
+            todoHtml += '</ul></div>';
+        }
+        if (siteTodos.text.length > 0) {
+            todoHtml += '<div class="todo-box"><h3 class="todo-title" style="color:#3b82f6;">✍️ Metin Görevleri</h3><ul class="todo-list">';
+            siteTodos.text.forEach(t => todoHtml += `<li>${t.text}</li>`);
+            todoHtml += '</ul></div>';
+        }
+        if (siteTodos.general.length > 0) {
+            todoHtml += '<div class="todo-box"><h3 class="todo-title" style="color:#10b981;">📌 Genel Görevler</h3><ul class="todo-list">';
+            siteTodos.general.forEach(t => todoHtml += `<li>${t.text}</li>`);
+            todoHtml += '</ul></div>';
+        }
+        todoHtml += '</div>';
+    }
+
+    const dateStr = new Date().toLocaleDateString('tr-TR');
 
     const reportDiv = document.createElement('div');
     reportDiv.innerHTML = `
       <style>
-        .pdf-page { page-break-after: always; padding: 20px; font-family: Arial, sans-serif; }
-        .pdf-page:last-child { page-break-after: auto; }
-        .pdf-header { text-align: center; color: #1e3a8a; margin-bottom: 20px; border-bottom: 2px solid #1e3a8a; padding-bottom: 10px; }
-        .pdf-title { font-size: 20px; font-weight: bold; margin-bottom: 5px; }
-        .pdf-url { font-size: 12px; color: #6b7280; }
-        .pdf-section { margin-bottom: 15px; }
-        .pdf-section h2, .pdf-section strong { color: #2563eb; font-size: 15px; margin-bottom: 8px; display: block; page-break-after: avoid; }
-        .pdf-section h3 { color: #1f2937; font-size: 13px; margin-top: 10px; page-break-after: avoid; }
-        .pdf-section p { font-size: 12px; line-height: 1.4; color: #374151; margin-bottom: 8px; text-align: justify; }
-        .pdf-section ul, .pdf-section ol { padding-left: 15px; margin-bottom: 8px; }
-        .pdf-section li { font-size: 12px; margin-bottom: 6px; color: #374151; line-height: 1.4; page-break-inside: avoid; text-align: justify; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; margin-bottom: 10px; page-break-inside: avoid; }
-        th, td { border: 1px solid #d1d5db; padding: 6px; text-align: left; font-size: 11px; }
-        th { background-color: #f3f4f6; color: #1f2937; }
+        * { box-sizing: border-box; }
+        .pdf-wrapper { font-family: 'Inter', Arial, sans-serif; background-color: #f8fafc; color: #1e293b; }
+        
+        .pdf-cover { height: 1120px; display: flex; flex-direction: column; justify-content: center; align-items: center; background: linear-gradient(135deg, #ef4444 0%, #7f1d1d 100%); color: white; text-align: center; padding: 40px; page-break-after: always; }
+        .pdf-cover-logo { font-size: 42px; font-weight: 800; letter-spacing: -1px; margin-bottom: 20px; text-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        .pdf-cover-title { font-size: 56px; font-weight: 800; margin-bottom: 30px; line-height: 1.1; }
+        .pdf-cover-subtitle { font-size: 24px; font-weight: 500; opacity: 0.9; margin-bottom: 50px; }
+        .pdf-cover-url { background: rgba(255,255,255,0.1); padding: 15px 30px; border-radius: 50px; font-size: 20px; font-weight: 600; font-family: monospace; border: 1px solid rgba(255,255,255,0.2); }
+        .pdf-cover-date { margin-top: auto; font-size: 16px; opacity: 0.7; }
+        
+        .pdf-page { padding: 40px; min-height: 1120px; position: relative; background: white; }
+        .pdf-page:not(:last-child) { page-break-after: always; }
+        
+        .pdf-header { border-bottom: 3px solid #ef4444; padding-bottom: 15px; margin-bottom: 30px; }
+        .pdf-header h2 { font-size: 28px; color: #0f172a; margin: 0; font-weight: 800; letter-spacing: -0.5px; }
+        
+        .pdf-section { background: #ffffff; border-radius: 12px; padding: 25px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); border: 1px solid #e2e8f0; }
+        .pdf-section h3, .pdf-section strong { color: #ef4444; font-size: 18px; margin-bottom: 12px; display: block; page-break-after: avoid; font-weight: 700; }
+        .pdf-section h4 { color: #334155; font-size: 15px; margin-top: 15px; page-break-after: avoid; }
+        .pdf-section p { font-size: 14px; line-height: 1.6; color: #475569; margin-bottom: 12px; text-align: justify; }
+        .pdf-section ul, .pdf-section ol { padding-left: 20px; margin-bottom: 15px; }
+        .pdf-section li { font-size: 14px; margin-bottom: 8px; color: #475569; line-height: 1.5; text-align: justify; }
+        
+        .todo-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; margin-bottom: 20px; }
+        .todo-title { margin-top: 0; font-size: 16px; font-weight: 700; margin-bottom: 15px; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px; }
+        .todo-list { list-style-type: none; padding-left: 0; margin: 0; }
+        .todo-list li { position: relative; padding-left: 25px; margin-bottom: 12px; font-size: 14px; color: #334155; line-height: 1.5; }
+        .todo-list li::before { content: "✓"; position: absolute; left: 0; top: 0; color: #ef4444; font-size: 16px; font-weight: bold; }
+        
+        .footer { position: absolute; bottom: 20px; left: 40px; right: 40px; border-top: 1px solid #e2e8f0; padding-top: 10px; font-size: 10px; color: #94a3b8; display: flex; justify-content: space-between; }
       </style>
       
-      <div class="pdf-page">
-        <div class="pdf-header">
-          <div class="pdf-title">Yapay Zeka İçerik Analizi</div>
-          <div class="pdf-url">URL: ${targetUrl}</div>
-        </div>
-        <div class="pdf-section">
-          ${(reportData[0] || '').replace(/\(Domain Business Context\)/gi, '').replace(/\(WHAT IS THIS DOMAIN ABOUT\)/gi, '').replace(/\(TARGET AUDIENCE\)/gi, '').replace(/\(INDUSTRY NICHE\)/gi, '')}
-        </div>
-      </div>
-      
-      <div class="pdf-page">
-        <div class="pdf-section">
-          ${(reportData[1] || '').replace(/\(OVERVIEW\)/gi, '').replace(/\(Score\)/gi, '(Skor)')}
-        </div>
-      </div>
-    
-      <div class="pdf-page">
-        <div class="pdf-section">
-          ${(reportData[2] || '').replace(/\(Competitor Content Insights\)/gi, '')}
-        </div>
-        <div class="pdf-section">
-          ${(reportData[3] || '').replace(/\(AI Content Trust\)/gi, '').replace(/\(CONTENT TRUST SCORE\)/gi, '').replace(/\(Topical Relevance\)/gi, '').replace(/\(Subject Expertise\)/gi, '').replace(/\(Credibility\)/gi, '').replace(/\(CONTENT TRUST IMPROVEMENTS\)/gi, '')}
-        </div>
-      </div>
-    
-      <div class="pdf-page">
-        <div class="pdf-section">
-          ${reportData[4] || ''}
-        </div>
+      <div class="pdf-wrapper">
+          <!-- COVER PAGE -->
+          <div class="pdf-cover">
+            <div class="pdf-cover-logo">AG SEO CHECK UP</div>
+            <div class="pdf-cover-title">KAPSAMLI<br>YAPAY ZEKA SEO<br>ANALİZ RAPORU</div>
+            <div class="pdf-cover-subtitle">Modern Arama Motorları ve SGE İçin Özel İnceleme</div>
+            <div class="pdf-cover-url">${targetUrl}</div>
+            <div class="pdf-cover-date">Oluşturulma Tarihi: ${dateStr}</div>
+          </div>
+          
+          <!-- PAGE 1: İş Bağlamı -->
+          <div class="pdf-page">
+            <div class="pdf-header"><h2>1. İş Bağlamı ve E-E-A-T Analizi</h2></div>
+            <div class="pdf-section">
+              ${(reportData[0] || '').replace(/\(Domain Business Context\)/gi, '').replace(/\(WHAT IS THIS DOMAIN ABOUT\)/gi, '').replace(/\(TARGET AUDIENCE\)/gi, '').replace(/\(INDUSTRY NICHE\)/gi, '')}
+            </div>
+            <div class="footer"><span>AG SEO Check Up - Gizli Rapor</span></div>
+          </div>
+          
+          <!-- PAGE 2: Etkililik -->
+          <div class="pdf-page">
+            <div class="pdf-header"><h2>2. Kullanıcı Soruları ve Etkililik</h2></div>
+            <div class="pdf-section">
+              ${(reportData[1] || '').replace(/\(OVERVIEW\)/gi, '').replace(/\(Score\)/gi, '(Skor)')}
+            </div>
+            <div class="footer"><span>AG SEO Check Up - Gizli Rapor</span></div>
+          </div>
+        
+          <!-- PAGE 3: Rakip Analizi & Güven Puanı -->
+          <div class="pdf-page">
+            <div class="pdf-header"><h2>3. Rakip & Güven Analizi</h2></div>
+            <div class="pdf-section">
+              ${(reportData[2] || '').replace(/\(Competitor Content Insights\)/gi, '')}
+            </div>
+            <div class="pdf-section">
+              ${(reportData[3] || '').replace(/\(AI Content Trust\)/gi, '').replace(/\(CONTENT TRUST SCORE\)/gi, '').replace(/\(Topical Relevance\)/gi, '').replace(/\(Subject Expertise\)/gi, '').replace(/\(Credibility\)/gi, '').replace(/\(CONTENT TRUST IMPROVEMENTS\)/gi, '')}
+            </div>
+            <div class="footer"><span>AG SEO Check Up - Gizli Rapor</span></div>
+          </div>
+        
+          <!-- PAGE 4: Optimizasyon & Entegrasyon -->
+          <div class="pdf-page">
+            <div class="pdf-header"><h2>4. Optimizasyon Önerileri</h2></div>
+            <div class="pdf-section">
+              ${reportData[4] || ''}
+            </div>
+            <div class="footer"><span>AG SEO Check Up - Gizli Rapor</span></div>
+          </div>
+          
+          <!-- PAGE 5: YAPILACAKLAR -->
+          ${todoHtml}
       </div>
     `;
 
     if (typeof html2pdf !== 'undefined') {
       const opt = {
-        margin:       [15, 10, 20, 10],
-        filename:     'GEO_Analiz_Raporu.pdf',
+        margin:       0,
+        filename:     'AG_SEO_Raporu.pdf',
         image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2, useCORS: true },
-        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        html2canvas:  { scale: 2, useCORS: true, letterRendering: true },
+        jsPDF:        { unit: 'px', format: [794, 1123], orientation: 'portrait' }
       };
       
       html2pdf().set(opt).from(reportDiv).save();
