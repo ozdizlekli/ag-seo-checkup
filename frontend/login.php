@@ -39,8 +39,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     } else {
         // No DB connection, use JSON fallback
         $users = [];
-        if (file_exists('users.json')) {
-            $users = json_decode(file_get_contents('users.json'), true);
+        $users_file = __DIR__ . '/users.json';
+        if (file_exists($users_file)) {
+            $users = json_decode(file_get_contents($users_file), true);
         }
         if (isset($users[$username]) && password_verify($password, $users[$username])) {
             $_SESSION['loggedin'] = true;

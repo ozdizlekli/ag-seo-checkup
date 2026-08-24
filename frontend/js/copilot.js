@@ -21,6 +21,8 @@ document.addEventListener('DOMContentLoaded', () => {
   let targetUrl = '';
   let targetType = '';
   let fetchedData = null;
+  window.targetCompetitorUrl = '';
+  window.fetchedCompetitorData = null;
   let chatMessages = [];
   let reportData = [];
   let currentChatId = Date.now().toString();
@@ -255,6 +257,8 @@ document.addEventListener('DOMContentLoaded', () => {
     targetUrl = '';
     targetType = '';
     fetchedData = null;
+    window.targetCompetitorUrl = '';
+    window.fetchedCompetitorData = null;
     chatMessages = [];
     reportData = [];
     
@@ -263,6 +267,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if (llmsC) llmsC.style.display = 'none';
     const msgContainer = document.getElementById('copilot-chat-messages-container');
     if (msgContainer) msgContainer.style.display = 'block';
+    
+    const compInput = document.getElementById('copilot-competitor-input');
+    if (compInput) {
+      compInput.value = '';
+      compInput.style.display = 'block';
+    }
+
     if (msgContainer) msgContainer.innerHTML = '';
     addMessage(`👋 Merhaba! Ben <strong>GEO SEO Asistanı</strong>.<br><br>Web siteni tarayıp yapay zeka (LLM) arama motorları için optimize edelim. Lütfen analiz etmemi istediğin sayfanın <strong>URL'sini</strong> aşağıya yaz.`, 'ai', true, false);
     
@@ -283,7 +294,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!val) return;
     
     if (currentState === 'WAITING_FOR_URL') {
-      addMessage(val, 'user');
+      const compInput = document.getElementById('copilot-competitor-input');
+      window.targetCompetitorUrl = compInput ? compInput.value.trim() : '';
+      if (compInput) compInput.style.display = 'none';
+
+      addMessage(window.targetCompetitorUrl ? `${val} (Rakip: ${window.targetCompetitorUrl})` : val, 'user');
       copilotTextInput.value = '';
       if (!val.startsWith('http')) { addMessage("Lütfen geçerli bir URL girin (http veya https ile başlamalı).", 'ai'); return; }
       
@@ -326,7 +341,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function startUrlFetch() {
     copilotActions.innerHTML = '';
-    addMessage("Arka planda siteyi tarıyorum, meta ve schema verilerini çekiyorum. Lütfen bekle...", 'ai');
+    addMessage(window.targetCompetitorUrl ? "Hedef site ve rakip site arka planda taranıyor. Lütfen bekle..." : "Arka planda siteyi tarıyorum, meta ve schema verilerini çekiyorum. Lütfen bekle...", 'ai');
     addTypingIndicator();
     try {
       const res = await fetch(`fetch_url.php?url=${encodeURIComponent(targetUrl)}`);
@@ -335,7 +350,26 @@ document.addEventListener('DOMContentLoaded', () => {
       if (data.error) { addMessage(`Hata: ${data.error}`, 'ai'); setTimeout(resetChat, 3000); return; }
       
       fetchedData = data;
-      addMessage(`✅ Site başarıyla tarandı!<br><br><strong>Başlık:</strong> ${data.title}<br><strong>Bulunan Schema Sayısı:</strong> ${data.schemas ? data.schemas.length : 0}<br><br>Şimdi ${targetType} sitenize özel 5 adımlı analiz sürecini başlatabiliriz.`, 'ai', true);
+      addMessage(`✅ Hedef Site başarıyla tarandı!<br><br><strong>Başlık:</strong> ${data.title}<br><strong>Bulunan Schema Sayısı:</strong> ${data.schemas ? data.schemas.length : 0}`, 'ai', true);
+
+      if (window.targetCompetitorUrl) {
+          addTypingIndicator();
+          try {
+              const resComp = await fetch(`fetch_url.php?url=${encodeURIComponent(window.targetCompetitorUrl)}`);
+              window.fetchedCompetitorData = await resComp.json();
+              removeTypingIndicator();
+              if (window.fetchedCompetitorData.error) {
+                  addMessage(`Rakip site taranamadı: ${window.fetchedCompetitorData.error}. Analize rakipten bağımsız devam edilecek.`, 'ai');
+              } else {
+                  addMessage(` Rakip Site (${window.targetCompetitorUrl}) başarıyla tarandı! Analiz için hazır.`, 'ai');
+              }
+          } catch(e) {
+              removeTypingIndicator();
+              addMessage(`Rakip site taranamadı: ${e.message}`, 'ai');
+          }
+      }
+
+      addMessage(`Şimdi ${targetType} sitenize özel 5 adımlı analiz sürecini başlatabiliriz.`, 'ai', true);
       renderAiSeoActions();
     } catch (e) {
       removeTypingIndicator();
@@ -362,6 +396,10 @@ document.addEventListener('DOMContentLoaded', () => {
          <button class="btn btn--primary" id="btn-analyze-all" style="flex: 1; font-size: 11.5px; padding: 8px; font-weight: 600;">${analyzeText}</button>
          <button class="btn btn--secondary" id="btn-fix-all" style="flex: 1; font-size: 11.5px; padding: 8px; font-weight: 600;">${fixText}</button>
       </div>`;
+
+      if (window.fetchedCompetitorData && !window.fetchedCompetitorData.error && !completedSteps.has(3)) {
+          actionsHtml += `<button class="btn btn--primary" id="btn-battle-mode" style="width: 100%; margin-bottom: 10px; background: #dc2626; color: white; border: none; font-size: 11.5px; padding: 8px; font-weight: 600; box-shadow: 0 4px 15px rgba(220,38,38,0.3);"> SADECE RAKİP SAVAŞINI BAŞLAT (ADIM 3)</button>`;
+      }
     } else if (completedSteps.size >= 5 && fixedIssues.size < 6) {
       const analyzeText = "⚡ Kalan Adımları Analiz Et";
       const fixText = fixedIssues.size === 0 ? "🔧 Tüm Eksikleri Gider" : "🔧 Kalan Eksikleri Gider";
@@ -451,6 +489,12 @@ document.addEventListener('DOMContentLoaded', () => {
         await runAutoAnalysis();
       });
     }
+    if (document.getElementById('btn-battle-mode')) {
+      document.getElementById('btn-battle-mode').addEventListener('click', async () => {
+        currentStep = 3;
+        await processAiSeoStep();
+      });
+    }
     if (document.getElementById('btn-fix-all')) {
       document.getElementById('btn-fix-all').addEventListener('click', async () => {
         window.isAutoFixing = true;
@@ -527,12 +571,31 @@ Buna ek olarak E-E-A-T (Deneyim, Uzmanlık, Otoriterlik, Güvenilirlik) kurallar
 * İÇERİK FIRSATLARI (Uygulanabilir aksiyon tavsiyelerini 5 maddelik liste yap.)`;
     } 
     else if (step === 3) {
-      p += `Aşağıdaki başlıkları kullanarak rakipleri analiz et:
+      if (window.fetchedCompetitorData && !window.fetchedCompetitorData.error) {
+          p += `GERÇEK ZAMANLI RAKİP SAVAŞ MODU (BATTLE MODE) AKTİF!
+HEDEF SİTE (Müşteri): ${fetchedData.title}
+RAKİP SİTE (Geçilecek Site): ${window.fetchedCompetitorData.title}
+
+Rakibin Çekilen HTML/İçerik Verisi (Sadece Özet):
+- Rakip H1/H2 Başlıkları: ${JSON.stringify((window.fetchedCompetitorData.headings || []).slice(0,5))}
+- Rakip Şema (Schema) Kullanımı: ${window.fetchedCompetitorData.schemas ? window.fetchedCompetitorData.schemas.length : 0} adet
+- Rakip Meta Açıklaması: ${window.fetchedCompetitorData.description}
+- Rakip Metni (İlk 500 Karakter): ${(window.fetchedCompetitorData.text || '').substring(0, 500)}
+
+Görev: Müşterinin sitesiyle, bu canlı rakip sitesini "Generative Engine Optimization (GEO)" perspektifinden acımasızca kıyasla! Sadece genel SEO değil, Yapay Zeka botlarının (ChatGPT, SGE, Perplexity) okuma ve alıntı yapma biçimlerine odaklanarak şu formatta kapsamlı bir rapor çıkar:
+
+* 🧠 SEMANTİK KAPSAM VE VARLIK (ENTITY) ANALİZİ: Rakip metninde hangi alt başlıkları, soruları ve kavramları kullanarak konuyu bizden daha derinlemesine işlemiş? Biz hangi "varlıkları (entities)" kaçırmışız?
+* 🏗 FORMAT VE YZ OKUNABİLİRLİĞİ (LLM UYUMU): Rakip "Soru-Cevap (Direct Answer)", "Maddeleme", veya "Tablo" gibi LLM'lerin referans göstermeye bayıldığı yapıları (Citation-friendly) nasıl kullanmış? Bizim yapımız yapay zeka için yeterince net mi?
+* 🛡 E-E-A-T VE BİLGİ YOĞUNLUĞU: Rakibin şema (schema) zenginliği, kullandığı istatistikler veya uzmanlık dili, onun YZ tarafından daha "Güvenilir Kaynak" algılanmasını sağlıyor mu? Bizim içeriğimizde "Bilgi Yoğunluğu (Information Gain)" eksikliği var mı?
+* ⚔️ KESİN ZAFER STRATEJİSİ: ChatGPT ve Google SGE aramalarında bu rakibi tahtından etmek ve YZ tarafından "Ana Kaynak (Citation)" gösterilmek için acilen yapmamız gereken 5 nokta atışı taktik.`;
+      } else {
+          p += `Aşağıdaki başlıkları kullanarak rakipleri analiz et:
 **Rakip İçerik Öngörüleri**
 * GENEL BAKIŞ
 * Aynı sektördeki en iyi bilinen en az 3 rakibi (örn. Magna Dijital, Webtures, Zeo Agency vb. veya global alternatifler) ele al. 
 * Her rakip için tahmini İÇERİK GÜVEN PUANI (%), güçlü (✔) ve zayıf (▲) yönlerini listele.
 Sitenin bu rakiplere kıyasla hangi açıkları kapatması gerektiğini vurgula.`;
+      }
     } 
     else if (step === 4) {
       p += `Aşağıdaki başlıkları kullanarak LLM içerik güven metriklerini yüzdelik (%) olarak belirle:
@@ -741,7 +804,7 @@ Son olarak, önceki 4 adımda çıkardığın tüm analizleri (İş bağlamı, k
   async function loadHistory() {
     if (!historyList) return;
     try {
-      const res = await fetch('save_chat.php');
+      const res = await fetch('save_chat.php?t=' + Date.now());
       const data = await res.json();
       historyList.innerHTML = '';
       if (!data.history || data.history.length === 0) {
