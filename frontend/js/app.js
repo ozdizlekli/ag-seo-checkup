@@ -138,7 +138,7 @@ function showToast(message, type){
 ============================================================ */
 async function fetchClients(){
   try{
-    const res = await fetch('api/clients.php'); const data = await res.json(); const error = data.error;
+    const res = await fetch('api/clients.php'); const { data, error } = await res.json();
     if(error) throw error;
     state.clients = data || [];
     renderClientSelect();
@@ -169,7 +169,7 @@ document.getElementById('client-add-btn').addEventListener('click', async () => 
     const payload = { name: name.trim() };
     if (domainUrl && domainUrl.trim()) payload.domain_url = domainUrl.trim();
     
-    const res = await fetch('api/clients.php', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)}); const data = [await res.json()]; const error = data[0].error;
+    const res = await fetch('api/clients.php', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)}); const { data, error } = await res.json();
     if(error) throw error;
     await fetchClients();
     if(data && data[0]){
@@ -1178,7 +1178,7 @@ async function fetchContentHistory(){
     return;
   }
   try{
-    const res = await fetch('api/content_history.php?client_id='+state.currentClientId); const data = await res.json(); const error = data.error;
+    const res = await fetch('api/content_history.php?client_id='+state.currentClientId); const { data, error } = await res.json();
     if(error) throw error;
 
     state.contentArchive = (data || []).map(row => ({
@@ -2243,7 +2243,7 @@ async function computeAndRenderScore(){
   let calculatedKeywordScore = 0;
   if(state.currentClientId){
      try {
-       const res = await fetch('api/client_keywords.php?client_id='+state.currentClientId); const kwData = await res.json();
+       const res = await fetch('api/client_keywords.php?client_id='+state.currentClientId); const { data: kwData, error } = await res.json();
        if(kwData && kwData.length > 0) {
           calculatedKeywordScore = 100;
        }
@@ -2532,7 +2532,7 @@ document.getElementById('t6-snapshot-btn').addEventListener('click', async () =>
     overall_score: state.lastScores.overall,
   };
   try{
-    const res = await fetch('api/score_history.php', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)}); const json = await res.json(); const error = json.error;
+    const res = await fetch('api/score_history.php', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify([payload])}); const json = await res.json(); const error = json.error;
     if(error) throw error;
     showToast('Anlık görüntü kaydedildi.', 'success');
     await fetchScoreHistory();
@@ -2549,7 +2549,7 @@ async function fetchScoreHistory(){
     return;
   }
   try{
-    const res = await fetch('api/score_history.php?client_id='+state.currentClientId); const data = await res.json(); const error = data.error;
+    const res = await fetch('api/score_history.php?client_id='+state.currentClientId); const { data, error } = await res.json();
     if(error) throw error;
     renderTrendChart(data || []);
   }catch(err){
