@@ -3241,10 +3241,10 @@ Yalnızca geçerli bir JSON döndür. Başka metin ekleme.`;
 
     if(aiParsed.contentOpportunities) {
        document.getElementById('t8-opportunities').innerHTML = aiParsed.contentOpportunities.map((o, i) => `
-         <div style="margin-bottom:12px; page-break-inside: avoid;">
-           <strong style="color:#333; font-size:14px;">${i+1}. ${escapeHtml(o.title || 'Fırsat')}</strong>
-           <p style="margin:4px 0 0 0; font-size:14px; color:#444;">${escapeHtml(o.desc || o)}</p>
-         </div>
+         <details class="seo-details">
+           <summary>${i+1}. ${escapeHtml(o.title || 'Fırsat')}</summary>
+           <div class="details-content">${escapeHtml(o.desc || o)}</div>
+         </details>
        `).join('');
     }
 
