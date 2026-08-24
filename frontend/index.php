@@ -44,8 +44,8 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://unpkg.com/@phosphor-icons/web"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jsdiff/7.0.0/diff.min.js"></script>
-<link rel="stylesheet" href="css/text-seo.css">
-<link rel="stylesheet" href="css/text-seo-pdf.css">
+<link rel="stylesheet" href="src/TextSeo/css/text-seo.css">
+<link rel="stylesheet" href="src/TextSeo/css/text-seo-pdf.css">
 </head>
 <body>
 
@@ -641,7 +641,7 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
 <script src="js/app.js?v=1787294257"></script>
 <script src="js/welcome.js"></script>
 <!-- Text SEO Scripts -->
-<script src="js/text-seo-pdf.js"></script>
-<script src="js/text-seo.js"></script>
+<script src="src/TextSeo/js/text-seo-pdf.js"></script>
+<script src="src/TextSeo/js/text-seo.js"></script>
 </body>
 </html>

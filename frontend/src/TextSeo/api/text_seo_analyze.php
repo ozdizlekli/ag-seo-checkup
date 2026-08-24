@@ -22,16 +22,16 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-require_once __DIR__ . '/../src/TextSeo/Engine/TextCleaner.php';
-require_once __DIR__ . '/../src/TextSeo/Engine/VolumeAnatomyAnalyzer.php';
-require_once __DIR__ . '/../src/TextSeo/Engine/ReadabilityAnalyzer.php';
-require_once __DIR__ . '/../src/TextSeo/Engine/ProminenceAnalyzer.php';
-require_once __DIR__ . '/../src/TextSeo/Engine/KeywordFrequencyAnalyzer.php';
-require_once __DIR__ . '/../src/TextSeo/Engine/LexicalSemanticsAnalyzer.php';
-require_once __DIR__ . '/../src/TextSeo/Engine/IntentEngagementAnalyzer.php';
-require_once __DIR__ . '/../src/TextSeo/Engine/TelemetryCompiler.php';
-require_once __DIR__ . '/../src/TextSeo/Engine/SeoMetricEngine.php';
-require_once __DIR__ . '/../src/TextSeo/Services/GeminiService.php';
+require_once __DIR__ . '/../Engine/TextCleaner.php';
+require_once __DIR__ . '/../Engine/VolumeAnatomyAnalyzer.php';
+require_once __DIR__ . '/../Engine/ReadabilityAnalyzer.php';
+require_once __DIR__ . '/../Engine/ProminenceAnalyzer.php';
+require_once __DIR__ . '/../Engine/KeywordFrequencyAnalyzer.php';
+require_once __DIR__ . '/../Engine/LexicalSemanticsAnalyzer.php';
+require_once __DIR__ . '/../Engine/IntentEngagementAnalyzer.php';
+require_once __DIR__ . '/../Engine/TelemetryCompiler.php';
+require_once __DIR__ . '/../Engine/SeoMetricEngine.php';
+require_once __DIR__ . '/../Services/GeminiService.php';
 
 use SeoEngine\SeoMetricEngine;
 use Services\GeminiService;

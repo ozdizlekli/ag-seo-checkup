@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const historySection = document.getElementById('historySection');
     const historyList = document.getElementById('historyList');
     const clearAllHistoryBtn = document.getElementById('clearAllHistoryBtn');
-    const logoHomeBtn = document.getElementById('logoHomeBtn');
+    const backToInputBtn = document.getElementById('backToInputBtn');
     
     let chartInstance = null;
     let apiData = null;
@@ -127,11 +127,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    logoHomeBtn.addEventListener('click', () => {
-        resultsSection.classList.add('hidden');
-        inputSection.classList.remove('hidden');
-        renderHistory();
-    });
+    if (backToInputBtn) {
+        backToInputBtn.addEventListener('click', () => {
+            resultsSection.classList.add('hidden');
+            inputSection.classList.remove('hidden');
+            renderHistory();
+        });
+    }
 
     // --- Init ---
     renderHistory();
@@ -228,7 +230,7 @@ document.addEventListener('DOMContentLoaded', () => {
             updateLoadingStep(1, "Metin anatomisi ölçülüyor...");
             
             console.log("[UI LOG] 2. api/text_seo_analyze.php adresine POST isteği gönderiliyor...");
-            const response = await fetch('api/text_seo_analyze.php', {
+            const response = await fetch('src/TextSeo/api/text_seo_analyze.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
@@ -366,8 +368,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const transitionFb = readability.transition_words?.feedback || {};
         const passiveFb = readability.passive_voice?.feedback || {};
 
-        document.getElementById('readabilityStats').className = 'space-y-3';
-        document.getElementById('readabilityStats').innerHTML = `
+        const readabilityStatsEl = document.getElementById('readabilityStats');
+        // Kapsayıcı sınıflarını (grid yapısını) bozmamak için className ezilmez.
+        readabilityStatsEl.innerHTML = `
             <div class="bg-gray-50 dark:bg-gray-800/50 p-3 rounded-lg border border-gray-100 dark:border-gray-800">
                 <div class="flex justify-between items-start">
                     <h4 class="text-sm font-bold text-slate-700">Okunabilirlik Puanı: <span class="text-primary">${readability.atesman_index || '-'}</span></h4>

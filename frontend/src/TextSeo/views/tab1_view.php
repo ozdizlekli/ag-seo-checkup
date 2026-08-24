@@ -84,6 +84,11 @@
 
     <!-- Results Section -->
     <section id="resultsSection" class="hidden mt-8">
+        <div class="mb-4">
+            <button id="backToInputBtn" class="flex items-center gap-2 text-sm font-semibold text-gray-600 hover:text-primary transition bg-white px-4 py-2 rounded-lg border border-gray-200 shadow-sm">
+                <i class="ph ph-arrow-left text-lg"></i> Geri Dön / Yeni Analiz
+            </button>
+        </div>
         <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 gap-4">
             <div>
                 <h2 class="text-3xl font-bold flex items-center gap-3">
@@ -138,72 +143,69 @@
             
             <!-- Tab 1: Detaylı Analiz & Karne -->
             <div id="tab1" class="tab-pane active space-y-6">
-                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                    <!-- SOL SÜTUN: Anatomi Kartları + AI Yönetici Özeti (lg:col-span-5) -->
-                    <div class="lg:col-span-5 space-y-6 flex flex-col">
-                        <!-- Metin Anatomisi & X-Ray Röntgen Bölümü -->
-                        <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm transition-all duration-300">
-                            <div class="flex items-center justify-between mb-4">
-                                <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2">
-                                     <i class="ph ph-stethoscope text-primary text-base"></i> İçerik Yapısı ve Detaylı Analiz
-                                 </h3>
-                                 <span class="text-[11px] font-semibold text-primary bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-100 flex items-center gap-1">
-                                     <i class="ph ph-cpu"></i> Gelişmiş İçerik ve Dil Analizi
-                                 </span>
-                            </div>
-                            <!-- 1. KATMAN: Hero 4'lü Özet Izgarası -->
-                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3" id="anatomyHeroCards">
-                                <!-- JS ile dinamik doldurulacak -->
-                            </div>
-                            <!-- 2. KATMAN: Genişletilebilir Röntgen Çekmecesi (Accordion Trigger) -->
-                            <div class="mt-4 pt-3 border-t border-gray-100">
-                                <button type="button" id="toggleXrayBtn" class="w-full py-2.5 px-4 bg-slate-50 hover:bg-slate-100 text-slate-700 rounded-xl text-xs font-bold transition flex items-center justify-between group border border-slate-200/70">
-                                    <span class="flex items-center gap-2">
-                                        <i class="ph-fill ph-sparkle text-primary group-hover:rotate-12 transition-transform"></i>
-                                        <span>Gelişmiş İçerik Analizi ve SEO Kriterleri</span>
-                                        <span class="bg-primary/10 text-primary text-[10px] px-2 py-0.5 rounded-md font-semibold">24+ Metrik</span>
-                                    </span>
-                                    <i class="ph ph-caret-down text-slate-400 group-hover:text-slate-600 transition-transform duration-200" id="xrayChevron"></i>
-                                </button>
-                                <!-- Açılır X-Ray Paneli (Varsayılan: Hidden) -->
-                                <div id="xrayDetailPanel" class="hidden mt-4 space-y-4 transition-all duration-300">
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3" id="xrayGrid">
-                                        <!-- JS ile 4 sütun doldurulacak -->
+                <div class="flex flex-col space-y-6">
+                    <!-- İçerik Yapısı ve Detaylı Analiz (Eski Sol Üst) -->
+                    <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm transition-all duration-300">
+                        <div class="flex items-center justify-between mb-5">
+                            <h3 class="text-sm font-bold text-gray-500 uppercase tracking-wider flex items-center gap-2">
+                                 <i class="ph ph-stethoscope text-primary text-lg"></i> İçerik Yapısı ve Detaylı Analiz
+                             </h3>
+                             <span class="text-[11px] font-semibold text-primary bg-blue-50 px-3 py-1 rounded-full border border-blue-100 flex items-center gap-1">
+                                 <i class="ph ph-cpu"></i> Gelişmiş İçerik ve Dil Analizi
+                             </span>
+                        </div>
+                        <!-- 1. KATMAN: Hero 4'lü Özet Izgarası -->
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4" id="anatomyHeroCards">
+                            <!-- JS ile dinamik doldurulacak -->
+                        </div>
+                        <!-- 2. KATMAN: Genişletilebilir Röntgen Çekmecesi (Accordion Trigger) -->
+                        <div class="mt-6 pt-4 border-t border-gray-100">
+                            <button type="button" id="toggleXrayBtn" class="w-full py-4 px-6 bg-gradient-to-r from-blue-50 to-slate-50 hover:from-blue-100 hover:to-slate-100 text-slate-800 rounded-xl text-sm font-bold transition-all shadow-sm flex items-center justify-between group border border-blue-100/50">
+                                <span class="flex items-center gap-3">
+                                    <div class="w-8 h-8 rounded-full bg-white shadow-sm flex items-center justify-center border border-blue-50">
+                                        <i class="ph-fill ph-sparkle text-primary text-lg group-hover:rotate-12 transition-transform"></i>
                                     </div>
+                                    <span>Gelişmiş İçerik Analizi ve SEO Kriterleri</span>
+                                    <span class="bg-primary text-white text-[10px] px-2.5 py-0.5 rounded-md font-semibold tracking-wide">24+ Metrik</span>
+                                </span>
+                                <i class="ph ph-caret-down text-slate-400 group-hover:text-primary transition-transform duration-200 text-lg" id="xrayChevron"></i>
+                            </button>
+                            <!-- Açılır X-Ray Paneli (Varsayılan: Hidden) -->
+                            <div id="xrayDetailPanel" class="hidden mt-5 space-y-4 transition-all duration-300">
+                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4" id="xrayGrid">
+                                    <!-- JS ile sütunlar doldurulacak -->
                                 </div>
                             </div>
                         </div>
-                        <!-- AI Analiz Özeti ve Kritik Sorunlar -->
-                        <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex-grow">
-                            <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
-                                <i class="ph ph-sparkle text-amber-500 text-base"></i> AI Analiz Özeti
-                            </h3>
-                            <p id="aiSummary" class="text-xs leading-relaxed mb-4 text-gray-600 bg-amber-50/50 p-3 rounded-xl border border-amber-100/60 italic"></p>
-                            <h4 class="text-xs font-bold text-danger mb-2">Kritik İyileştirme Alanları:</h4>
-                            <ul id="aiIssues" class="text-xs space-y-1.5 list-disc list-inside text-gray-600"></ul>
-                        </div>
                     </div>
 
-                    <!-- SAĞ SÜTUN: Okunabilirlik (Readability) Rehberi (lg:col-span-7) -->
-                    <div class="lg:col-span-7 flex flex-col gap-6">
-                        <!-- Okunabilirlik -->
-                        <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-                            <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4 flex items-center gap-2">
-                                <i class="ph ph-book-open-text text-primary text-base"></i> Okunabilirlik & Anlaşılırlık Rehberi
-                            </h3>
-                            <div class="space-y-3.5" id="readabilityStats">
-                                <!-- Populated by JS -->
-                            </div>
+                    <!-- AI Analiz Özeti ve Kritik Sorunlar (Eski Sol Alt) -->
+                    <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+                        <h3 class="text-sm font-bold text-gray-500 uppercase tracking-wider mb-4 flex items-center gap-2">
+                            <i class="ph ph-sparkle text-amber-500 text-lg"></i> AI Analiz Özeti
+                        </h3>
+                        <p id="aiSummary" class="text-sm leading-relaxed mb-5 text-gray-700 bg-amber-50/60 p-4 rounded-xl border border-amber-200/50 italic"></p>
+                        <h4 class="text-sm font-bold text-danger mb-3 flex items-center gap-2"><i class="ph-fill ph-warning-circle"></i> Kritik İyileştirme Alanları:</h4>
+                        <ul id="aiIssues" class="text-sm space-y-2 list-disc list-inside text-gray-600 bg-red-50/30 p-4 rounded-xl border border-red-100/50"></ul>
+                    </div>
+
+                    <!-- Okunabilirlik (Readability) Rehberi (Eski Sağ Üst) -->
+                    <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+                        <h3 class="text-sm font-bold text-gray-500 uppercase tracking-wider mb-5 flex items-center gap-2">
+                            <i class="ph ph-book-open-text text-primary text-lg"></i> Okunabilirlik & Anlaşılırlık Rehberi
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="readabilityStats">
+                            <!-- Populated by JS -->
                         </div>
-                        
-                        <!-- Başlık Ağacı Haritası -->
-                        <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex-grow">
-                            <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4 flex items-center gap-2">
-                                <i class="ph ph-tree-structure text-indigo-500 text-base"></i> İçerik Başlık Yapısı
-                            </h3>
-                            <div id="headingTreeContainer" class="bg-slate-50 p-4 rounded-xl border border-slate-100 space-y-2 overflow-x-auto">
-                                <!-- JS will populate -->
-                            </div>
+                    </div>
+                    
+                    <!-- Başlık Ağacı Haritası (Eski Sağ Alt) -->
+                    <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+                        <h3 class="text-sm font-bold text-gray-500 uppercase tracking-wider mb-5 flex items-center gap-2">
+                            <i class="ph ph-tree-structure text-indigo-500 text-lg"></i> İçerik Başlık Yapısı
+                        </h3>
+                        <div id="headingTreeContainer" class="bg-slate-50 p-5 rounded-xl border border-slate-200/60 space-y-3 overflow-x-auto">
+                            <!-- JS will populate -->
                         </div>
                     </div>
                 </div>
@@ -277,7 +279,7 @@
             </div>
 
             <!-- Tab 4: AI Düzeltme -->
-            <div id="tab4" class="tab-pane hidden h-full flex flex-col">
+            <div id="tab4" class="tab-pane hidden w-full h-full flex flex-col">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="text-sm font-bold text-gray-500 uppercase tracking-wider">Google Dostu SEO'lu Yeni Metin</h3>
                     <div class="flex gap-2">
@@ -288,12 +290,12 @@
                     </div>
                 </div>
                 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 flex-grow mb-4 h-[400px]">
-                    <div class="flex flex-col h-full">
+                <div class="grid w-full grid-cols-1 md:grid-cols-2 gap-4 flex-grow mb-4 h-[400px]">
+                    <div class="flex flex-col w-full h-full">
                         <div class="bg-gray-100 text-xs font-bold px-3 py-2 rounded-t-lg border border-gray-200 border-b-0 text-gray-500">Eski Metin (Sizin Yazdığınız)</div>
                         <textarea id="originalTextArea" class="w-full flex-grow p-4 border border-gray-200 rounded-b-lg bg-gray-50 focus:outline-none resize-none font-mono text-sm" readonly></textarea>
                     </div>
-                    <div class="flex flex-col h-full">
+                    <div class="flex flex-col w-full h-full">
                         <div class="bg-green-50 text-xs font-bold px-3 py-2 rounded-t-lg border border-green-200 border-b-0 text-success flex justify-between">
                             <span>Yeni Metin (Google Uyumlu)</span>
                             <span id="wordDiffStat" class="font-normal text-gray-500 "></span>
