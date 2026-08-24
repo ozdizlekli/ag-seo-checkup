@@ -3160,30 +3160,27 @@ document.getElementById('t8-analyze-btn').addEventListener('click', async () => 
   document.getElementById('t8-output-card').classList.add('hidden');
 
   try {
-    const targetUrl = `http://localhost:3000/api/scrape?url=${encodeURIComponent(url)}`;
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 30000); 
-
     let rawText = '';
+    let hasLlms = false;
     try {
-      const response = await fetch(targetUrl, { signal: controller.signal });
+      const response = await fetch(`api/fetch_url.php?url=${encodeURIComponent(url)}`);
       if(response.ok) {
          const data = await response.json();
-         rawText = data.content || '';
+         rawText = data.text || '';
+         hasLlms = data.has_llms_txt || false;
       }
     } catch(e) {
       console.warn('Scraping başarısız, sadece URL ile AI\'a sorulacak.', e);
     }
-    clearTimeout(timeoutId);
 
-    const textForAnalysis = rawText.substring(0, 5000);
+    const textForAnalysis = rawText; // fetch_url.php already trims to 20k
 
-    const aiPrompt = `Lütfen aşağıdaki web sitesi içeriğini veya domaini SEO ve pazarlama perspektifinden analiz et. Analizini TÜRKÇE yap ve kesinlikle JSON formatında döndür.
+    const aiPrompt = `Sen kıdemli bir AI SEO, Generative Engine Optimization (GEO) uzmanısın.
+Domain: ${url}
+Sitenin Markdown Formatındaki İçeriği: ${textForAnalysis}
+llms.txt durumu: ${hasLlms ? 'Var' : 'Yok'}
 
-Hedef Domain/URL: ${url}
-Siteden çekilebilen içerik (varsa): ${textForAnalysis}
-
-Lütfen şu formatta bir JSON döndür:
+Aşağıdaki bilgileri EKSİKSİZ, DETAYLI ve SADECE geçerli bir JSON olarak döndür:
 {
   "domainBusinessContext": {
     "about": "Bu domain/şirket hakkında genel bilgi...",
@@ -3201,9 +3198,9 @@ Lütfen şu formatta bir JSON döndür:
     ]
   },
   "contentOpportunities": [
-    "Fırsat 1...",
-    "Fırsat 2...",
-    "Fırsat 3..."
+    { "title": "llms.txt Dosyası", "desc": "Yapay zeka için özet dosya eksik/var..." },
+    { "title": "İç Linkleme (Anchor Text)", "desc": "Link metinleri SEO'ya uygun mu?..." },
+    { "title": "Başlık Hiyerarşisi", "desc": "H1, H2 yapısı semantik mi?..." }
   ],
   "competitorInsights": "Rakip analizi bağlamında sitenin güçlü ve zayıf yönleri...",
   "aiContentTrust": {
@@ -3216,7 +3213,7 @@ Lütfen şu formatta bir JSON döndür:
     ]
   }
 }
-Yalnızca geçerli bir JSON döndür. Başka bir metin ekleme.`;
+Yalnızca geçerli bir JSON döndür. Başka metin ekleme.`;
 
     const rawAiResponse = await callGemini(aiPrompt, () => '{}');
     const aiParsed = JSON.parse(cleanJsonResponse(rawAiResponse));
@@ -3245,8 +3242,8 @@ Yalnızca geçerli bir JSON döndür. Başka bir metin ekleme.`;
     if(aiParsed.contentOpportunities) {
        document.getElementById('t8-opportunities').innerHTML = aiParsed.contentOpportunities.map((o, i) => `
          <div style="margin-bottom:12px; page-break-inside: avoid;">
-           <strong style="color:#333; font-size:14px;">${i+1}. Fırsat</strong>
-           <p style="margin:4px 0 0 0; font-size:14px; color:#444;">${escapeHtml(o)}</p>
+           <strong style="color:#333; font-size:14px;">${i+1}. ${escapeHtml(o.title || 'Fırsat')}</strong>
+           <p style="margin:4px 0 0 0; font-size:14px; color:#444;">${escapeHtml(o.desc || o)}</p>
          </div>
        `).join('');
     }

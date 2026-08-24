@@ -41,16 +41,53 @@ foreach ($nodes as $node) {
 }
 
 // Görünür metni al (script ve style hariç)
-while (($node = $xpath->query('//script|//style')->item(0))) {
+$bodyText = "";
+// Gereksiz etiketleri kaldır
+while (($node = $xpath->query('//script|//style|//nav|//footer|//svg')->item(0))) {
     $node->parentNode->removeChild($node);
 }
-$bodyText = strip_tags($dom->saveHTML());
-$bodyText = preg_replace('/\s+/', ' ', $bodyText);
-$bodyText = trim(substr($bodyText, 0, 15000)); // Limit to prevent massive payloads
+
+// Sadece SEO için önemli etiketleri çek (Başlıklar, paragraflar, linkler ve listeler)
+$nodes = $xpath->query('//h1 | //h2 | //h3 | //p | //li | //a');
+foreach ($nodes as $node) {
+    $tagName = strtolower($node->nodeName);
+    $text = trim($node->nodeValue);
+    
+    if (empty($text)) continue;
+
+    if ($tagName === 'h1') $bodyText .= "\n# " . $text . "\n";
+    elseif ($tagName === 'h2') $bodyText .= "\n## " . $text . "\n";
+    elseif ($tagName === 'h3') $bodyText .= "\n### " . $text . "\n";
+    elseif ($tagName === 'p') $bodyText .= $text . "\n";
+    elseif ($tagName === 'li') $bodyText .= "- " . $text . "\n";
+    elseif ($tagName === 'a') {
+        $href = $node->getAttribute('href');
+        // Gemini'nin anchor text ve linki görmesi için markdown formatı
+        $bodyText .= "[LINK: " . $text . "](URL: " . $href . ") "; 
+    }
+}
+
+$bodyText = preg_replace('/\n+/', "\n", $bodyText); // Fazla boşlukları temizle
+$bodyText = substr($bodyText, 0, 20000); // Flash-lite context window'u geniştir, biraz artırabilirsin.
+
+// llms.txt kontrolü ekle (1. PDF gereksinimi)
+$llmsUrl = rtrim($url, '/') . '/llms.txt';
+// fetch header using curl to be faster and support https properly
+$ch_llms = curl_init($llmsUrl);
+curl_setopt($ch_llms, CURLOPT_NOBODY, true);
+curl_setopt($ch_llms, CURLOPT_TIMEOUT, 3);
+curl_setopt($ch_llms, CURLOPT_FOLLOWLOCATION, true);
+curl_setopt($ch_llms, CURLOPT_USERAGENT, 'Mozilla/5.0');
+curl_exec($ch_llms);
+$llms_code = curl_getinfo($ch_llms, CURLINFO_HTTP_CODE);
+curl_close($ch_llms);
+
+$hasLlms = ($llms_code == 200) ? true : false;
 
 echo json_encode([
     'title' => $title,
     'description' => $desc,
     'schemas' => $schemas,
-    'text' => $bodyText
+    'has_llms_txt' => $hasLlms,
+    'text' => trim($bodyText)
 ]);
