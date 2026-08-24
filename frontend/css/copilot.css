@@ -5,7 +5,7 @@
   border-radius: 12px;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow: visible;
   margin-top: 16px;
 }
 .copilot-header {
