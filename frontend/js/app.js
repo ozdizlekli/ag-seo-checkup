@@ -275,7 +275,7 @@ document.getElementById('client-select').addEventListener('change', async (e) =>
   state.lastGA4 = null;
 
   // Bu müşteriye ait arşiv, backlink ve skor geçmişini yeniden yükle
-  await Promise.all([fetchContentHistory(), fetchBacklinks(), fetchScoreHistory()]);
+  await Promise.all([fetchContentHistory(), fetchScoreHistory()]);
 
   if(!id){
     showToast('Müşteri seçimi temizlendi.', 'success');
@@ -2178,7 +2178,7 @@ document.getElementById('t5-ai-score-btn').addEventListener('click', async () =>
       tr.dataset.qualityScore = scoreVal;
 
       if(tr.dataset.id){
-/* disabled */
+        /* disabled update */
       }
     });
 
