@@ -201,6 +201,13 @@ try {
         $canonical = $indexChecker->checkCanonical($homepage['body'], $finalUrl);
     });
 
+    // 5b) JS'e bağımlılık ipucu (gerçek render YOK - bu proje headless
+    // tarayıcı kullanmıyor; bkz. OnPageIndexabilityChecker::checkJsDependency
+    // metodundaki not). Ham HTML neredeyse boşsa ve tipik bir SPA kök kutusu
+    // (React/Vue/Angular) tespit edilirse, GPTBot/ClaudeBot/PerplexityBot gibi
+    // JS çalıştırmayan botların sayfa içeriğini hiç görememe ihtimali işaretlenir.
+    $jsDependency = $indexChecker->checkJsDependency($homepage['body']);
+
     // 7) Site yapısı taraması (dahili linkler, sayfa sayısı) - standart mod
     // 100 sayfa/derinlik 6 ile başlar; "tüm siteyi tara" isteğinde (resume_state
     // geldiyse) çok daha yüksek limitlerle kaldığı yerden devam eder.
@@ -318,7 +325,7 @@ try {
     $scoreResult = runStep('scoring', 'Nihai skor hesaplanıyor', function () use (
         $siteStructure, $homepage, $noindex, $robotsBlocksSite, $robotsFound, $sitemapFound,
         $sitemapUrls, $canonical, $orphanRatio, $crossRef, $psi,
-        $linkCheckResult, $ssl, $schemaIssues, $mobileParity
+        $linkCheckResult, $ssl, $schemaIssues, $mobileParity, $jsDependency
     ) {
         $scoringInput = [
             'crawled_page_count' => max(1, count($siteStructure['pages'])),
@@ -332,6 +339,7 @@ try {
                 'canonical' => $canonical,
                 'orphan_page_ratio_percent' => $orphanRatio,
                 'orphan_pages' => $crossRef['orphan_pages'],
+                'js_dependency' => $jsDependency,
             ],
             'psi' => $psi,
             'link_check' => $linkCheckResult,

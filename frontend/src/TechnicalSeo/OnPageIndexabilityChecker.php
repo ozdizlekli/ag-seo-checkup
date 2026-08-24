@@ -204,6 +204,52 @@ final class OnPageIndexabilityChecker
     }
 
     /**
+     * Ham HTML'in (JS çalışmadan önceki hali) gerçek anlamda içerik taşıyıp
+     * taşımadığına dair bir ipucu/heuristik verir - GERÇEK bir tarayıcı ile
+     * render etmez (bkz. sınıf notları: bu proje headless tarayıcı kullanmaz).
+     * Amaç: Googlebot JS render eder ama GPTBot, ClaudeBot, PerplexityBot gibi
+     * birçok AI/arama botu HTML'i olduğu gibi okur, JS çalıştırmaz. Eğer body
+     * içeriği neredeyse boşsa ve tipik bir SPA kök elemanından (React/Vue/
+     * Angular'ın <div id="root">/<div id="app"> gibi boş kutusu) ibaretse,
+     * bu botlar sayfanın gerçek içeriğini hiç göremiyor olabilir.
+     *
+     * @return array{likely_js_dependent:bool, visible_text_length:int, root_div_only:bool}
+     */
+    public function checkJsDependency(string $html): array
+    {
+        if (trim($html) === '') {
+            return ['likely_js_dependent' => false, 'visible_text_length' => 0, 'root_div_only' => false];
+        }
+
+        $bodyHtml = $html;
+        if (preg_match('/<body[^>]*>(.*)<\/body>/is', $html, $m)) {
+            $bodyHtml = $m[1];
+        }
+
+        // <script>/<style> bloklarını tamamen çıkar - yoksa içindeki metin
+        // (JS kodu, JSON verisi) görünür içerikmiş gibi sayılır.
+        $stripped = preg_replace('/<script[^>]*>.*?<\/script>/is', '', $bodyHtml) ?? $bodyHtml;
+        $stripped = preg_replace('/<style[^>]*>.*?<\/style>/is', '', $stripped) ?? $stripped;
+        $stripped = preg_replace('/<!--.*?-->/s', '', $stripped) ?? $stripped;
+
+        $textOnly = trim(preg_replace('/\s+/', ' ', strip_tags($stripped)) ?? '');
+        $visibleTextLength = mb_strlen($textOnly);
+
+        // Tipik SPA kök kutusu: id/class "root", "app", "__next", "___gatsby"
+        // gibi bir div, içi (neredeyse) boş.
+        $rootDivOnly = (bool) preg_match(
+            "/<div[^>]+(?:id|class)=[\"'](root|app|__next|___gatsby|app-root)[\"'][^>]*>\s*<\/div>/i",
+            $stripped
+        );
+
+        return [
+            'likely_js_dependent' => $rootDivOnly || $visibleTextLength < 60,
+            'visible_text_length' => $visibleTextLength,
+            'root_div_only' => $rootDivOnly,
+        ];
+    }
+
+    /**
      * sitemap.xml içeriğini ayrıştırır, <loc> URL'lerini döner. Sitemap index
      * dosyalarını (birden fazla sitemap'e işaret eden) da destekler - tek
      * seviye derinlikte, sonsuz döngüye girmemek için.

@@ -392,6 +392,19 @@ final class ScoringEngine
                 $totalPages);
         }
 
+        $jsDependency = $indexability['js_dependency'] ?? [];
+        if (($jsDependency['likely_js_dependent'] ?? false) === true) {
+            $add('crawlability_indexability', 'major', 'olası', 'Kritik içerik JavaScript\'e bağımlı olabilir',
+                'Ana sayfanın ham HTML\'i (JavaScript çalışmadan önceki hali) neredeyse boş görünüyor (görünür metin yaklaşık '
+                    . ($jsDependency['visible_text_length'] ?? 0) . ' karakter). Google Arama JavaScript\'i çalıştırır ama '
+                    . 'GPTBot, ClaudeBot, PerplexityBot gibi birçok AI/arama botu sayfayı olduğu gibi, JavaScript çalıştırmadan okur - '
+                    . 'bu botlar sayfanın gerçek içeriğini hiç görmüyor olabilir.',
+                'Kritik içeriğin (başlıklar, ana metin, ürün/hizmet bilgisi) sunucu tarafında render edilmiş (SSR) ham HTML\'de de '
+                    . 'bulunmasını sağlayın, ya da en azından arama/AI botları için bir prerender/statik HTML alternatifi sunun. '
+                    . 'Bu bir heuristik/ipucudur - gerçek bir tarayıcı ile render edilmiş sonuçla teyit etmenizde fayda var.',
+                $totalPages);
+        }
+
         $orphanPages = $indexability['orphan_pages'] ?? [];
         if (!empty($orphanPages)) {
             // Kırık linklerdeki ile aynı desen: TAM liste 'items' üzerinden
