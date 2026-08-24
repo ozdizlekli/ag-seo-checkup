@@ -470,13 +470,13 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
       
 <section class="tab-panel" id="tab-3">
         <!-- GEO Content Copilot UI -->
-        <div class="card" id="copilot-card" style="border-top: 4px solid var(--accent); padding:0; display:flex; flex-direction:column; max-height: 85vh;">
+        <div class="card" id="copilot-card" style="border-top: 4px solid var(--accent); padding:0;">
           <div style="padding: 24px 24px 0 24px;">
             <div class="card__title">GEO AI Bot (URL Tabanlı)</div>
             <div class="card__hint">Web sitenizin SEO ve Yapay Zeka (SGE) görünürlüğünü sohbet asistanı ile adım adım analiz edin.</div>
           </div>
           
-          <div class="copilot-container" style="border:none; margin-top:0; border-radius:0; flex:1; display:flex; flex-direction:column; min-height:0;">
+          <div class="copilot-container" style="border:none; margin-top:0; border-radius:0;">
             <div class="copilot-header" style="position:relative; z-index:50;">
               <div class="copilot-progress" id="copilot-progress" style="display:none;">
                 <div class="copilot-step" data-step="1" id="cp-step-1">
@@ -536,14 +536,14 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
             
             
 
-            <div class="copilot-chat" id="copilot-chat" style="flex:1; overflow-y:auto; min-height:0;">
+            <div class="copilot-chat" id="copilot-chat" style="height: 40vh; min-height: 300px; max-height: 500px; overflow-y: auto;">
               <div id="copilot-chat-messages-container" style="display: flex; flex-direction: column; gap: 16px;"><div class="empty-state" id="copilot-empty-state"><svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg><p>Burada henüz bir analiz yok. Hemen yukarıya bir URL yapıştırarak sitenizin Google SGE (Yapay Zeka Aramaları) uyumluluğunu test etmeye başlayın!</p></div></div>
             </div>
             
-            <div class="copilot-actions" id="copilot-actions" style="flex-shrink:0;">
+            <div class="copilot-actions" id="copilot-actions">
             </div>
 
-            <div class="quick-actions" id="copilot-quick-actions" style="display:none; flex-shrink:0;"><button class="quick-action-btn" onclick="document.getElementById('copilot-text-input').value=this.textContent; document.getElementById('copilot-send-btn').click();">Bana içerik eksiklerimi söyle</button><button class="quick-action-btn" onclick="document.getElementById('copilot-text-input').value=this.textContent; document.getElementById('copilot-send-btn').click();">Rakiplerimden neden gerideyim?</button><button class="quick-action-btn" onclick="document.getElementById('copilot-text-input').value=this.textContent; document.getElementById('copilot-send-btn').click();">Bu sayfa için SSS (FAQ) hazırla</button></div><div class="copilot-input-area" id="copilot-input-area" style="padding: 16px; border-top: 1px solid var(--border); display: flex; gap: 8px; background: #fff; flex-shrink:0;">
+            <div class="quick-actions" id="copilot-quick-actions" style="display:none;"><button class="quick-action-btn" onclick="document.getElementById('copilot-text-input').value=this.textContent; document.getElementById('copilot-send-btn').click();">Bana içerik eksiklerimi söyle</button><button class="quick-action-btn" onclick="document.getElementById('copilot-text-input').value=this.textContent; document.getElementById('copilot-send-btn').click();">Rakiplerimden neden gerideyim?</button><button class="quick-action-btn" onclick="document.getElementById('copilot-text-input').value=this.textContent; document.getElementById('copilot-send-btn').click();">Bu sayfa için SSS (FAQ) hazırla</button></div><div class="copilot-input-area" id="copilot-input-area" style="padding: 16px; border-top: 1px solid var(--border); display: flex; gap: 8px; background: #fff;">
               <input type="text" id="copilot-text-input" class="input" style="flex:1; margin-bottom:0;" placeholder="Hedef URL (Örn: https://adresgezgini.com)">
               <button class="btn btn--primary" id="copilot-send-btn">Gönder</button>
             </div>
