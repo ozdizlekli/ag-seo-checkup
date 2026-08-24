@@ -159,12 +159,28 @@
 .chat-msg { word-wrap: break-word; word-break: break-word; overflow-wrap: break-word; } .chat-msg pre { white-space: pre-wrap; overflow-x: auto; max-width: 100%; }
 
 
-/* 1. Tooltip (Microlearning) */
-.has-tooltip {
+/* 1. Tooltip & Interactive Steps */
+.step-label-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   position: relative;
-  cursor: help;
-  border-bottom: 1px dashed #cbd5e1;
+  cursor: pointer; /* Change to pointer to show it's clickable */
+  transition: transform 0.2s ease, opacity 0.2s ease;
 }
+
+/* Hover effects for the step container */
+.copilot-step {
+  transition: transform 0.2s ease, background-color 0.2s ease;
+  border-radius: 8px;
+  padding: 4px;
+}
+.copilot-step:hover {
+  transform: translateY(-2px);
+  background-color: rgba(59, 130, 246, 0.05); /* Slight blue highlight */
+}
+
+/* Tooltip implementation */
 .has-tooltip:hover::after {
   content: attr(data-tooltip);
   position: absolute;
@@ -173,17 +189,22 @@
   transform: translateX(-50%);
   background: #1e293b;
   color: #fff;
-  padding: 6px 10px;
+  padding: 8px 12px;
   border-radius: 6px;
   font-size: 12px;
   width: max-content;
-  max-width: 200px;
+  max-width: 220px;
   white-space: pre-wrap;
   z-index: 100;
   box-shadow: 0 4px 6px rgba(0,0,0,0.1);
   text-align: center;
   pointer-events: none;
+  line-height: 1.4;
 }
+
+/* First line vs last line styling within the tooltip isn't purely possible with just attr() in standard CSS without JS injection, 
+   but white-space: pre-wrap and the \n\n in HTML attribute handles the line break. */
+
 .has-tooltip:hover::before {
   content: "";
   position: absolute;
@@ -193,6 +214,15 @@
   border: 5px solid transparent;
   border-top-color: #1e293b;
   z-index: 100;
+}
+
+.info-icon {
+  opacity: 0.6;
+  transition: opacity 0.2s, color 0.2s;
+}
+.step-label-wrapper:hover .info-icon {
+  opacity: 1;
+  color: #3b82f6 !important;
 }
 
 /* 3. Progressive Disclosure (Accordions) */
