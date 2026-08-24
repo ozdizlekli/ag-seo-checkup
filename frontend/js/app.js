@@ -26,15 +26,9 @@
 "use strict";
 
 /* ============================================================
-   SUPABASE KURULUMU
-   BURAYA kendi Supabase projenizin URL ve anon (public) key
-   değerlerini yapıştırın (Supabase Dashboard → Project Settings → API).
+   MYSQL API ENDPOINTS
+   Tüm veriler db.php üzerinden kendi MySQL veritabanımıza yazılır.
 ============================================================ */
-const SUPABASE_URL = 'https://bzfoaiqrvwaxpehfrqtq.supabase.co'; // <-- Supabase Proje URL'iniz
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ6Zm9haXFydndheHBlaGZycXRxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYwOTgxMTMsImV4cCI6MjEwMTY3NDExM30.1WdSVdDLKxzcId7A6d0WDtptbjNRohwdxQEPFqQCvF8';   // <-- Supabase anon (public) key'iniz
-
-// Supabase JS istemcisi (CDN'den yüklenen global `supabase` nesnesi üzerinden başlatılır)
-const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 /* ============================================================
    GOOGLE OAUTH (Search Console / GA4 / Drive)
@@ -138,8 +132,8 @@ function showToast(message, type){
 ============================================================ */
 async function fetchClients(){
   try{
-    const { data, error } = await supabaseClient.from('clients').select('*').order('name', { ascending: true });
-    if(error) throw error;
+    const res = await fetch('api/clients.php'); if(!res.ok) throw new Error('API error'); const { data } = await res.json();
+    if(typeof error !== "undefined" && error) throw error;
     state.clients = data || [];
     renderClientSelect();
   }catch(err){
@@ -169,8 +163,8 @@ document.getElementById('client-add-btn').addEventListener('click', async () => 
     const payload = { name: name.trim() };
     if (domainUrl && domainUrl.trim()) payload.domain_url = domainUrl.trim();
     
-    const { data, error } = await supabaseClient.from('clients').insert([payload]).select();
-    if(error) throw error;
+    const res = await fetch('api/clients.php', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) }); const { data, error } = await res.json(); if(error) throw new Error(error);
+    if(typeof error !== "undefined" && error) throw error;
     await fetchClients();
     if(data && data[0]){
       document.getElementById('client-select').value = data[0].id;
@@ -202,8 +196,8 @@ document.getElementById('client-edit-btn').addEventListener('click', async () =>
     if(processedDomain) payload.domain_url = processedDomain;
     else payload.domain_url = null;
     
-    const { error } = await supabaseClient.from('clients').update(payload).eq('id', state.currentClientId);
-    if(error) throw error;
+    const res = await fetch('api/clients.php?id=' + state.currentClientId, { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) }); const { error } = await res.json(); if(error) throw new Error(error);
+    if(typeof error !== "undefined" && error) throw error;
     await fetchClients();
     document.getElementById('client-select').dispatchEvent(new Event('change'));
     showToast('Müşteri güncellendi.', 'success');
@@ -230,8 +224,8 @@ document.getElementById('client-delete-btn').addEventListener('click', async () 
   if(!confirmDel) return;
   
   try {
-    const { error } = await supabaseClient.from('clients').delete().eq('id', state.currentClientId);
-    if(error) throw error;
+    const res = await fetch('api/clients.php?id=' + state.currentClientId, { method: 'DELETE' }); const { error } = await res.json(); if(error) throw new Error(error);
+    if(typeof error !== "undefined" && error) throw error;
     await fetchClients();
     document.getElementById('client-select').value = '';
     document.getElementById('client-select').dispatchEvent(new Event('change'));
@@ -244,7 +238,7 @@ document.getElementById('client-delete-btn').addEventListener('click', async () 
 document.getElementById('client-select').addEventListener('change', async (e) => {
   const id = e.target.value;
   state.currentClientId = id || null;
-  state.currentClient = id ? state.clients.find(c => c.id === id) || null : null;
+  state.currentClient = id ? state.clients.find(c => c.id == id) || null : null;
   resetAllForms();
   
   const domainEl = document.getElementById('sidebar-client-domain');
@@ -275,7 +269,7 @@ document.getElementById('client-select').addEventListener('change', async (e) =>
   state.lastGA4 = null;
 
   // Bu müşteriye ait arşiv, backlink ve skor geçmişini yeniden yükle
-  await Promise.all([fetchContentHistory(), fetchBacklinks(), fetchScoreHistory()]);
+  await Promise.all([fetchContentHistory(), fetchScoreHistory()]);
 
   if(!id){
     showToast('Müşteri seçimi temizlendi.', 'success');
@@ -565,8 +559,8 @@ document.getElementById('t6-save-links-btn').addEventListener('click', async () 
     drive_folder_id: document.getElementById('t6-drive-id').value.trim() || null,
   };
   try{
-    const { error } = await supabaseClient.from('clients').update(payload).eq('id', state.currentClientId);
-    if(error) throw error;
+    const res = await fetch('api/clients.php?id=' + state.currentClientId, { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) }); const { error } = await res.json(); if(error) throw new Error(error);
+    if(typeof error !== "undefined" && error) throw error;
     Object.assign(state.currentClient, payload);
     showToast('Müşteri bağlantıları kaydedildi.', 'success');
   }catch(err){
@@ -1124,8 +1118,8 @@ document.getElementById('t1-save-archive').addEventListener('click', async () =>
 
   saveBtn.disabled = true;
   try{
-    const { error } = await supabaseClient.from('content_history').insert([payload]);
-    if(error) throw error;
+    const res = await fetch('api/content_history.php', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) }); const { error } = await res.json(); if(error) throw new Error(error);
+    if(typeof error !== "undefined" && error) throw error;
     showToast('Kayıt arşive eklendi.', 'success');
     await fetchContentHistory();
   }catch(err){
@@ -1178,12 +1172,8 @@ async function fetchContentHistory(){
     return;
   }
   try{
-    const { data, error } = await supabaseClient
-      .from('content_history')
-      .select('*')
-      .eq('client_id', state.currentClientId)
-      .order('created_at', { ascending: false });
-    if(error) throw error;
+    const res = await fetch('api/content_history.php?client_id=' + state.currentClientId); const { data, error } = await res.json(); if(error) throw new Error(error);
+    if(typeof error !== "undefined" && error) throw error;
 
     state.contentArchive = (data || []).map(row => ({
       id: row.id,
@@ -1413,7 +1403,7 @@ t2SaveBtn.addEventListener('click', async () => {
 
   try {
     // Topladığımız veri paketini Supabase'deki yeni tablomuza tek seferde yazıyoruz
-    const { error } = await supabaseClient.from('client_keywords').insert(payload);
+    const res = await fetch('api/client_keywords.php', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) }); const { error } = await res.json(); if(error) throw new Error(error);
     
     if (error) throw error;
     
@@ -2085,7 +2075,7 @@ async function fetchBacklinks(){
       .select('*')
       .eq('client_id', state.currentClientId)
       .order('date', { ascending: false });
-    if(error) throw error;
+    if(typeof error !== "undefined" && error) throw error;
 
     tbody.innerHTML = '';
     (data || []).forEach(row => addBacklinkRow(row));
@@ -2108,8 +2098,8 @@ document.getElementById('t5-add-row').addEventListener('click', async () => {
 
   addBtn.disabled = true;
   try{
-    const { data, error } = await supabaseClient.from('backlinks').insert([newRow]).select();
-    if(error) throw error;
+    const res = await fetch('api/backlinks.php', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify([newRow]) }); const { data, error } = await res.json(); if(error) throw new Error(error);
+    if(typeof error !== "undefined" && error) throw error;
     const inserted = (data && data[0]) ? data[0] : newRow;
     addBacklinkRow(inserted);
     showToast('Yeni satır eklendi.', 'success');
@@ -2215,8 +2205,8 @@ document.getElementById('t5-backlink-body').addEventListener('click', async (e) 
   btn.disabled = true;
   try{
     if(rowId){
-      const { error } = await supabaseClient.from('backlinks').delete().eq('id', rowId);
-      if(error) throw error;
+      const res = await fetch('api/backlinks.php?id=' + rowId, { method: 'DELETE' }); const { error } = await res.json(); if(error) throw new Error(error);
+      if(typeof error !== "undefined" && error) throw error;
     }
     tr.remove();
     showToast('Satır silindi.', 'success');
@@ -2256,7 +2246,7 @@ async function computeAndRenderScore(){
   let calculatedKeywordScore = 0;
   if(state.currentClientId){
      try {
-       const { data: kwData } = await supabaseClient.from('client_keywords').select('id').eq('client_id', state.currentClientId).limit(1);
+       const resKW = await fetch('api/client_keywords.php?client_id=' + state.currentClientId); const kwJson = await resKW.json(); const kwData = kwJson.data && kwJson.data.length > 0 ? [{ id: kwJson.data[0].id }] : [];
        if(kwData && kwData.length > 0) {
           calculatedKeywordScore = 100;
        }
@@ -2278,9 +2268,7 @@ async function computeAndRenderScore(){
   const checkedItems = document.querySelectorAll('#t5-checklist input[type="checkbox"]:checked').length;
   const checklistScore = checkedItems * 10; // 7 madde = Max 70 Puan
   
-  const backlinkCount = document.querySelectorAll('#t5-backlink-body tr').length;
-  const backlinkScore = backlinkCount * 10; // Her backlink 10 puan
-  let calculatedOffsiteScore = Math.min(100, checklistScore + backlinkScore);
+  let calculatedOffsiteScore = Math.min(100, checklistScore);
 
   // GENEL ORTALAMA HESABI
   const subs = [
@@ -2545,8 +2533,8 @@ document.getElementById('t6-snapshot-btn').addEventListener('click', async () =>
     overall_score: state.lastScores.overall,
   };
   try{
-    const { error } = await supabaseClient.from('score_history').insert([payload]);
-    if(error) throw error;
+    const res = await fetch('api/score_history.php', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify([payload]) }); const { error } = await res.json(); if(error) throw new Error(error);
+    if(typeof error !== "undefined" && error) throw error;
     showToast('Anlık görüntü kaydedildi.', 'success');
     await fetchScoreHistory();
   }catch(err){
@@ -2568,7 +2556,7 @@ async function fetchScoreHistory(){
       .eq('client_id', state.currentClientId)
       .order('created_at', { ascending: true })
       .limit(30);
-    if(error) throw error;
+    if(typeof error !== "undefined" && error) throw error;
     renderTrendChart(data || []);
   }catch(err){
     console.error('[Supabase] score_history select hatası:', err);
@@ -3287,8 +3275,8 @@ async function resolveClientDriveFolderId(){
   const clientFolderId = await findOrCreateDriveFolder(clientName, seoFolderId);
 
   try{
-    const { error } = await supabaseClient.from('clients').update({ drive_folder_id: clientFolderId }).eq('id', state.currentClientId);
-    if(error) throw error;
+    const res = await fetch('api/clients.php?id=' + state.currentClientId, { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ drive_folder_id: clientFolderId }) }); const { error } = await res.json(); if(error) throw new Error(error);
+    if(typeof error !== "undefined" && error) throw error;
     state.currentClient.drive_folder_id = clientFolderId;
     document.getElementById('t6-drive-id').value = clientFolderId;
   }catch(e){
