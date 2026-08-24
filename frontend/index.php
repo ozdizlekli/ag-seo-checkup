@@ -353,7 +353,7 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
 
         <div class="card mt-20">
           <div class="card__title">Sürüm Geçmişi</div>
-          <div class="card__hint">Kaydedilen her iyileştirme burada eski/yeni metin karşılaştırmasıyla listelenir. (Supabase — <code>content_history</code> tablosu)</div>
+          <div class="card__hint">Kaydedilen her iyileştirme burada eski/yeni metin karşılaştırmasıyla listelenir. (MySQL — <code>content_history</code> tablosu)</div>
           <div class="mt-16" id="t1-archive-list">
             <p class="empty-note">Henüz arşivlenmiş bir kayıt yok.</p>
           </div>

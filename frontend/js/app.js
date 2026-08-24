@@ -25,16 +25,6 @@
 (function(){
 "use strict";
 
-/* ============================================================
-   SUPABASE KURULUMU
-   BURAYA kendi Supabase projenizin URL ve anon (public) key
-   değerlerini yapıştırın (Supabase Dashboard → Project Settings → API).
-============================================================ */
-const SUPABASE_URL = 'https://bzfoaiqrvwaxpehfrqtq.supabase.co'; // <-- Supabase Proje URL'iniz
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ6Zm9haXFydndheHBlaGZycXRxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYwOTgxMTMsImV4cCI6MjEwMTY3NDExM30.1WdSVdDLKxzcId7A6d0WDtptbjNRohwdxQEPFqQCvF8';   // <-- Supabase anon (public) key'iniz
-
-// Supabase JS istemcisi (CDN'den yüklenen global `supabase` nesnesi üzerinden başlatılır)
-// const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 /* ============================================================
    GOOGLE OAUTH (Search Console / GA4 / Drive)
@@ -2032,189 +2022,6 @@ document.getElementById('t3-schema-audit-btn').addEventListener('click', async (
 
 
 /* ============================================================
-   TAB 5 — SİTE DIŞI & YEREL SEO
-============================================================ */
-document.getElementById('t5-checklist').addEventListener('change', (e) => {
-  if(e.target.type === 'checkbox'){
-    e.target.closest('.check-item').classList.toggle('checked', e.target.checked);
-  }
-});
-
-/* Kalite rozetini üretir (mevcut scoreStatusLabel renk sınıflarını yeniden kullanır) */
-function backlinkQualityBadgeHtml(label, score){
-  if(!label) return '<span class="small muted">—</span>';
-  const cls = label === 'Kaliteli' ? 'status-good' : (label === 'Spam' ? 'status-bad' : 'status-mid');
-  return '<span class="status-chip ' + cls + '" title="Heuristik puan: ' + score + '/100">' + label + '</span>';
-}
-
-/* --- Backlink satırı DOM'a basma (Supabase satırından veya yeni eklenen satırdan gelebilir) --- */
-function addBacklinkRow(data){
-  data = data || {};
-  const tbody = document.getElementById('t5-backlink-body');
-  const tr = document.createElement('tr');
-  if(data.id !== undefined && data.id !== null){
-    tr.dataset.id = data.id;
-  }
-  if(data.quality_label){
-    tr.dataset.qualityLabel = data.quality_label;
-    tr.dataset.qualityScore = data.quality_score || '';
-  }
-  tr.innerHTML =
-    '<td><input class="input" type="date" value="' + (data.date || '') + '"></td>' +
-    '<td><input class="input" type="text" placeholder="domain.com" value="' + (data.domain || '') + '"></td>' +
-    '<td><input class="input" type="text" placeholder="https://domain.com/sayfa" value="' + (data.url || '') + '"></td>' +
-    '<td class="t5-quality-cell">' + backlinkQualityBadgeHtml(data.quality_label, data.quality_score) + '</td>' +
-    '<td><button class="btn btn--danger btn--sm t5-remove" title="Sil"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button></td>';
-  tbody.appendChild(tr);
-}
-
-/* --- Supabase: Sayfa yüklendiğinde backlinks tablosunu çek (seçili müşteriye göre) --- */
-async function fetchBacklinks(){
-  const tbody = document.getElementById('t5-backlink-body');
-  if(!state.currentClientId){
-    tbody.innerHTML = '';
-    return;
-  }
-  try{
-    const data = []; const error = null;
-    if(error) throw error;
-
-    tbody.innerHTML = '';
-    (data || []).forEach(row => addBacklinkRow(row));
-  }catch(err){
-    console.error('[Supabase] backlinks select hatası:', err);
-    showToast('Backlink verileri Supabase\'den yüklenemedi.', 'error');
-  }
-}
-
-/* --- Supabase: Yeni satır ekle (insert) --- */
-document.getElementById('t5-add-row').addEventListener('click', async () => {
-  if(!state.currentClientId){ showToast('Önce sol menüden bir müşteri seçin.', 'error'); return; }
-  const addBtn = document.getElementById('t5-add-row');
-  const newRow = {
-    date: new Date().toISOString().slice(0,10),
-    domain: '',
-    url: '',
-    client_id: state.currentClientId,
-  };
-
-  addBtn.disabled = true;
-  try{
-    const data = [newRow]; const error = null;
-    if(error) throw error;
-    const inserted = (data && data[0]) ? data[0] : newRow;
-    addBacklinkRow(inserted);
-    showToast('Yeni satır eklendi.', 'success');
-  }catch(err){
-    console.error('[Supabase] backlinks insert hatası:', err);
-    showToast('Satır eklenirken hata oluştu: ' + (err.message || 'bilinmeyen hata'), 'error');
-  }finally{
-    addBtn.disabled = false;
-  }
-});
-
-/* --- Backlink Profilini Yapay Zeka ile Puanla (Spam/Kalite Sınıflandırıcı) ---
-   Tablodaki domain/URL listesini Gemini'ye gönderip her biri için 0-100 arası
-   heuristik bir "kalite" puanı ve Kaliteli/Şüpheli/Spam etiketi ister. Bu,
-   gerçek bir backlink otoritesi ölçümü (Ahrefs/Moz DA) değil — sadece domain
-   adının görünümüne dayalı bir ön filtreleme/önceliklendirme aracıdır. */
-document.getElementById('t5-ai-score-btn').addEventListener('click', async () => {
-  const rows = Array.from(document.querySelectorAll('#t5-backlink-body tr'));
-  if(!rows.length){ showToast('Puanlanacak backlink satırı yok. Önce satır ekleyin.', 'error'); return; }
-
-  const domains = rows.map(tr => {
-    const inputs = tr.querySelectorAll('input');
-    const domain = inputs[1] ? inputs[1].value.trim() : '';
-    const url = inputs[2] ? inputs[2].value.trim() : '';
-    return domain || url;
-  });
-
-  if(domains.every(d => !d)){ showToast('Puanlanacak domain/URL bilgisi girilmemiş.', 'error'); return; }
-
-  const btn = document.getElementById('t5-ai-score-btn');
-  const label = document.getElementById('t5-ai-score-label');
-  const originalLabel = label.textContent;
-  btn.disabled = true;
-  label.textContent = 'Puanlanıyor...';
-
-  const domainList = domains.map((d, i) => (i + 1) + '. ' + (d || '(boş)')).join('\n');
-
-  // Moz API Simülasyonu (Gerçek uygulamada fetch('https://lsapi.seomoz.com/v2/...') yapılır)
-  // Burada deterministik bir hash fonksiyonu ile DA ve Spam Score türetiyoruz.
-  function getMozHash(str) {
-    let hash = 0;
-    for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
-    return Math.abs(hash);
-  }
-
-  try {
-    const results = domains.map(d => {
-      const hash = getMozHash(d);
-      const da = (hash % 90) + 1; // Domain Authority: 1-90
-      const ss = (hash % 60); // Spam Score: 0-60%
-      
-      let label = 'Şüpheli';
-      let score = da; 
-      if(ss > 30) { label = 'Spam'; score = Math.max(0, 30 - ss); }
-      else if(da > 40 && ss < 5) { label = 'Kaliteli'; score = da; }
-      else if(da > 20 && ss < 15) { label = 'Kaliteli'; score = da; }
-      else { label = 'Şüpheli'; score = da; }
-
-      return { score: score, label: label, da: da, ss: ss };
-    });
-
-    rows.forEach((tr, i) => {
-      const r = results[i];
-      if(!r) return;
-      const scoreVal = r.score;
-      const labelVal = r.label;
-
-      const cell = tr.querySelector('.t5-quality-cell');
-      if(cell) {
-        cell.innerHTML = backlinkQualityBadgeHtml(labelVal, scoreVal) + 
-           `<div style="font-size:10px; color:var(--muted); margin-top:4px;">DA: ${r.da} | Spam Skoru: %${r.ss}</div>`;
-      }
-      tr.dataset.qualityLabel = labelVal;
-      tr.dataset.qualityScore = scoreVal;
-
-      if(tr.dataset.id){
-        /* disabled update */
-      }
-    });
-
-    showToast('Backlink profili Moz metrikleri (DA & Spam Score) ile puanlandı.', 'success');
-  } catch(err) {
-    console.error('[Moz Score]', err);
-    showToast('Puanlama başarısız: ' + err.message, 'error');
-  } finally {
-    btn.disabled = false;
-    label.textContent = originalLabel;
-  }
-});
-
-/* --- Supabase: Satır sil (delete) --- */
-document.getElementById('t5-backlink-body').addEventListener('click', async (e) => {
-  const btn = e.target.closest('.t5-remove');
-  if(!btn) return;
-  const tr = btn.closest('tr');
-  const rowId = tr.dataset.id;
-
-  btn.disabled = true;
-  try{
-    if(rowId){
-      const error = null;
-      if(error) throw error;
-    }
-    tr.remove();
-    showToast('Satır silindi.', 'success');
-  }catch(err){
-    console.error('[Supabase] backlinks delete hatası:', err);
-    showToast('Satır silinirken hata oluştu: ' + (err.message || 'bilinmeyen hata'), 'error');
-    btn.disabled = false;
-  }
-});
-
-/* ============================================================
    TAB 6 — GENEL SKOR & SATIŞ
 ============================================================ */
 const GAUGE_CIRC = 2 * Math.PI * 80; // ≈ 502.4
@@ -2265,9 +2072,7 @@ async function computeAndRenderScore(){
   const checkedItems = document.querySelectorAll('#t5-checklist input[type="checkbox"]:checked').length;
   const checklistScore = checkedItems * 10; // 7 madde = Max 70 Puan
   
-  const backlinkCount = document.querySelectorAll('#t5-backlink-body tr').length;
-  const backlinkScore = backlinkCount * 10; // Her backlink 10 puan
-  let calculatedOffsiteScore = Math.min(100, checklistScore + backlinkScore);
+  let calculatedOffsiteScore = Math.min(100, checklistScore);
 
   // GENEL ORTALAMA HESABI
   const subs = [
@@ -2965,31 +2770,6 @@ function buildReportHtml(){
   if (llmsOutput && llmsOutput.length > 50) {
     bodyHtml += sectionTitleHtml(sectionNum++, 'Google AI (SGE) & LLM Uyumluluğu');
     bodyHtml += '<div style="margin-top:4px; padding:12px; background:#F8FAFC; border-left:4px solid #175ae2; font-size:10.5pt; color:#12151F;">Müşteri web sitesinin tüm hiyerarşisi taranmış ve <strong>Master llms.txt (GEO dosyası)</strong> başarıyla oluşturularak arama motorlarının yapay zeka botlarına sunulmuştur.</div>';
-  }
-
-  // ---- YENİ: 3.5. SİTE DIŞI & BACKLİNK PROFİLİ (Tab 05) ----
-  const backlinkRows = Array.from(document.querySelectorAll('#t5-backlink-body tr'));
-  if (backlinkRows.length > 0) {
-    bodyHtml += sectionTitleHtml(sectionNum++, 'Site Dışı & Backlink Analizi');
-    bodyHtml += '<table cellpadding="4" cellspacing="0" style="width:100%;border-collapse:collapse;margin-bottom:8px;font-size:10.5pt;">';
-    bodyHtml += '<tr style="background:#F8FAFC;border-bottom:1px solid #E3E6EC;"><th style="text-align:left;">Tarih</th><th style="text-align:left;">Domain</th><th style="text-align:left;">Kalite (AI)</th></tr>';
-    backlinkRows.forEach(tr => {
-      const cells = tr.querySelectorAll('td');
-      if(cells.length >= 4) {
-        const dateVal = cells[0].querySelector('input')?.value || cells[0].textContent;
-        const domainVal = cells[1].querySelector('input')?.value || cells[1].textContent;
-        let qualityVal = cells[3].textContent.trim();
-        // Spans bitişik olduğu için araya boşluk/tire koy
-        qualityVal = qualityVal.replace(/([a-zA-ZıİöÖçÇşŞğĞüÜ])(DA:)/g, '$1 - $2');
-        
-        bodyHtml += `<tr style="border-bottom:1px solid #E3E6EC;">
-          <td style="text-align:left;">${escapeHtml(dateVal)}</td>
-          <td style="text-align:left;">${escapeHtml(domainVal)}</td>
-          <td style="text-align:left;">${escapeHtml(qualityVal)}</td>
-        </tr>`;
-      }
-    });
-    bodyHtml += '</table>';
   }
 
   // ---- 4. PAKET & YAPILAN İŞLER ----
