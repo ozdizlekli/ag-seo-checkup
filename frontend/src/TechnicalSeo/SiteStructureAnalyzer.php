@@ -71,13 +71,13 @@ final class SiteStructureAnalyzer
      * durumda yalnızca host tespiti için kullanılır, kuyruk/ziyaret durumu
      * $resumeState'ten gelir.
      *
-     * @param array{visited:array<string,bool>, queue:list<array{url:string,depth:int}>, pages:list<array{url:string,status_code:int,internal_link_count:int,title:string|null}>, internal_links_found:list<string>}|null $resumeState
+     * @param array{visited:array<string,bool>, queue:list<array{url:string,depth:int}>, pages:list<array{url:string,status_code:int,internal_link_count:int,title:string|null,meta_description:string|null,heading_structure:list<int>}>, internal_links_found:list<string>}|null $resumeState
      * @return array{
-     *   pages: list<array{url:string, status_code:int, internal_link_count:int, title:string|null}>,
+     *   pages: list<array{url:string, status_code:int, internal_link_count:int, title:string|null, meta_description:string|null, heading_structure:list<int>}>,
      *   internal_links_found: list<string>,
      *   truncated: bool,
      *   truncated_reason: string|null,
-     *   resume_state?: array{visited:array<string,bool>, queue:list<array{url:string,depth:int}>, pages:list<array{url:string,status_code:int,internal_link_count:int,title:string|null}>, internal_links_found:list<string>}
+     *   resume_state?: array{visited:array<string,bool>, queue:list<array{url:string,depth:int}>, pages:list<array{url:string,status_code:int,internal_link_count:int,title:string|null,meta_description:string|null,heading_structure:list<int>}>, internal_links_found:list<string>}
      * }
      */
     public function crawl(string $startUrl, ?array $resumeState = null): array
@@ -140,6 +140,8 @@ final class SiteStructureAnalyzer
                         'status_code' => $result['status_code'],
                         'internal_link_count' => 0,
                         'title' => null,
+                        'meta_description' => null,
+                        'heading_structure' => [],
                     ];
                     continue;
                 }
@@ -148,12 +150,16 @@ final class SiteStructureAnalyzer
                 $effectiveUrl = $result['final_url'] ?? $url;
                 $links = $this->extractInternalLinks($body, $effectiveUrl, $host);
                 $title = $this->extractTitle($body);
+                $metaDescription = $this->extractMetaDescription($body);
+                $headingStructure = $this->extractHeadingStructure($body);
 
                 $pages[] = [
                     'url' => $url,
                     'status_code' => $result['status_code'],
                     'internal_link_count' => count($links),
                     'title' => $title,
+                    'meta_description' => $metaDescription,
+                    'heading_structure' => $headingStructure,
                 ];
 
                 foreach ($links as $link) {
@@ -331,6 +337,51 @@ final class SiteStructureAnalyzer
             return trim(html_entity_decode($m[1]));
         }
         return null;
+    }
+
+    /**
+     * <meta name="description" content="..."> etiketini bulur - attribute
+     * SIRASI önemli değildir (content name'den önce de gelebilir). Sadece
+     * name="description" olan etiketi eşleştirir - ör. og:description'ı
+     * YANLIŞLIKLA yakalamaz.
+     */
+    private function extractMetaDescription(string $html): ?string
+    {
+        if (!preg_match_all('/<meta\s+[^>]*>/i', $html, $matches)) {
+            return null;
+        }
+
+        foreach ($matches[0] as $tag) {
+            if (preg_match('/name\s*=\s*["\']description["\']/i', $tag)
+                && preg_match('/content\s*=\s*["\']([^"\']*)["\']/i', $tag, $cm)
+            ) {
+                return trim(html_entity_decode($cm[1]));
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Sayfadaki H1-H6 etiketlerini DOKÜMAN SIRASINA göre seviye listesi
+     * olarak çıkarır (ör. [1,2,2,3] = H1, sonra iki H2, sonra H3). Tüm
+     * gövdeyi saklamak yerine sadece bu küçük listeyi tutuyoruz - yüzlerce
+     * sayfa taranırken bellek dostu kalması için. <script>/<style> içindeki
+     * sahte "<h2>" gibi metinler (JS/JSON içinde geçebilir) sayılmasın diye
+     * önce onlar temizlenir.
+     *
+     * @return list<int>
+     */
+    private function extractHeadingStructure(string $html): array
+    {
+        $stripped = preg_replace('/<script\b[^>]*>.*?<\/script>/is', ' ', $html) ?? $html;
+        $stripped = preg_replace('/<style\b[^>]*>.*?<\/style>/is', ' ', $stripped) ?? $stripped;
+
+        if (!preg_match_all('/<h([1-6])[ >]/i', $stripped, $matches)) {
+            return [];
+        }
+
+        return array_map('intval', $matches[1]);
     }
 
     private function countWords(string $html): int

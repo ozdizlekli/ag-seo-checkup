@@ -76,7 +76,7 @@ final class ScoringEngine
         $totalPages = max(1, $input['crawled_page_count'] ?? 1);
 
         $categoryScores = [
-            'crawlability_indexability' => $this->scoreCrawlability($input['indexability'] ?? []),
+            'crawlability_indexability' => $this->scoreCrawlability($input['indexability'] ?? [], $totalPages),
             'performance' => $this->scorePerformance($input['psi'] ?? []),
             'site_structure_links' => $this->scoreSiteStructure($input['link_check'] ?? [], $input['site_structure'] ?? []),
             'security_https' => $this->scoreSecurity($input['ssl'] ?? []),
@@ -180,7 +180,7 @@ final class ScoringEngine
     // değer döner - ikili/eşik tabanlı değil).
     // ---------------------------------------------------------------
 
-    private function scoreCrawlability(array $indexability): array
+    private function scoreCrawlability(array $indexability, int $totalPages): array
     {
         $score = 100.0;
 
@@ -209,7 +209,36 @@ final class ScoringEngine
         $orphanRatio = (float) ($indexability['orphan_page_ratio_percent'] ?? 0);
         $score -= min(30, $orphanRatio);
 
+        // YENİ: yinelenen title/meta description - "kaç sayfayı etkiliyor"
+        // oranına göre kesinti (orphan_page_ratio_percent ile aynı mantık).
+        // Title yinelenmesi daha ağır (arama motorunun sayfaları ayırt etmesini
+        // zorlaştırır); meta description yinelenmesi daha hafif (öncelikle CTR'ı etkiler).
+        $duplicateTitleAffected = $this->countDuplicateAffectedPages($indexability['duplicate_titles'] ?? []);
+        $duplicateMetaAffected = $this->countDuplicateAffectedPages($indexability['duplicate_meta_descriptions'] ?? []);
+        $score -= min(15, ($duplicateTitleAffected / $totalPages) * 100 * 0.5);
+        $score -= min(10, ($duplicateMetaAffected / $totalPages) * 100 * 0.3);
+
+        // YENİ: H1-H6 başlık hiyerarşisi - eksik H1 en önemlisi (sayfanın ana
+        // konusu sinyali kayıp), birden fazla H1 daha hafif bir kesinti.
+        $headingHierarchy = $indexability['heading_hierarchy'] ?? [];
+        $missingH1Count = count($headingHierarchy['missing_h1'] ?? []);
+        $multipleH1Count = count($headingHierarchy['multiple_h1'] ?? []);
+        $score -= min(15, ($missingH1Count / $totalPages) * 100 * 0.5);
+        $score -= min(8, ($multipleH1Count / $totalPages) * 100 * 0.3);
+
         return ['score' => (int) max(0, min(100, round($score))), 'confidence' => 'kesin'];
+    }
+
+    /**
+     * @param list<array{value:string, urls:list<string>}> $duplicateGroups
+     */
+    private function countDuplicateAffectedPages(array $duplicateGroups): int
+    {
+        $count = 0;
+        foreach ($duplicateGroups as $group) {
+            $count += count($group['urls'] ?? []);
+        }
+        return $count;
     }
 
     private function scorePerformance(array $psi): array
@@ -403,6 +432,76 @@ final class ScoringEngine
                     . 'bulunmasını sağlayın, ya da en azından arama/AI botları için bir prerender/statik HTML alternatifi sunun. '
                     . 'Bu bir heuristik/ipucudur - gerçek bir tarayıcı ile render edilmiş sonuçla teyit etmenizde fayda var.',
                 $totalPages);
+        }
+
+        $duplicateTitles = $indexability['duplicate_titles'] ?? [];
+        if (!empty($duplicateTitles)) {
+            $duplicateTitleItems = [];
+            foreach ($duplicateTitles as $group) {
+                foreach (($group['urls'] ?? []) as $url) {
+                    $duplicateTitleItems[] = ['url' => $url, 'status' => 'paylaşılan title: "' . $group['value'] . '"'];
+                }
+            }
+            $add('crawlability_indexability', 'major', 'kesin', count($duplicateTitles) . ' grup sayfa aynı title etiketini paylaşıyor',
+                'Birden fazla sayfa birebir aynı <title> içeriğine sahip - bu, arama motorlarının sayfaları birbirinden '
+                    . 'ayırt etmesini zorlaştırır ve arama sonuçlarında hangi sayfanın gösterileceğine dair belirsizlik yaratabilir.',
+                'Her sayfaya, o sayfanın içeriğini benzersiz şekilde özetleyen kendi title etiketini yazın.',
+                count($duplicateTitleItems), $duplicateTitleItems);
+        }
+
+        $duplicateMetaDescriptions = $indexability['duplicate_meta_descriptions'] ?? [];
+        if (!empty($duplicateMetaDescriptions)) {
+            $duplicateMetaItems = [];
+            foreach ($duplicateMetaDescriptions as $group) {
+                foreach (($group['urls'] ?? []) as $url) {
+                    $duplicateMetaItems[] = ['url' => $url, 'status' => 'paylaşılan açıklama'];
+                }
+            }
+            $add('crawlability_indexability', 'minor', 'kesin', count($duplicateMetaDescriptions) . ' grup sayfa aynı meta description\'ı paylaşıyor',
+                'Birden fazla sayfa birebir aynı meta description içeriğine sahip - bu sıralamayı doğrudan etkilemez '
+                    . 'ama arama sonuçlarındaki tıklama oranını (CTR) düşürebilir.',
+                'Her sayfaya, o sayfaya özel, tıklamaya teşvik eden bir meta description yazın.',
+                count($duplicateMetaItems), $duplicateMetaItems);
+        }
+
+        $headingHierarchy = $indexability['heading_hierarchy'] ?? [];
+        $missingH1 = $headingHierarchy['missing_h1'] ?? [];
+        if (!empty($missingH1)) {
+            $missingH1Items = array_map(
+                static fn (string $url): array => ['url' => $url, 'status' => 'H1 yok'],
+                $missingH1
+            );
+            $add('crawlability_indexability', 'major', 'kesin', count($missingH1) . ' sayfada H1 başlığı yok',
+                'Bu sayfalarda hiç <h1> etiketi bulunamadı - H1, sayfanın ana konusunu hem kullanıcıya hem arama motorlarına bildiren temel semantik işarettir.',
+                'Her sayfaya, sayfanın ana konusunu özetleyen tek bir <h1> etiketi ekleyin.',
+                count($missingH1Items), $missingH1Items);
+        }
+
+        $multipleH1 = $headingHierarchy['multiple_h1'] ?? [];
+        if (!empty($multipleH1)) {
+            $multipleH1Items = array_map(
+                static fn (array $m): array => ['url' => $m['url'], 'status' => $m['count'] . ' adet H1'],
+                $multipleH1
+            );
+            $add('crawlability_indexability', 'minor', 'kesin', count($multipleH1) . ' sayfada birden fazla H1 var',
+                'Bu sayfalarda tek bir ana başlık yerine birden fazla <h1> etiketi kullanılmış - modern arama motorları '
+                    . 'bunu tolere etse de, sayfanın "ana konusu" sinyalini zayıflatabilir.',
+                'Sayfa başına tek bir <h1> kullanın; diğer başlıkları <h2>/<h3> gibi alt seviyelere indirin.',
+                count($multipleH1Items), $multipleH1Items);
+        }
+
+        $skippedLevel = $headingHierarchy['skipped_level'] ?? [];
+        if (!empty($skippedLevel)) {
+            $skippedLevelItems = array_map(
+                static fn (array $s): array => ['url' => $s['url'], 'status' => $s['detail']],
+                $skippedLevel
+            );
+            $add('crawlability_indexability', 'minor', 'olası', count($skippedLevel) . ' sayfada başlık seviyesi atlanmış',
+                'Bu sayfalarda başlık hiyerarşisinde bir seviye atlanmış (ör. H1\'den sonra doğrudan H3) - bu çoğunlukla '
+                    . 'bir tasarım/CSS tercihi olabilir ama ekran okuyucular ve arama motorları için doküman yapısını bozabilir.',
+                'Başlık seviyelerini sırayla kullanın (H1 → H2 → H3 ...) - bir seviyeyi sadece görsel olarak küçültmek '
+                    . 'istiyorsanız bunu CSS ile yapın, HTML seviyesini atlamayın.',
+                count($skippedLevelItems), $skippedLevelItems);
         }
 
         $orphanPages = $indexability['orphan_pages'] ?? [];

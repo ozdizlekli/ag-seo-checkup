@@ -46,6 +46,7 @@ declare(strict_types=1);
 
 use App\TechnicalSeo\Crawler;
 use App\TechnicalSeo\LinkChecker;
+use App\TechnicalSeo\OnPageContentChecker;
 use App\TechnicalSeo\OnPageIndexabilityChecker;
 use App\TechnicalSeo\PageSpeedClient;
 use App\TechnicalSeo\SchemaValidator;
@@ -235,6 +236,21 @@ try {
         $crawledUrls = array_column($siteStructure['pages'], 'url');
     });
 
+    // 7b) Sayfa içeriği kalite kontrolleri: yinelenen title/meta description
+    // ve H1-H6 başlık hiyerarşisi (eksik H1, birden fazla H1, seviye
+    // atlaması). Ek ağ isteği YAPMAZ - yukarıdaki crawl() adımında zaten her
+    // sayfa için çıkarılan title/meta_description/heading_structure
+    // alanlarını kullanır (bkz. SiteStructureAnalyzer::extractMetaDescription
+    // / extractHeadingStructure).
+    $contentQuality = runStep('content_quality', 'Sayfa içeriği kontrol ediliyor (yinelenen title/meta, başlık hiyerarşisi)', function () use ($siteStructure) {
+        $contentChecker = new OnPageContentChecker();
+        return [
+            'duplicate_titles' => $contentChecker->findDuplicateTitles($siteStructure['pages']),
+            'duplicate_meta_descriptions' => $contentChecker->findDuplicateMetaDescriptions($siteStructure['pages']),
+            'heading_hierarchy' => $contentChecker->analyzeHeadingHierarchy($siteStructure['pages']),
+        ];
+    });
+
     // 8) Sitemap <-> taranan sayfalar çapraz kontrolü (orphan page tespiti)
     runStep('orphan', 'Sitemap ile çapraz kontrol ediliyor', function () use ($indexChecker, $crawledUrls, $sitemapUrls, &$crossRef, &$orphanRatio) {
         $crossRef = $indexChecker->crossReferenceSitemap($crawledUrls, $sitemapUrls);
@@ -325,7 +341,7 @@ try {
     $scoreResult = runStep('scoring', 'Nihai skor hesaplanıyor', function () use (
         $siteStructure, $homepage, $noindex, $robotsBlocksSite, $robotsFound, $sitemapFound,
         $sitemapUrls, $canonical, $orphanRatio, $crossRef, $psi,
-        $linkCheckResult, $ssl, $schemaIssues, $mobileParity, $jsDependency
+        $linkCheckResult, $ssl, $schemaIssues, $mobileParity, $jsDependency, $contentQuality
     ) {
         $scoringInput = [
             'crawled_page_count' => max(1, count($siteStructure['pages'])),
@@ -340,6 +356,9 @@ try {
                 'orphan_page_ratio_percent' => $orphanRatio,
                 'orphan_pages' => $crossRef['orphan_pages'],
                 'js_dependency' => $jsDependency,
+                'duplicate_titles' => $contentQuality['duplicate_titles'],
+                'duplicate_meta_descriptions' => $contentQuality['duplicate_meta_descriptions'],
+                'heading_hierarchy' => $contentQuality['heading_hierarchy'],
             ],
             'psi' => $psi,
             'link_check' => $linkCheckResult,
