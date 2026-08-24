@@ -1,14 +1,14 @@
 <?php
-$host = 'localhost';
-$user = 'root';
-$pass = '';
-$dbname = 'ag_seo_db';
+require_once __DIR__ . '/db.php';
 
 try {
-    $pdo = new PDO("mysql:host=$host;charset=utf8", $user, $pass);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    $pdo->exec("CREATE DATABASE IF NOT EXISTS `$dbname` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
-    $pdo->exec("USE `$dbname`");
+    // db.php zaten $pdo'yu oluşturuyor (veritabanı adı ile). 
+    // Ancak veritabanı yoksa diye db.php'deki hatayı yoksayıp yeniden bağlanabiliriz:
+    $pdo_setup = new PDO("mysql:host=$host;charset=utf8", $user, $pass);
+    $pdo_setup->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $pdo_setup->exec("CREATE DATABASE IF NOT EXISTS `$dbname` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+    $pdo_setup->exec("USE `$dbname`");
+    $pdo = $pdo_setup; // Replace main pdo
 } catch (PDOException $e) {
     die("Veritabanı sunucusuna bağlanılamadı: " . $e->getMessage() . "\n");
 }
@@ -48,7 +48,6 @@ CREATE TABLE IF NOT EXISTS client_keywords (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
 
 CREATE TABLE IF NOT EXISTS score_history (
     id INT AUTO_INCREMENT PRIMARY KEY,
