@@ -217,7 +217,7 @@
 }
 
 .info-icon {
-  opacity: 0.6;
+  opacity: 1; color: #64748b;
   transition: opacity 0.2s, color 0.2s;
 }
 .step-label-wrapper:hover .info-icon {
@@ -309,3 +309,5 @@ details.seo-details .details-content {
   background: #eff6ff;
   border-color: #bfdbfe;
 }
+.has-tooltip { position: relative; cursor: help; }
+

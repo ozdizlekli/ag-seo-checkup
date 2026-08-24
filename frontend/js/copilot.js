@@ -374,8 +374,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const fixText = fixedIssues.size === 0 ? "🔧 Tüm Eksikleri Gider" : "🔧 Kalan Eksikleri Gider";
 
       actionsHtml += `<div style="display: flex; width: 100%; gap: 8px; margin-bottom: 10px;">
-         <button class="btn btn--primary" id="btn-analyze-all" style="flex: 1; font-size: 11.5px; padding: 8px; font-weight: 600;">${analyzeText}</button>
-         <button class="btn btn--secondary" id="btn-fix-all" style="flex: 1; font-size: 11.5px; padding: 8px; font-weight: 600;">${fixText}</button>
+         <button class="btn btn--primary has-tooltip" id="btn-analyze-all" style="flex: 1; font-size: 11.5px; padding: 8px; font-weight: 600;" data-tooltip="Tüm adımları tek tıklamayla sırayla analiz etmeye başlar.">${analyzeText}<svg class="info-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 6px; color: currentColor; opacity:0.8;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg></button>
+         <button class="btn btn--secondary has-tooltip" id="btn-fix-all" style="flex: 1; font-size: 11.5px; padding: 8px; font-weight: 600;" data-tooltip="Analiz edilen sorunları otomatik olarak çözmeye başlar.">${fixText}<svg class="info-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 6px; color: currentColor; opacity:0.8;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg></button>
       </div>`;
 
     } else if (completedSteps.size >= 5 && fixedIssues.size < 6) {
@@ -384,7 +384,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       actionsHtml += `<div style="display: flex; width: 100%; gap: 8px; margin-bottom: 10px;">
          <button class="btn btn--secondary" style="flex: 1; font-size: 11.5px; padding: 8px; font-weight: 600; opacity: 0.5; cursor: not-allowed;" disabled>${analyzeText}</button>
-         <button class="btn btn--primary" id="btn-fix-all" style="flex: 1; font-size: 11.5px; padding: 8px; font-weight: 600; background: #2563eb; color: white; border: none;">${fixText}</button>
+         <button class="btn btn--primary has-tooltip" id="btn-fix-all" style="flex: 1; font-size: 11.5px; padding: 8px; font-weight: 600; background: #2563eb; color: white; border: none;" data-tooltip="Analiz edilen sorunları otomatik olarak çözmeye başlar.">${fixText}<svg class="info-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 6px; color: currentColor; opacity:0.8;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg></button>
       </div>`;
     }
 
