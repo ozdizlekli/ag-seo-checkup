@@ -18,9 +18,9 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script src="js/keyword-engine.js"></script>
-<script src="js/copilot.js?v=1787566012"></script>
+<script src="js/copilot.js?v=<?= time() ?>"></script>
 <link rel="stylesheet" href="css/style.css">
-<link rel="stylesheet" href="css/copilot.css?v=1787566018">
+<link rel="stylesheet" href="css/copilot.css?v=<?= time() ?>">
 <link rel="stylesheet" href="css/welcome.css">
 
 <!-- Text SEO Module Dependencies -->
@@ -636,9 +636,9 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-<script src="js/technical-seo.js?v=1.0"></script>
+<script src="js/technical-seo.js?v=<?= time() ?>.0"></script>
 
-<script src="js/app.js?v=1787294257"></script>
+<script src="js/app.js?v=<?= time() ?>"></script>
 <script src="js/welcome.js"></script>
 <!-- Text SEO Scripts -->
 <script src="js/text-seo-pdf.js"></script>
