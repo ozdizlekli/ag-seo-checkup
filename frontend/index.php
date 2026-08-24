@@ -22,6 +22,30 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
 <link rel="stylesheet" href="css/style.css">
 <link rel="stylesheet" href="css/copilot.css?v=1787566018">
 <link rel="stylesheet" href="css/welcome.css">
+
+<!-- Text SEO Module Dependencies -->
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  // Tailwind rengi ve çakışma önleyici yapılandırma
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          primary: '#2563eb',
+          secondary: '#475569',
+          success: '#10b981',
+          warning: '#f59e0b',
+          danger: '#ef4444'
+        }
+      }
+    }
+  }
+</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://unpkg.com/@phosphor-icons/web"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsdiff/7.0.0/diff.min.js"></script>
+<link rel="stylesheet" href="css/text-seo.css">
+<link rel="stylesheet" href="css/text-seo-pdf.css">
 </head>
 <body>
 
@@ -187,213 +211,8 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
 
     <div class="content">
 <section class="tab-panel active" id="tab-1">
-
-        <!-- ANAHTAR KELİME ARAŞTIRMASI (Tab 2'den Taşındı) -->
-        <div class="card" style="margin-bottom: 20px;">
-          <div class="card__title">Anahtar Kelime Araştırması (Gerçek Google Verisi)</div>
-          <div class="card__hint">Canlı Google Autocomplete önerilerinden yararlanarak %100 matematiksel Fırsat Skoru hesaplar. İçerik oluşturmadan önce kelimenizi analiz edin.</div>
-          <div class="flex gap-12 mt-16" style="align-items:flex-end;">
-            <div class="field" style="flex:1; margin-bottom:0;">
-              <label for="t2-seed">Tohum (Kök) Kelime</label>
-              <input class="input" id="t2-seed" type="text" placeholder="örn. seo ajansı, diş hekimi">
-            </div>
-            <button class="btn btn--primary" id="t2-cluster-btn">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-              <span id="t2-cluster-label">Kelimeleri Topla</span>
-            </button>
-          </div>
-        </div>
-
-        <div class="card mt-20 hidden" id="t2-output-card" style="margin-bottom: 20px;">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-            <div>
-              <div class="card__title">Keşfedilen Fırsatlar</div>
-              <div class="card__hint">Gerçekleşen sorgulardan oluşturulmuş ve skorlanmış sonuçlar.</div>
-            </div>
-            <button class="btn btn--ghost btn--sm" id="t2-save-keywords-btn">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-              Seçilenleri Kaydet
-            </button>
-          </div>
-
-          <div class="tabs mt-16" style="display:flex; gap:8px; border-bottom:1px solid var(--border); padding-bottom:10px;">
-            <button class="btn btn--ghost btn--sm active" id="btn-tab-questions" style="border-radius:20px;">Sorular (<span id="count-questions">0</span>)</button>
-            <button class="btn btn--ghost btn--sm" id="btn-tab-similar" style="border-radius:20px;">Benzerler (<span id="count-similar">0</span>)</button>
-            <button class="btn btn--ghost btn--sm" id="btn-tab-related" style="border-radius:20px;">İlgili (<span id="count-related">0</span>)</button>
-            <button class="btn btn--ghost btn--sm" id="btn-tab-low_volume" style="border-radius:20px;">Uzun (<span id="count-low_volume">0</span>)</button>
-          </div>
-
-          <div class="table-wrap mt-16" style="max-height: 400px; overflow-y: auto;">
-            <table class="table" style="width: 100%; text-align: left; border-collapse: collapse;">
-              <thead>
-                <tr style="border-bottom: 1px solid var(--border); font-size:11px; color:var(--muted-2); text-transform:uppercase;">
-                  <th style="padding:10px 8px; width:30px;"><input type="checkbox" id="t2-select-all"></th>
-                  <th style="padding:10px 8px;">Kelime</th>
-                  <th style="padding:10px 8px;">Fırsat</th>
-                  <th style="padding:10px 8px;">Hacim</th>
-                  <th style="padding:10px 8px;">Zorluk</th>
-                  <th style="padding:10px 8px;">TBM</th>
-                  <th style="padding:10px 8px;">Niyet</th>
-                  <th style="padding:10px 8px; width:44px;"></th>
-                </tr>
-              </thead>
-              <tbody id="t2-results-tbody"></tbody>
-            </table>
-          </div>
-        </div>
-
-        
-        <!-- İçerik Türü Seçici -->
-        <div class="card">
-          <div class="card__head">
-            <div class="card__title">İçerik Türü</div>
-          </div>
-          <div class="pill-group">
-            <input type="radio" name="contentType" id="ct-blog" value="blog" checked>
-            <label for="ct-blog">Blog / Makale</label>
-            <input type="radio" name="contentType" id="ct-ecommerce" value="ecommerce">
-            <label for="ct-ecommerce">E-Ticaret / Ürün</label>
-            <input type="radio" name="contentType" id="ct-service" value="service">
-            <label for="ct-service">Hizmet (Kurumsal)</label>
-            <input type="radio" name="contentType" id="ct-portfolio" value="portfolio">
-            <label for="ct-portfolio">Portfolyo / Proje</label>
-          </div>
-        </div>
-
-        <!-- URL'den Veri Çekme Alanı -->
-        <div class="card mt-20">
-          <div class="card__title">İçerik Kaynağı (Canlı Sayfa Optimizasyonu)</div>
-          <div class="flex gap-12 mt-16" style="align-items:flex-end;">
-            <div class="field" style="flex:1; margin-bottom:0;">
-              <label for="t1-fetch-url">Sayfa Yayındaysa URL'sini Girin</label>
-              <input class="input" id="t1-fetch-url" type="text" placeholder="https://www.musterisitesi.com/hizmetlerimiz">
-            </div>
-            <button class="btn btn--dark" id="t1-fetch-btn">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-              <span id="t1-fetch-label">Mevcut Verileri Çek</span>
-            </button>
-          </div>
-          <p class="field-note mt-8">Sistem, girdiğiniz sayfanın başlığını, meta açıklamasını ve ana metnini otomatik okuyarak aşağıdaki formlara doldurur. Sonrasında istediğiniz gibi düzenleyip AI ile iyileştirebilirsiniz.</p>
-        </div>
-
-        <div class="grid grid-2 mt-20">
-          <div class="card">
-            <div class="card__title">Temel SEO Bilgileri</div>
-            <div class="field mt-16">
-              <label for="t1-keyword">Hedef Kelime</label>
-              <input class="input" id="t1-keyword" type="text" placeholder="örn. kurumsal seo danışmanlığı">
-            </div>
-            <div class="field">
-              <label for="t1-title">Title (Sayfa Başlığı)</label>
-              <input class="input" id="t1-title" type="text" placeholder="örn. Kurumsal SEO Danışmanlığı | Ajans Adı">
-            </div>
-            <div class="field">
-              <label for="t1-meta">Meta Açıklama</label>
-              <textarea class="input" id="t1-meta" placeholder="150-160 karakter aralığında meta açıklama yazın..."></textarea>
-            </div>
-            
-            <!-- Çapraz Linkleme Alanı (Güncellendi) -->
-            <div class="field">
-              <label for="t1-related-urls">İlişkili İçerik / Hedef URL'ler</label>
-              <p class="field-note mb-8">Metin içinden yönlendirme yapmak istediğiniz ürün, hizmet, blog veya portfolyo sayfalarının linkleri.</p>
-              <textarea class="input" id="t1-related-urls" placeholder="https://site.com/urun/kredi-karti-pos&#10;https://site.com/blog/sanal-pos-nedir"></textarea>
-            </div>
-
-            <!-- Dinamik Alanlar (Seçime Göre Değişir) -->
-            <div id="dynamic-fields-wrapper" style="margin-top:16px; padding-top:16px; border-top:1px dashed var(--border);">
-              
-              <!-- Blog -->
-              <div id="df-blog">
-                <div class="grid grid-2" style="gap:12px;">
-                  <div class="field"><label>Okuma Süresi</label><input type="text" class="input" id="df-blog-time" placeholder="Örn: 5 dk"></div>
-                  <div class="field"><label>Kaynaklar / Atıflar</label><input type="text" class="input" id="df-blog-refs" placeholder="Referans linkleri"></div>
-                </div>
-              </div>
-              
-              <!-- E-Ticaret -->
-              <div id="df-ecommerce" class="hidden">
-                <div class="grid grid-2" style="gap:12px;">
-                  <div class="field"><label>Stok Kodu (SKU)</label><input type="text" class="input" id="df-eco-sku" placeholder="Örn: PRD-1029"></div>
-                  <div class="field"><label>Teknik Döküman (PDF)</label><input type="text" class="input" id="df-eco-doc" placeholder="Kılavuz URL'si"></div>
-                </div>
-              </div>
-              
-              <!-- Hizmet -->
-              <div id="df-service" class="hidden">
-                <div class="field"><label>Hedef CTA Bağlantısı</label><input type="text" class="input" id="df-srv-cta" placeholder="Örn: /teklif-al"></div>
-                <div class="field"><label>Hizmete Özel SSS</label><textarea class="input" id="df-srv-faq" placeholder="Soru: ... Cevap: ..."></textarea></div>
-              </div>
-              
-              <!-- Portfolyo -->
-              <div id="df-portfolio" class="hidden">
-                <div class="grid grid-2" style="gap:12px;">
-                  <div class="field"><label>Tech Stack</label><input type="text" class="input" id="df-prt-tech" placeholder="Örn: React, Node.js"></div>
-                  <div class="field"><label>Kazanım / Metrik</label><input type="text" class="input" id="df-prt-metrics" placeholder="Örn: %40 hız artışı"></div>
-                </div>
-                <div class="field"><label>Canlı Demo / Repo URL</label><input type="text" class="input" id="df-prt-demo" placeholder="Proje bağlantısı"></div>
-              </div>
-            </div>
-          </div>
-
-          <div class="card">
-            <div class="card__title">İçerik Metni</div>
-            <div class="field mt-16">
-              <label for="t1-content">Mevcut / Taslak İçerik</label>
-              <textarea class="input tall" id="t1-content" placeholder="Optimize edilecek içerik metnini buraya yapıştırın..."></textarea>
-            </div>
-            <div class="flex gap-12 mt-8" style="flex-wrap:wrap; display:none;">
-              <button class="btn btn--primary" id="t1-improve-btn" style="flex:1; justify-content:center; min-width:200px;">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3m0 12v3m9-9h-3M6 12H3m14.5-6.5-2 2m-9 9-2 2m13-2-2-2m-9-9-2-2"/></svg>
-                <span id="t1-improve-label">AI ile İyileştir</span>
-              </button>
-            </div>
-          </div>
-        </div>
-
-
-        <div class="card mt-20">
-          <div class="card__title">Sürüm Geçmişi</div>
-          <div class="card__hint">Kaydedilen her iyileştirme burada eski/yeni metin karşılaştırmasıyla listelenir. (MySQL — <code>content_history</code> tablosu)</div>
-          <div class="mt-16" id="t1-archive-list">
-            <p class="empty-note">Henüz arşivlenmiş bir kayıt yok.</p>
-          </div>
-        </div>
-      <div class="card mt-20">
-          <div class="card__title">Metin Yapay Zeka Analizi</div>
-          <p class="card__hint">1. Sekmeye (Metin Bazlı SEO) yapıştırdığınız içerik metnini aşağıdaki AI modelleriyle değerlendirin.</p>
-          <div class="flex gap-12 mt-16" style="flex-wrap:wrap;">
-            <button class="btn btn--dark" id="t1-conversion-btn" style="flex:1; justify-content:center; min-width:200px;" title="Metni CTA gücü, güven sinyalleri ve satın alma niyetine göre puanlar">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                <span id="t1-conversion-label">Dönüşüm Skoru</span>
-              </button>
-            <button class="btn btn--dark" id="t1-sge-btn" style="flex:1; justify-content:center; min-width:200px;" title="İçeriğin Google AI Overviews (SGE) üzerinde kaynak gösterilme ihtimalini ölçer">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-                <span id="t1-sge-label">AI Overviews Uyum Analizi</span>
-              </button>
-          </div>
-        </div>
-                <!-- Dönüşüm / Satın Alma Niyeti Skoru -->
-        <div class="card mt-20 hidden" id="t1-conversion-card">
-          <div class="card__title">Satın Alma / Dönüşüm Niyeti Analizi</div>
-          <div class="flex gap-12 mt-16" style="align-items:center;">
-            <div style="font-family:Georgia,'Times New Roman',serif; font-size:34pt; font-weight:700;" id="t1-conversion-score">—</div>
-            <div class="small muted" id="t1-conversion-status">/ 100</div>
-          </div>
-          <div class="sub-scores mt-12" id="t1-conversion-breakdown"></div>
-          <div class="mt-12" id="t1-conversion-notes" style="font-size:13px; line-height:1.6; color:var(--ink-2);"></div>
-        </div>
-                <!-- AI Overviews (SGE) Uyumluluk Analizi -->
-        <div class="card mt-20 hidden" id="t1-sge-card">
-          <div class="card__title">Google AI Overviews (SGE) Uyum Analizi</div>
-          <div class="flex gap-12 mt-16" style="align-items:center;">
-            <div style="font-family:Georgia,'Times New Roman',serif; font-size:34pt; font-weight:700;" id="t1-sge-score">—</div>
-            <div class="small muted" id="t1-sge-status">/ 100</div>
-          </div>
-          <div class="sub-scores mt-12" id="t1-sge-breakdown"></div>
-          <div class="mt-12" id="t1-sge-notes" style="font-size:13px; line-height:1.6; color:var(--ink-2);"></div>
-        </div>
-
-                </section>
+  <?php include __DIR__ . '/src/TextSeo/views/tab1_view.php'; ?>
+</section>
 
       <!-- ==========================================================
            TAB 2 — ANAHTAR KELİME STRATEJİSİ
@@ -818,5 +637,8 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
 
 <script src="js/app.js?v=1787294257"></script>
 <script src="js/welcome.js"></script>
+<!-- Text SEO Scripts -->
+<script src="js/text-seo-pdf.js"></script>
+<script src="js/text-seo.js"></script>
 </body>
 </html>
