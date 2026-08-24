@@ -268,11 +268,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const msgContainer = document.getElementById('copilot-chat-messages-container');
     if (msgContainer) msgContainer.style.display = 'block';
     
-    const compInput = document.getElementById('copilot-competitor-input');
-    if (compInput) {
-      compInput.value = '';
-      compInput.style.display = 'block';
-    }
+
 
     if (msgContainer) msgContainer.innerHTML = '';
     addMessage(`👋 Merhaba! Ben <strong>GEO SEO Asistanı</strong>.<br><br>Web siteni tarayıp yapay zeka (LLM) arama motorları için optimize edelim. Lütfen analiz etmemi istediğin sayfanın <strong>URL'sini</strong> aşağıya yaz.`, 'ai', true, false);
@@ -294,11 +290,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!val) return;
     
     if (currentState === 'WAITING_FOR_URL') {
-      const compInput = document.getElementById('copilot-competitor-input');
-      window.targetCompetitorUrl = compInput ? compInput.value.trim() : '';
-      if (compInput) compInput.style.display = 'none';
-
-      addMessage(window.targetCompetitorUrl ? `${val} (Rakip: ${window.targetCompetitorUrl})` : val, 'user');
+      addMessage(val, 'user');
       copilotTextInput.value = '';
       if (!val.startsWith('http')) { addMessage("Lütfen geçerli bir URL girin (http veya https ile başlamalı).", 'ai'); return; }
       
@@ -352,22 +344,7 @@ document.addEventListener('DOMContentLoaded', () => {
       fetchedData = data;
       addMessage(`✅ Hedef Site başarıyla tarandı!<br><br><strong>Başlık:</strong> ${data.title}<br><strong>Bulunan Schema Sayısı:</strong> ${data.schemas ? data.schemas.length : 0}`, 'ai', true);
 
-      if (window.targetCompetitorUrl) {
-          addTypingIndicator();
-          try {
-              const resComp = await fetch(`fetch_url.php?url=${encodeURIComponent(window.targetCompetitorUrl)}`);
-              window.fetchedCompetitorData = await resComp.json();
-              removeTypingIndicator();
-              if (window.fetchedCompetitorData.error) {
-                  addMessage(`Rakip site taranamadı: ${window.fetchedCompetitorData.error}. Analize rakipten bağımsız devam edilecek.`, 'ai');
-              } else {
-                  addMessage(` Rakip Site (${window.targetCompetitorUrl}) başarıyla tarandı! Analiz için hazır.`, 'ai');
-              }
-          } catch(e) {
-              removeTypingIndicator();
-              addMessage(`Rakip site taranamadı: ${e.message}`, 'ai');
-          }
-      }
+
 
       addMessage(`Şimdi ${targetType} sitenize özel 5 adımlı analiz sürecini başlatabiliriz.`, 'ai', true);
       renderAiSeoActions();
@@ -397,9 +374,6 @@ document.addEventListener('DOMContentLoaded', () => {
          <button class="btn btn--secondary" id="btn-fix-all" style="flex: 1; font-size: 11.5px; padding: 8px; font-weight: 600;">${fixText}</button>
       </div>`;
 
-      if (window.fetchedCompetitorData && !window.fetchedCompetitorData.error && !completedSteps.has(3)) {
-          actionsHtml += `<button class="btn btn--primary" id="btn-battle-mode" style="width: 100%; margin-bottom: 10px; background: #dc2626; color: white; border: none; font-size: 11.5px; padding: 8px; font-weight: 600; box-shadow: 0 4px 15px rgba(220,38,38,0.3);"> SADECE RAKİP SAVAŞINI BAŞLAT (ADIM 3)</button>`;
-      }
     } else if (completedSteps.size >= 5 && fixedIssues.size < 6) {
       const analyzeText = "⚡ Kalan Adımları Analiz Et";
       const fixText = fixedIssues.size === 0 ? "🔧 Tüm Eksikleri Gider" : "🔧 Kalan Eksikleri Gider";
@@ -489,12 +463,7 @@ document.addEventListener('DOMContentLoaded', () => {
         await runAutoAnalysis();
       });
     }
-    if (document.getElementById('btn-battle-mode')) {
-      document.getElementById('btn-battle-mode').addEventListener('click', async () => {
-        currentStep = 3;
-        await processAiSeoStep();
-      });
-    }
+
     if (document.getElementById('btn-fix-all')) {
       document.getElementById('btn-fix-all').addEventListener('click', async () => {
         window.isAutoFixing = true;
@@ -571,31 +540,12 @@ Buna ek olarak E-E-A-T (Deneyim, Uzmanlık, Otoriterlik, Güvenilirlik) kurallar
 * İÇERİK FIRSATLARI (Uygulanabilir aksiyon tavsiyelerini 5 maddelik liste yap.)`;
     } 
     else if (step === 3) {
-      if (window.fetchedCompetitorData && !window.fetchedCompetitorData.error) {
-          p += `GERÇEK ZAMANLI RAKİP SAVAŞ MODU (BATTLE MODE) AKTİF!
-HEDEF SİTE (Müşteri): ${fetchedData.title}
-RAKİP SİTE (Geçilecek Site): ${window.fetchedCompetitorData.title}
-
-Rakibin Çekilen HTML/İçerik Verisi (Sadece Özet):
-- Rakip H1/H2 Başlıkları: ${JSON.stringify((window.fetchedCompetitorData.headings || []).slice(0,5))}
-- Rakip Şema (Schema) Kullanımı: ${window.fetchedCompetitorData.schemas ? window.fetchedCompetitorData.schemas.length : 0} adet
-- Rakip Meta Açıklaması: ${window.fetchedCompetitorData.description}
-- Rakip Metni (İlk 500 Karakter): ${(window.fetchedCompetitorData.text || '').substring(0, 500)}
-
-Görev: Müşterinin sitesiyle, bu canlı rakip sitesini "Generative Engine Optimization (GEO)" perspektifinden acımasızca kıyasla! Sadece genel SEO değil, Yapay Zeka botlarının (ChatGPT, SGE, Perplexity) okuma ve alıntı yapma biçimlerine odaklanarak şu formatta kapsamlı bir rapor çıkar:
-
-* 🧠 SEMANTİK KAPSAM VE VARLIK (ENTITY) ANALİZİ: Rakip metninde hangi alt başlıkları, soruları ve kavramları kullanarak konuyu bizden daha derinlemesine işlemiş? Biz hangi "varlıkları (entities)" kaçırmışız?
-* 🏗 FORMAT VE YZ OKUNABİLİRLİĞİ (LLM UYUMU): Rakip "Soru-Cevap (Direct Answer)", "Maddeleme", veya "Tablo" gibi LLM'lerin referans göstermeye bayıldığı yapıları (Citation-friendly) nasıl kullanmış? Bizim yapımız yapay zeka için yeterince net mi?
-* 🛡 E-E-A-T VE BİLGİ YOĞUNLUĞU: Rakibin şema (schema) zenginliği, kullandığı istatistikler veya uzmanlık dili, onun YZ tarafından daha "Güvenilir Kaynak" algılanmasını sağlıyor mu? Bizim içeriğimizde "Bilgi Yoğunluğu (Information Gain)" eksikliği var mı?
-* ⚔️ KESİN ZAFER STRATEJİSİ: ChatGPT ve Google SGE aramalarında bu rakibi tahtından etmek ve YZ tarafından "Ana Kaynak (Citation)" gösterilmek için acilen yapmamız gereken 5 nokta atışı taktik.`;
-      } else {
-          p += `Aşağıdaki başlıkları kullanarak rakipleri analiz et:
+      p += `Aşağıdaki başlıkları kullanarak rakipleri analiz et:
 **Rakip İçerik Öngörüleri**
 * GENEL BAKIŞ
 * Aynı sektördeki en iyi bilinen en az 3 rakibi (örn. Magna Dijital, Webtures, Zeo Agency vb. veya global alternatifler) ele al. 
 * Her rakip için tahmini İÇERİK GÜVEN PUANI (%), güçlü (✔) ve zayıf (▲) yönlerini listele.
 Sitenin bu rakiplere kıyasla hangi açıkları kapatması gerektiğini vurgula.`;
-      }
     } 
     else if (step === 4) {
       p += `Aşağıdaki başlıkları kullanarak LLM içerik güven metriklerini yüzdelik (%) olarak belirle:
@@ -1160,3 +1110,113 @@ Son olarak, önceki 4 adımda çıkardığın tüm analizleri (İş bağlamı, k
   updateActiveHistoryItem();
 });
 
+
+// ==============================================
+// BATTLE MODE (MODAL LOGIC)
+// ==============================================
+// ==============================================
+// BATTLE MODE (MODAL LOGIC) - EVENT DELEGATION
+// ==============================================
+document.addEventListener('click', async (e) => {
+    // 1. Open Modal
+    if (e.target && (e.target.id === 'btn-open-battle-mode' || e.target.closest('#btn-open-battle-mode'))) {
+        const battleModal = document.getElementById('battle-modal');
+        if (battleModal) {
+            battleModal.style.display = 'flex';
+            const battleTarget = document.getElementById('battle-target-url');
+            if (window.fetchedData && window.fetchedData.url) {
+                battleTarget.value = window.fetchedData.url;
+            } else if (document.getElementById('copilot-text-input')) {
+                const tv = document.getElementById('copilot-text-input').value;
+                if(tv && tv.startsWith('http')) battleTarget.value = tv;
+            }
+        }
+    }
+    
+    // 2. Close Modal
+    if (e.target && (e.target.id === 'battle-close' || e.target.closest('#battle-close'))) {
+        const battleModal = document.getElementById('battle-modal');
+        if (battleModal) battleModal.style.display = 'none';
+    }
+    
+    // 3. Start Battle
+    if (e.target && (e.target.id === 'battle-start-btn' || e.target.closest('#battle-start-btn'))) {
+        const battleStart = document.getElementById('battle-start-btn');
+        const battleTarget = document.getElementById('battle-target-url');
+        const battleComp = document.getElementById('battle-comp-url');
+        const battleResults = document.getElementById('battle-results');
+
+        const tUrl = battleTarget.value.trim();
+        const cUrl = battleComp.value.trim();
+
+        if (!tUrl || !cUrl) {
+            alert('Lütfen hem hedef hem rakip URL\'yi girin!');
+            return;
+        }
+
+        battleStart.disabled = true;
+        battleResults.innerHTML = '<div style="text-align:center; margin-top:40px; color:#64748b;">Analiz ediliyor, lütfen bekleyin... (Veriler çekilip AI\'a gönderiliyor)</div>';
+
+        try {
+            // Fetch both URLs
+            const [resT, resC] = await Promise.all([
+                fetch(`fetch_url.php?url=${encodeURIComponent(tUrl)}`),
+                fetch(`fetch_url.php?url=${encodeURIComponent(cUrl)}`)
+            ]);
+
+            const dataT = await resT.json();
+            const dataC = await resC.json();
+
+            if (dataT.error) throw new Error("Hedef URL Hatası: " + dataT.error);
+            if (dataC.error) throw new Error("Rakip URL Hatası: " + dataC.error);
+
+            // Build Prompt
+            const prompt = `GERÇEK ZAMANLI RAKİP SAVAŞ MODU (BATTLE MODE) AKTİF!
+HEDEF SİTE (Müşteri): ${dataT.title}
+RAKİP SİTE (Geçilecek Site): ${dataC.title}
+
+Rakibin Çekilen HTML/İçerik Verisi (Sadece Özet):
+- Rakip H1/H2 Başlıkları: ${JSON.stringify((dataC.headings || []).slice(0,5))}
+- Rakip Şema (Schema) Kullanımı: ${dataC.schemas ? dataC.schemas.length : 0} adet
+- Rakip Meta Açıklaması: ${dataC.description}
+- Rakip Metni (İlk 500 Karakter): ${(dataC.text || '').substring(0, 500)}
+
+Görev: Müşterinin sitesiyle, bu canlı rakip sitesini "Generative Engine Optimization (GEO)" perspektifinden acımasızca kıyasla! Sadece genel SEO değil, Yapay Zeka botlarının (ChatGPT, SGE, Perplexity) okuma ve alıntı yapma biçimlerine odaklanarak şu formatta kapsamlı bir rapor çıkar:
+
+* 🧠 SEMANTİK KAPSAM VE VARLIK (ENTITY) ANALİZİ
+* 🏗 FORMAT VE YZ OKUNABİLİRLİĞİ (LLM UYUMU)
+* 🛡 E-E-A-T VE BİLGİ YOĞUNLUĞU
+* ⚔️ KESİN ZAFER STRATEJİSİ: ChatGPT ve Google SGE aramalarında bu rakibi tahtından etmek için acilen yapmamız gereken 5 nokta atışı taktik.`;
+
+            const aiRes = await fetch('form_submit.php', { 
+                method: 'POST', 
+                headers: { 'Content-Type': 'application/json' }, 
+                body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { temperature: 0.2 } }) 
+            });
+
+            const aiResult = await aiRes.json();
+            if (aiResult.error) throw new Error(aiResult.error.message || aiResult.error);
+
+            let aiText = aiResult.candidates[0].content.parts[0].text;
+            let htmlText = typeof marked !== 'undefined' ? marked.parse(aiText) : aiText;
+
+            battleResults.innerHTML = htmlText;
+
+        } catch (err) {
+            battleResults.innerHTML = '<div style="color:#ef4444; font-weight:bold;">Hata: ' + err.message + '</div>';
+        } finally {
+            battleStart.disabled = false;
+        }
+    }
+});
+window.openLlmsGenerator = function() {
+    if (typeof switchTab === 'function') {
+        switchTab('tab4');
+        const t1 = document.getElementById('t1-content');
+        if (t1 && window.targetUrl) t1.value = window.targetUrl;
+        const btn = document.getElementById('t4-llmstxt-btn');
+        if (btn) btn.click();
+    } else {
+        alert('Master llms.txt oluşturmak için paneldeki ilgili sekmeyi kullanın.');
+    }
+};

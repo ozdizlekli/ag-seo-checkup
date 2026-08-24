@@ -114,6 +114,8 @@
 }
 .chat-msg.user {
   align-self: flex-end;
+  margin-left: auto;
+  width: fit-content;
   background: #2563eb;
   color: #fff;
   border-bottom-right-radius: 4px;

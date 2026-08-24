@@ -18,9 +18,9 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script src="js/keyword-engine.js"></script>
-<script src="js/copilot.js?v=1787310285"></script>
+<script src="js/copilot.js?v=1787566012"></script>
 <link rel="stylesheet" href="css/style.css">
-<link rel="stylesheet" href="css/copilot.css?v=1787227339">
+<link rel="stylesheet" href="css/copilot.css?v=1787566018">
 <link rel="stylesheet" href="css/welcome.css">
 </head>
 <body>
@@ -693,7 +693,10 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
                   <button class="btn-fix-issue" data-step="6" id="btn-fix-6" style="position: absolute; top: 100%; left: 50%; transform: translateX(-50%); margin-top: 6px; display: none; background: transparent; color: #2563eb; border: none; padding: 2px; box-shadow: none; font-size: 16px; cursor: pointer; z-index: 10;" title="6. Adımı Çöz">🔧</button>
                 </div>
               </div>
-              <button class="btn btn--secondary btn--sm" id="btn-download-pdf" title="Önce tüm analiz ve çözümleri bitirin" style="margin-left:auto; display:inline-flex; align-items:center; background:#ef4444; color:white; border:none; opacity:0.5; cursor:not-allowed;">
+              <button class="btn btn--danger btn--sm" id="btn-open-battle-mode" style="margin-left:auto; display:inline-flex; align-items:center; background:#dc2626; color:white; border:none; box-shadow:0 2px 8px rgba(220,38,38,0.4); border-radius:20px;">
+                 Rakip Karşılaştırma
+              </button>
+              <button class="btn btn--secondary btn--sm" id="btn-download-pdf" title="Önce tüm analiz ve çözümleri bitirin" style="margin-left:4px; display:inline-flex; align-items:center; background:#ef4444; color:white; border:none; opacity:0.5; cursor:not-allowed;">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
                 Rapor İndir
               </button>
@@ -712,15 +715,14 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
             
 
             <div class="copilot-chat" id="copilot-chat" style="height: 40vh; min-height: 300px; max-height: 500px; overflow-y: auto;">
-              <div id="copilot-chat-messages-container" style="display: flex; flex-direction: column;"></div>
+              <div id="copilot-chat-messages-container" style="display: flex; flex-direction: column; gap: 16px;"></div>
             </div>
             
             <div class="copilot-actions" id="copilot-actions">
             </div>
 
             <div class="copilot-input-area" id="copilot-input-area" style="padding: 16px; border-top: 1px solid var(--border); display: flex; gap: 8px; background: #fff;">
-              <input type="text" id="copilot-text-input" class="input" style="flex:1; margin-bottom:0;" placeholder="Hedef URL (Örn: https://benim-sitem.com)">
-              <input type="text" id="copilot-competitor-input" class="input" style="flex:1; margin-bottom:0;" placeholder=" Rakip URL (İsteğe Bağlı)">
+              <input type="text" id="copilot-text-input" class="input" style="flex:1; margin-bottom:0;" placeholder="Hedef URL (Örn: https://adresgezgini.com)">
               <button class="btn btn--primary" id="copilot-send-btn">Gönder</button>
             </div>
           </div>
@@ -788,6 +790,27 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
 
 <div class="t3-info-popup hidden" id="t3-info-popup">
   <div class="t3-info-popup__body" id="t3-info-popup-body"></div>
+</div>
+
+<!-- BATTLE MODE MODAL -->
+<div class="modal-overlay hidden" id="battle-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
+  <div class="modal-content" style="background:#fff; width:90%; max-width:900px; height:85vh; border-radius:12px; padding:24px; display:flex; flex-direction:column; box-shadow:0 10px 40px rgba(0,0,0,0.3);">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+      <h2 style="margin:0; font-size:22px; display:flex; align-items:center; gap:8px;"> Rakip Savaş Modu (AI GEO Kıyaslaması)</h2>
+      <button id="battle-close" style="background:none; border:none; font-size:28px; cursor:pointer; color:#64748b;">&times;</button>
+    </div>
+    <div style="display:flex; gap:12px; margin-bottom:16px;">
+      <input type="url" id="battle-target-url" class="input" placeholder="Sizin URL'niz (Örn: https://adresgezgini.com/)" style="flex:1; border:2px solid #e2e8f0; padding:12px; border-radius:8px;">
+      <input type="url" id="battle-comp-url" class="input" placeholder="Rakip URL (Örn: https://reklamvermek.com/)" style="flex:1; border:2px solid #e2e8f0; padding:12px; border-radius:8px;">
+      <button id="battle-start-btn" class="btn btn--primary" style="background:#dc2626; color:white; border:none; padding:0 24px; font-weight:bold; border-radius:8px; font-size:15px;">Savaşı Başlat</button>
+    </div>
+    <div id="battle-results" class="chat-content" style="flex:1; overflow-y:auto; background:#f8fafc; border-radius:8px; padding:24px; border:1px solid #e2e8f0;">
+       <div style="color:#64748b; text-align:center; margin-top:80px; font-size:16px;">
+         <div style="font-size:48px; margin-bottom:16px;"></div>
+         Hedef ve rakip URL'yi girip <strong>Savaşı Başlat</strong>'a tıklayın.<br>Yapay zeka SGE ve GEO standartlarına göre iki siteyi kıyaslayıp acil strateji çıkaracaktır.
+       </div>
+    </div>
+  </div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>

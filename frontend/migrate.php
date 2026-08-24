@@ -1,10 +1,19 @@
 <?php
-require_once __DIR__ . '/db.php';
+$host = 'localhost';
+$user = 'root';
+$pass = '';
+$dbname = 'ag_seo_db';
 
-if (!$pdo) {
-    die("Hata: db.php'den veritabanı bağlantısı alınamadı. MySQL sunucunuzun çalıştığından emin olun.\n");
+try {
+    $pdo = new PDO("mysql:host=$host;charset=utf8", $user, $pass);
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $pdo->exec("CREATE DATABASE IF NOT EXISTS `$dbname` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+    $pdo->exec("USE `$dbname`");
+} catch (PDOException $e) {
+    die("Veritabanı sunucusuna bağlanılamadı: " . $e->getMessage() . "\n");
 }
 
+echo "Veritabanı '$dbname' seçildi/oluşturuldu.\n";
 echo "Tablolar oluşturuluyor...\n";
 
 $sql = "
