@@ -283,9 +283,16 @@ async function runTechnicalSeoAudit() {
  */
 function showFullCrawlPrompt(url, data) {
   const structure = data.site_structure || {};
+  const linkCheck = data.link_check || {};
   const card = document.getElementById('t3-fullcrawl-card');
 
-  if (!structure.truncated || !structure.resume_state) {
+  // ONEMLI: resume_state artik SADECE site yapisi kesildiginde degil, link
+  // kontrolu hala bekleyen yeni link varken de doluyor. Eskiden burada
+  // sadece structure.truncated kontrol edilirdi - bu, link kontrolu henuz
+  // bitmemisken bile "devam et" butonunun sessizce kaybolmasina (ve o
+  // linklerin bir daha hic test edilmemesine) yol acardi. Artik tek dogru
+  // sinyal resume_state'in kendisinin var olup olmadigi.
+  if (!structure.resume_state) {
     card.classList.add('hidden');
     t3PendingResume = null;
     return;
@@ -293,9 +300,14 @@ function showFullCrawlPrompt(url, data) {
 
   t3PendingResume = { url, resumeState: structure.resume_state, cachedPsi: data.psi };
 
-  const reasonText = structure.truncated_reason === 'max_time'
-    ? 'süre sınırına ulaşıldı'
-    : 'sayfa sayısı sınırına ulaşıldı';
+  let reasonText;
+  if (structure.truncated) {
+    reasonText = structure.truncated_reason === 'max_time'
+      ? 'süre sınırına ulaşıldı'
+      : 'sayfa sayısı sınırına ulaşıldı';
+  } else {
+    reasonText = `link kontrolü tamamlanmadı (${linkCheck.checked_count ?? 0}/${linkCheck.total_links_found ?? '?'} link test edildi)`;
+  }
 
   document.getElementById('t3-fullcrawl-note').textContent = structure.crawl_mode === 'full'
     ? `Tüm site taramasında da ${reasonText} (şu ana kadar ${structure.crawled_page_count} sayfa tarandı).`
@@ -342,13 +354,21 @@ async function runFullSiteCrawl() {
       }
 
       const structure = data.site_structure || {};
-      const canAutoContinue = structure.truncated && structure.crawl_mode === 'full' && structure.resume_state;
+      const linkCheck = data.link_check || {};
+      // resume_state artik SADECE site yapisi kesildiginde degil, link
+      // kontrolu hala bekleyen yeni link varken de doluyor (bkz. backend
+      // 'link_check.truncated') - o yuzden devam etme kararini dogrudan
+      // resume_state'in varligina dayandiriyoruz, sadece structure.truncated'a degil.
+      const linkCheckPending = !!linkCheck.truncated;
+      const canAutoContinue = structure.crawl_mode === 'full' && !!structure.resume_state && (structure.truncated || linkCheckPending);
       const withinAutoBudget = (Date.now() - autoStartedAt) < T3_FULLCRAWL_AUTO_MAX_MS;
 
       if (canAutoContinue && withinAutoBudget) {
         current = { url: current.url, resumeState: structure.resume_state, cachedPsi: data.psi };
         if (note) {
-          note.textContent = `Taramaya otomatik devam ediliyor... şu ana kadar ${structure.crawled_page_count} sayfa tarandı.`;
+          note.textContent = structure.truncated
+            ? `Taramaya otomatik devam ediliyor... şu ana kadar ${structure.crawled_page_count} sayfa tarandı.`
+            : `Sayfa taraması tamamlandı, kalan linkler kontrol ediliyor... (${linkCheck.checked_count ?? 0}/${linkCheck.total_links_found ?? '?'})`;
         }
         continue;
       }
@@ -360,10 +380,11 @@ async function runFullSiteCrawl() {
     renderTechnicalSeoResult(current.url, data);
 
     const structure = data.site_structure || {};
-    if (structure.truncated) {
-      showToast(`Otomatik devam bir süre sonra yine sınıra takıldı (${structure.crawled_page_count} sayfa) - dilersen "Evet, Tüm Siteyi Tara"ya tekrar basarak devam edebilirsin.`, 'success');
+    const linkCheck = data.link_check || {};
+    if (structure.truncated || linkCheck.truncated) {
+      showToast(`Otomatik devam bir süre sonra yine sınıra takıldı (${structure.crawled_page_count} sayfa, ${linkCheck.checked_count ?? 0}/${linkCheck.total_links_found ?? '?'} link) - dilersen "Evet, Tüm Siteyi Tara"ya tekrar basarak devam edebilirsin.`, 'success');
     } else {
-      showToast(`Tüm site taraması tamamlandı (${structure.crawled_page_count} sayfa).`, 'success');
+      showToast(`Tüm site taraması tamamlandı (${structure.crawled_page_count} sayfa, ${linkCheck.checked_count ?? 0} link kontrol edildi).`, 'success');
     }
   } catch (err) {
     console.error('[TeknikSEO]', err);
@@ -598,10 +619,29 @@ function renderFindings(findings) {
       return `<span class="finding-summary__item"><span class="finding-summary__dot" style="background:${meta.dotColor};"></span>${counts[sev]} ${meta.label.toLowerCase()}</span>`;
     }).join('');
 
+  // Bazı bulgular (şu an: kırık linkler) tek tek örnek/URL listesi taşır
+  // (bkz. ScoringEngine::buildFindings 'items' alanı) - bu durumda kart
+  // tıklanabilir hale gelir, tıklanınca aşağı doğru açılıp listeyi gösterir.
   const cardsHtml = findings.map(f => {
     const meta = T3_SEVERITY_META[f.severity] || T3_SEVERITY_META.minor;
+    const items = Array.isArray(f.items) ? f.items : [];
+    const hasItems = items.length > 0;
+
+    const itemsListHtml = hasItems
+      ? items.map(it => `
+          <div class="finding-card__item">
+            <a href="${escapeHtml(it.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(it.url)}</a>
+            <span class="small muted">${escapeHtml(it.status)}</span>
+          </div>
+        `).join('')
+      : '';
+
+    const toggleHtml = hasItems
+      ? `<button type="button" class="finding-card__toggle-btn" aria-expanded="false">${items.length} link — göster <span class="finding-card__chevron">▾</span></button>`
+      : '';
+
     return `
-    <div class="card finding-card finding-card--${escapeHtml(f.severity)}" style="margin-bottom:10px;">
+    <div class="card finding-card finding-card--${escapeHtml(f.severity)}${hasItems ? ' finding-card--expandable' : ''}" style="margin-bottom:10px;">
       <div class="finding-card__meta">
         <span class="tag ${meta.tagClass}" style="font-weight:600;">${meta.label}</span>
         <span class="small muted">güven: ${escapeHtml(f.confidence)} · öncelik puanı: ${f.priority_score} · etkilenen sayfa: ${f.affected_pages}</span>
@@ -609,12 +649,34 @@ function renderFindings(findings) {
       <div class="finding-card__title">${escapeHtml(f.title)}</div>
       <div class="small muted finding-card__detail">${escapeHtml(f.detail)}</div>
       <div class="small finding-card__fix"><strong>Nasıl düzeltilir:</strong> ${escapeHtml(f.how_to_fix)}</div>
+      ${toggleHtml}
+      ${hasItems ? `<div class="finding-card__items hidden">${itemsListHtml}</div>` : ''}
     </div>
   `;
   }).join('');
 
   el.innerHTML = `<div class="finding-summary">${summaryHtml}</div>${cardsHtml}`;
 }
+
+// Bulgu kartına (veya "X link — göster" butonuna) tıklanınca, varsa altındaki
+// link listesini açar/kapatır. Listedeki linklere tıklamak (yeni sekmede
+// açılsın diye) toggle'ı TETİKLEMEMELİ - bu yüzden tıklamanın bir <a>
+// içinden gelip gelmediğini ayrıca kontrol ediyoruz.
+document.addEventListener('click', (e) => {
+  if (e.target.closest('a')) return;
+
+  const card = e.target.closest('.finding-card--expandable');
+  if (!card) return;
+
+  const itemsEl = card.querySelector('.finding-card__items');
+  const toggleBtn = card.querySelector('.finding-card__toggle-btn');
+  if (!itemsEl || !toggleBtn) return;
+
+  const willExpand = itemsEl.classList.contains('hidden');
+  itemsEl.classList.toggle('hidden', !willExpand);
+  toggleBtn.setAttribute('aria-expanded', willExpand ? 'true' : 'false');
+  toggleBtn.classList.toggle('finding-card__toggle-btn--open', willExpand);
+});
 
 function setSmallGauge(id, score) {
   const circle = document.getElementById(id + '-circle');

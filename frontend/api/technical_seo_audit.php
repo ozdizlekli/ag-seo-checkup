@@ -127,6 +127,14 @@ try {
         : null;
     $isFullCrawl = $resumeState !== null;
 
+    // Tam taramada, önceki parçalardan kalan "hangi linkler zaten test
+    // edildi + kümülatif kırık/sağlam sayısı" durumunu resume_state'in
+    // içinden çıkarıyoruz (bkz. adım 9 - kırık link taraması artık parça
+    // parça, TÜM linkleri kapsayacak şekilde çalışıyor).
+    $priorLinkCheckState = (is_array($resumeState) && isset($resumeState['link_check']) && is_array($resumeState['link_check']))
+        ? $resumeState['link_check']
+        : ['checked' => [], 'broken' => [], 'ok_count' => 0];
+
     if ($isFullCrawl) {
         // Tam taramada (2000 sayfaya kadar) toplam süre standart moddan
         // belirgin şekilde uzun sürebilir - zaman aşımını buna göre uzat.
@@ -227,9 +235,57 @@ try {
     });
 
     // 9) Kırık link taraması (taranan dahili linkler üzerinden)
-    runStep('links', 'Kırık linkler taranıyor', function () use ($crawler, $config, $siteStructure, &$linkCheckResult) {
-        $linkChecker = new LinkChecker($crawler, (int) $config['crawl']['max_links_to_check'], (int) $config['crawl']['link_check_concurrency']);
-        $linkCheckResult = $linkChecker->check($siteStructure['internal_links_found']);
+    // Standart modda hâlâ tek seferde en fazla 40 link test edilir. Tam site
+    // taramasında ("Tüm Siteyi Tara") ise artık TÜM linkler kapsanıyor - ama
+    // tek bir istekte binlerce linki aynı anda test edip zaman aşımına
+    // uğramamak için, her parçada SADECE o parçada yeni bulunan ve daha önce
+    // test edilmemiş linkleri (en fazla full_max_links_to_check kadarını)
+    // test ediyoruz. Kümülatif durum (hangi linkler test edildi, kaçı kırık)
+    // resume_state üzerinden bir sonraki parçaya taşınır - tarama tamamen
+    // bitince (site yapısı VE link kontrolü ikisi de tamamlanınca) TÜM
+    // linkler test edilmiş olur.
+    $linkCheckState = null;
+    runStep('links', 'Kırık linkler taranıyor', function () use (
+        $crawler, $config, $siteStructure, $isFullCrawl, $priorLinkCheckState, &$linkCheckResult, &$linkCheckState
+    ) {
+        if (!$isFullCrawl) {
+            $linkChecker = new LinkChecker($crawler, (int) $config['crawl']['max_links_to_check'], (int) $config['crawl']['link_check_concurrency']);
+            $linkCheckResult = $linkChecker->check($siteStructure['internal_links_found']);
+            return;
+        }
+
+        $alreadyChecked = $priorLinkCheckState['checked'];
+        $newLinks = array_values(array_filter(
+            $siteStructure['internal_links_found'],
+            static fn (string $url): bool => !isset($alreadyChecked[$url])
+        ));
+
+        $linkChecker = new LinkChecker($crawler, (int) $config['crawl']['full_max_links_to_check'], (int) $config['crawl']['link_check_concurrency']);
+        $batch = $linkChecker->check($newLinks);
+
+        foreach (array_slice($newLinks, 0, $batch['checked_count']) as $url) {
+            $alreadyChecked[$url] = true;
+        }
+
+        $mergedBroken = array_merge($priorLinkCheckState['broken'], $batch['broken']);
+        $mergedOkCount = $priorLinkCheckState['ok_count'] + $batch['ok_count'];
+        $stillPending = count($newLinks) - $batch['checked_count'];
+
+        $linkCheckResult = [
+            'checked_count' => count($alreadyChecked),
+            'total_links_found' => count($siteStructure['internal_links_found']),
+            'broken' => $mergedBroken,
+            'ok_count' => $mergedOkCount,
+            // Artık "hâlâ test edilmeyi bekleyen yeni link var mı" anlamına
+            // geliyor - tüm linkler test edilene kadar true kalabilir.
+            'truncated' => $stillPending > 0,
+        ];
+
+        $linkCheckState = [
+            'checked' => $alreadyChecked,
+            'broken' => $mergedBroken,
+            'ok_count' => $mergedOkCount,
+        ];
     });
 
     // 10) Mobil-öncelikli indeksleme uyumu (masaüstü UA vs gerçek Googlebot mobil UA)
@@ -289,6 +345,28 @@ try {
         return $scoringEngine->compute($scoringInput);
     });
 
+    // Site yapısı taraması bitmiş olsa bile (truncated=false), hâlâ test
+    // edilmeyi bekleyen YENİ linkler varsa devam etme imkanını açık
+    // tutuyoruz - yoksa "site tamamen tarandı" deyip son birkaç yüz linki
+    // hiç test etmeden bırakmış oluruz. Bu durumda site yapısı tarafında
+    // yapılacak gerçek bir iş kalmadığı için (queue boş) bir sonraki çağrı
+    // sadece link kontrolüne devam eder, sayfa taramasına dokunmaz.
+    $responseResumeState = $siteStructure['resume_state'] ?? null;
+    $linkCheckPending = $isFullCrawl && ($linkCheckResult['truncated'] ?? false);
+
+    if ($linkCheckPending && $responseResumeState === null) {
+        $responseResumeState = [
+            'visited' => [],
+            'queue' => [],
+            'pages' => $siteStructure['pages'],
+            'internal_links_found' => $siteStructure['internal_links_found'],
+        ];
+    }
+
+    if ($isFullCrawl && $responseResumeState !== null && $linkCheckState !== null) {
+        $responseResumeState['link_check'] = $linkCheckState;
+    }
+
     sendEvent([
         'type' => 'result',
         'success' => true,
@@ -310,9 +388,10 @@ try {
             'truncated_reason' => $siteStructure['truncated_reason'] ?? null,
             'orphan_pages' => $crossRef['orphan_pages'],
             'sitemap_only_pages' => $crossRef['sitemap_only'],
-            // Yalnızca kesildiyse (truncated) dolu gelir - istemci bunu ve
-            // 'psi'yi saklayıp "tüm siteyi tara" onayında aynen geri gönderir.
-            'resume_state' => $siteStructure['resume_state'] ?? null,
+            // Site yapısı kesildiyse YA DA link kontrolü hâlâ bekliyorsa dolu
+            // gelir - istemci bunu ve 'psi'yi saklayıp bir sonraki istekte
+            // aynen geri gönderir (bkz. runFullSiteCrawl).
+            'resume_state' => $responseResumeState,
         ],
         'link_check' => $linkCheckResult,
         'mobile_parity' => $mobileParity,

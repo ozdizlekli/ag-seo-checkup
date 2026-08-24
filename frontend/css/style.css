@@ -295,6 +295,26 @@ textarea.tall{ min-height:180px; }
 .finding-card__title{ font-weight:700; margin-top:10px; font-size:14px; }
 .finding-card__detail{ margin-top:4px; }
 .finding-card__fix{ margin-top:10px; padding-top:10px; border-top:1px solid var(--border-soft); }
+.finding-card--expandable{ cursor:pointer; }
+.finding-card__toggle-btn{
+  display:inline-flex; align-items:center; gap:5px; margin-top:10px;
+  padding:6px 12px; border:1px solid var(--border-soft); border-radius:7px;
+  background:var(--bg-card, #fff); color:var(--accent); font-size:12.5px; font-weight:600;
+  cursor:pointer;
+}
+.finding-card__toggle-btn:hover{ background:var(--border-soft); }
+.finding-card__chevron{ display:inline-block; transition:transform .15s; }
+.finding-card__toggle-btn--open .finding-card__chevron{ transform:rotate(180deg); }
+.finding-card__items{
+  margin-top:10px; padding-top:10px; border-top:1px solid var(--border-soft);
+  max-height:260px; overflow-y:auto;
+}
+.finding-card__item{
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+  padding:6px 0; font-size:12.5px;
+}
+.finding-card__item a{ color:var(--accent); word-break:break-all; }
+.finding-card__item .small{ flex-shrink:0; white-space:nowrap; }
 
 /* Cluster group */
 .cluster-col{ background:var(--paper); border:1px solid var(--border-soft); border-radius:var(--radius); padding:16px; }

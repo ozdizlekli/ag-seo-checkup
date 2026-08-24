@@ -322,13 +322,14 @@ final class ScoringEngine
     /**
      * @return list<array{
      *   category:string, severity:string, confidence:string, title:string,
-     *   detail:string, how_to_fix:string, affected_pages:int, priority_score:float
+     *   detail:string, how_to_fix:string, affected_pages:int, priority_score:float,
+     *   items:list<array{url:string, status:string}>
      * }>
      */
     private function buildFindings(array $input, int $totalPages): array
     {
         $findings = [];
-        $add = function (string $category, string $severity, string $confidence, string $title, string $detail, string $howToFix, int $affectedPages) use (&$findings, $totalPages): void {
+        $add = function (string $category, string $severity, string $confidence, string $title, string $detail, string $howToFix, int $affectedPages, array $items = []) use (&$findings, $totalPages): void {
             $severityWeight = self::SEVERITY_WEIGHTS[$severity] ?? 25;
             $confidenceWeight = self::CONFIDENCE_WEIGHTS[$confidence] ?? 0.6;
             $prevalence = min(1.0, $affectedPages / $totalPages);
@@ -342,6 +343,10 @@ final class ScoringEngine
                 'how_to_fix' => $howToFix,
                 'affected_pages' => $affectedPages,
                 'priority_score' => round($severityWeight * max($prevalence, $affectedPages > 0 ? 0.05 : 0) * $confidenceWeight, 2),
+                // Bazı bulgular (ör. kırık linkler) tek tek örnek/URL listesi
+                // taşıyabilir - arayüz bunu varsa tıklanınca açılan bir liste
+                // olarak gösterir. Yoksa boş dizi (arayüz tarafında tutarlı şema).
+                'items' => $items,
             ];
         };
 
@@ -389,10 +394,17 @@ final class ScoringEngine
 
         $orphanPages = $indexability['orphan_pages'] ?? [];
         if (!empty($orphanPages)) {
+            // Kırık linklerdeki ile aynı desen: TAM liste 'items' üzerinden
+            // gidiyor, kart tıklanınca açılıp hepsini gösteriyor - detay
+            // metninde artık sadece ilk birkaçını saymaya gerek yok.
+            $orphanItems = array_map(
+                static fn (string $url): array => ['url' => $url, 'status' => "sitemap'te yok"],
+                $orphanPages
+            );
             $add('crawlability_indexability', 'major', 'kesin', count($orphanPages) . ' sayfa sitemap\'te eksik (orphan pages)',
-                'Site içinde linklenen ancak sitemap.xml\'de yer almayan sayfalar tespit edildi: ' . implode(', ', array_slice($orphanPages, 0, 5)) . (count($orphanPages) > 5 ? ' ve diğerleri...' : ''),
+                'Site içinde linklenen ancak sitemap.xml\'de yer almayan sayfalar tespit edildi.',
                 'Bu sayfaları sitemap.xml\'e ekleyin ki arama motorları tarafından keşfedilme olasılığı artsın.',
-                count($orphanPages));
+                count($orphanPages), $orphanItems);
         }
 
         $ssl = $input['ssl'] ?? [];
@@ -417,10 +429,22 @@ final class ScoringEngine
         $linkCheck = $input['link_check'] ?? [];
         $brokenLinks = $linkCheck['broken'] ?? [];
         if (!empty($brokenLinks)) {
+            // Bulgunun kendisi hangi linklerin kırık olduğunu TAM listeyle
+            // taşır ($items) - arayüzde bulgu kartına tıklanınca bu liste
+            // açılıp gösterilir, kullanıcı ayrı bir yere bakmak zorunda kalmaz.
+            $brokenItems = array_map(
+                static function (array $b): array {
+                    return [
+                        'url' => $b['url'],
+                        'status' => $b['status_code'] > 0 ? "HTTP {$b['status_code']}" : ($b['error'] ?? 'bağlantı hatası'),
+                    ];
+                },
+                $brokenLinks
+            );
             $add('site_structure_links', 'major', 'kesin', count($brokenLinks) . ' kırık link tespit edildi',
-                'Taranan linkler arasında 4xx/5xx durum kodu dönen linkler bulundu.',
+                'Taranan linkler arasında 4xx/5xx durum kodu dönen veya erişilemeyen linkler bulundu.',
                 'Kırık linkleri güncelleyin veya kaldırın; taşınan sayfalar için 301 yönlendirmesi ekleyin.',
-                count($brokenLinks));
+                count($brokenLinks), $brokenItems);
         }
 
         $mobileParity = $input['mobile_parity'] ?? [];

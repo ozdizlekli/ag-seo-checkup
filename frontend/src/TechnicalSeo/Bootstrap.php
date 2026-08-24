@@ -117,6 +117,15 @@ return [
         'full_max_depth' => 20,
         'full_max_time_seconds' => 90,
         'max_links_to_check' => 40,
+        // Tam site taramasinda ("Tum Siteyi Tara") artik TUM linkler kontrol
+        // ediliyor - ama tek bir istekte binlerce linki ayni anda test edip
+        // zaman asimina ugramamak icin, bu deger GLOBAL bir tavan degil,
+        // HER PARCADA (resume adiminda) en fazla kac YENI/test-edilmemis
+        // linkin test edilecegini belirliyor. Kalan linkler bir sonraki
+        // parcada devam eder (bkz. technical_seo_audit.php adim 9 ve
+        // 'link_check' resume_state'i) - tarama tamamen bitince hepsi
+        // test edilmis olur.
+        'full_max_links_to_check' => 300,
         'link_check_concurrency' => 10,
     ],
 ];
