@@ -1170,23 +1170,16 @@ document.addEventListener('click', async (e) => {
             if (dataT.error) throw new Error("Hedef URL Hatası: " + dataT.error);
             if (dataC.error) throw new Error("Rakip URL Hatası: " + dataC.error);
 
-            // Build Prompt
+            // Build Prompt - Rakip Savaş Modu 2. PDF Uyumu
             const prompt = `GERÇEK ZAMANLI RAKİP SAVAŞ MODU (BATTLE MODE) AKTİF!
-HEDEF SİTE (Müşteri): ${dataT.title}
-RAKİP SİTE (Geçilecek Site): ${dataC.title}
 
-Rakibin Çekilen HTML/İçerik Verisi (Sadece Özet):
-- Rakip H1/H2 Başlıkları: ${JSON.stringify((dataC.headings || []).slice(0,5))}
-- Rakip Şema (Schema) Kullanımı: ${dataC.schemas ? dataC.schemas.length : 0} adet
-- Rakip Meta Açıklaması: ${dataC.description}
-- Rakip Metni (İlk 500 Karakter): ${(dataC.text || '').substring(0, 500)}
+Site A:
+${(dataT.text || '').substring(0, 10000)}
 
-Görev: Müşterinin sitesiyle, bu canlı rakip sitesini "Generative Engine Optimization (GEO)" perspektifinden acımasızca kıyasla! Sadece genel SEO değil, Yapay Zeka botlarının (ChatGPT, SGE, Perplexity) okuma ve alıntı yapma biçimlerine odaklanarak şu formatta kapsamlı bir rapor çıkar:
+Site B (Rakip):
+${(dataC.text || '').substring(0, 10000)}
 
-* 🧠 SEMANTİK KAPSAM VE VARLIK (ENTITY) ANALİZİ
-* 🏗 FORMAT VE YZ OKUNABİLİRLİĞİ (LLM UYUMU)
-* 🛡 E-E-A-T VE BİLGİ YOĞUNLUĞU
-* ⚔️ KESİN ZAFER STRATEJİSİ: ChatGPT ve Google SGE aramalarında bu rakibi tahtından etmek için acilen yapmamız gereken 5 nokta atışı taktik.`;
+Site A'nın rakibine göre içerik derinliği, SEO kalitesi ve E-E-A-T sinyalleri açısından eksiklerini ve rakibin neden daha iyi olduğunu JSON olarak analiz et.`;
 
             const aiRes = await fetch('form_submit.php', { 
                 method: 'POST', 

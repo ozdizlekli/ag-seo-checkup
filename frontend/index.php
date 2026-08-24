@@ -447,6 +447,9 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
             <select class="input" id="t4-schema-type">
               <option value="product">Ürün (E-Ticaret)</option>
               <option value="local">Yerel İşletme (Kurumsal)</option>
+              <option value="service">Hizmet (Service)</option>
+              <option value="faq">Sıkça Sorulan Sorular (FAQPage)</option>
+              <option value="llmstxt">Yapay Zeka Özeti (llms.txt)</option>
             </select>
           </div>
           <div class="field">
