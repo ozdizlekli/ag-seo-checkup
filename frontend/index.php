@@ -477,7 +477,7 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
           </div>
           
           <div class="copilot-container" style="border:none; margin-top:0; border-radius:0;">
-            <div class="copilot-header">
+            <div class="copilot-header" style="position:relative; z-index:50;">
               <div class="copilot-progress" id="copilot-progress" style="display:none;">
                 <div class="copilot-step" data-step="1" id="cp-step-1">
                   <div class="copilot-step-circle"><span class="num">1</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
@@ -615,7 +615,7 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
 </div>
 
 <!-- BATTLE MODE MODAL -->
-<div class="modal-overlay hidden" id="battle-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
+<div class="modal-overlay" id="battle-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
   <div class="modal-content" style="background:#fff; width:90%; max-width:900px; height:85vh; border-radius:12px; padding:24px; display:flex; flex-direction:column; box-shadow:0 10px 40px rgba(0,0,0,0.3);">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
       <h2 style="margin:0; font-size:22px; display:flex; align-items:center; gap:8px;"> Rakip Savaş Modu (AI GEO Kıyaslaması)</h2>
