@@ -18,7 +18,7 @@ class KeywordFrequencyAnalyzer {
         $cleanText = mb_strtolower($this->cleaner->getCleanText(), 'UTF-8');
         $wordCount = count($words);
 
-        $stopwords = ["ve", "veya", "ama", "fakat", "lakin", "ancak", "için", "ile", "de", "da", "ki", "bir", "bu", "şu", "o", "mı", "mi", "mu", "mü", "çok", "daha", "en", "kadar", "gibi", "göre", "dolayı", "rağmen", "karşın", "yerine", "hakkında", "dair", "ait"];
+        $stopwords = ["ve", "veya", "ama", "fakat", "lakin", "ancak", "için", "ile", "de", "da", "te", "ta", "ki", "bir", "bu", "şu", "o", "mı", "mi", "mu", "mü", "çok", "daha", "en", "kadar", "gibi", "göre", "dolayı", "rağmen", "karşın", "yerine", "hakkında", "dair", "ait", "ise", "diye", "olarak", "olan", "olduğu", "olduğunu", "hem", "ne", "ya", "hiç", "hep", "her", "tüm", "bütün", "bazı", "karşı", "doğru", "başka", "beri", "itibaren", "kendi", "biz", "siz", "onlar", "ben", "sen", "onun", "bunun", "şunun"];
         $filteredWords = array_filter($words, fn($w) => !in_array($w, $stopwords));
         $filteredWords = array_values($filteredWords);
 
@@ -66,7 +66,8 @@ class KeywordFrequencyAnalyzer {
             
             $firstWord = explode(' ', $this->targetKeyword)[0];
             $stemLength = mb_strlen($firstWord, 'UTF-8');
-            $stem = mb_substr($firstWord, 0, max(4, $stemLength - 2), 'UTF-8');
+            $trimLen = $stemLength >= 8 ? 3 : ($stemLength >= 6 ? 2 : ($stemLength >= 5 ? 1 : 0));
+            $stem = mb_substr($firstWord, 0, $stemLength - $trimLen, 'UTF-8');
             
             preg_match_all('/\b' . preg_quote($stem, '/') . '\p{L}*\b/ui', $cleanText, $stemMatches);
             $totalMentions = count($stemMatches[0] ?? []);
@@ -76,7 +77,7 @@ class KeywordFrequencyAnalyzer {
             $inflectionRatio = $totalMentions > 0 ? $inflectedCount / $totalMentions : 0;
             $density = $wordCount > 0 ? ($exactCount * $kwWordCount / $wordCount) * 100 : 0;
             
-            $minDensity = 1.0;
+            $minDensity = 0.8;
             $deficit = 0;
             if ($density < $minDensity) {
                 $targetMentions = ceil(($minDensity / 100) * $wordCount / max(1, $kwWordCount));
@@ -90,7 +91,7 @@ class KeywordFrequencyAnalyzer {
                 "inflected_or_stem_matches_count" => $inflectedCount,
                 "total_mentions_including_stems" => $totalMentions,
                 "inflection_ratio" => round($inflectionRatio, 2),
-                "ideal_density_range" => [1.0, 1.8],
+                "ideal_density_range" => [0.8, 2.5],
                 "deficit_to_reach_min_density" => (int)$deficit
             ];
         }

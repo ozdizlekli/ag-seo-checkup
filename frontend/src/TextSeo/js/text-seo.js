@@ -81,7 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                     <div class="txtseo-flex txtseo-justify-between txtseo-items-center txtseo-mt-2">
                         <span class="txtseo-text-xs txtseo-text-gray-500"><i class="ph ph-text-aa"></i> ${item.wordCount} Kelime</span>
-                        <button class="delete-item-btn txtseo-text-gray-400 txtseo-hover-text-danger txtseo-transition txtseo-p-1" data-id="${item.id}" title="Sil">
+                        <button class="txtseo-delete-item-btn txtseo-text-gray-400 txtseo-hover-text-danger txtseo-transition txtseo-p-1" data-id="${item.id}" title="Sil">
                             <i class="ph ph-trash txtseo-text-lg"></i>
                         </button>
                     </div>
@@ -120,12 +120,14 @@ document.addEventListener('DOMContentLoaded', () => {
         renderHistory();
     }
 
-    clearAllHistoryBtn.addEventListener('click', () => {
-        if (confirm('Tüm geçmişi silmek istediğinize emin misiniz?')) {
-            localStorage.removeItem(HISTORY_KEY);
-            renderHistory();
-        }
-    });
+    if (clearAllHistoryBtn) {
+        clearAllHistoryBtn.addEventListener('click', () => {
+            if (confirm('Tüm geçmişi silmek istediğinize emin misiniz?')) {
+                localStorage.removeItem(HISTORY_KEY);
+                renderHistory();
+            }
+        });
+    }
 
     if (backToInputBtn) {
         backToInputBtn.addEventListener('click', () => {
@@ -227,7 +229,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (targetKeyword) payload.target_keyword = targetKeyword;
 
             // Simulate step progress slightly faster than real API just for UX
-            updateLoadingStep(1, "Metin anatomisi ölçülüyor...");
+            updateLoadingStep(1, "İçerik yapısı inceleniyor...");
             
             console.log("[UI LOG] 2. api/text_seo_analyze.php adresine POST isteği gönderiliyor...");
             const response = await fetch('src/TextSeo/api/text_seo_analyze.php', {
@@ -249,9 +251,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
             apiData = data;
             
-            updateLoadingStep(3, "Yapay zeka ile strateji belirleniyor...");
+            updateLoadingStep(3, "SEO stratejisi oluşturuluyor...");
             setTimeout(() => {
-                updateLoadingStep(4, "Otomatik düzeltme uygulanıyor...");
+                updateLoadingStep(4, "Metin iyileştiriliyor...");
                 setTimeout(() => {
                     try {
                         console.log("[UI LOG] 4. populateResults() başlatılıyor...");
@@ -294,13 +296,15 @@ document.addEventListener('DOMContentLoaded', () => {
             const icon = li.querySelector('i');
             if (idx < stepIndex) {
                 icon.className = 'ph-fill ph-check-circle txtseo-text-success';
-                li.classList.add('txtseo-text-gray-900', '');
+                li.classList.add('txtseo-text-gray-900');
+                li.classList.remove('txtseo-text-primary');
             } else if (idx === stepIndex) {
                 icon.className = 'ph-fill ph-spinner-gap txtseo-animate-spin txtseo-text-primary';
                 li.classList.add('txtseo-text-primary');
+                li.classList.remove('txtseo-text-gray-900');
             } else {
                 icon.className = 'ph ph-circle';
-                li.classList.remove('txtseo-text-gray-900', '', 'txtseo-text-primary');
+                li.classList.remove('txtseo-text-gray-900', 'txtseo-text-primary');
             }
         });
     }
@@ -360,7 +364,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const getBadgeLabel = (status) => {
             if (status === 'success') return 'İyi';
             if (status === 'warning') return 'Orta';
-            return 'Kritik';
+            return 'Zayıf';
         };
 
         const atesmanFb = readability.atesman_feedback || {};
@@ -481,6 +485,22 @@ document.addEventListener('DOMContentLoaded', () => {
                         </td>
                     </tr>
                 `;
+            }
+        }
+
+        // Tab 2: Detected Contextual Keywords
+        const detectedKeywordsList = document.getElementById('detectedKeywordsList');
+        if (detectedKeywordsList) {
+            detectedKeywordsList.innerHTML = '';
+            const allDetected = [];
+            unigrams.slice(0, 3).forEach(u => allDetected.push(u.term));
+            bigrams.slice(0, 3).forEach(b => allDetected.push(b.term));
+            if (allDetected.length === 0) {
+                detectedKeywordsList.innerHTML = '<span class="txtseo-text-xs txtseo-text-gray-500">Anahtar kelime tespit edilemedi.</span>';
+            } else {
+                allDetected.forEach(kw => {
+                    detectedKeywordsList.innerHTML += `<span class="txtseo-bg-green-100 txtseo-text-green-800 txtseo-text-xs txtseo-font-medium txtseo-px-2.5 txtseo-py-1 txtseo-rounded txtseo-border txtseo-border-green-200">${kw}</span>`;
+                });
             }
         }
 
@@ -670,12 +690,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (hasDownloadedPdf) {
             pdfModalIcon.className = 'w-10 h-10 txtseo-rounded-full txtseo-flex txtseo-items-center txtseo-justify-center txtseo-text-xl txtseo-bg-yellow-100 txtseo-text-warning';
-            pdfModalMessage.innerHTML = '⚠️ Bu analizin PDF raporunu daha önce indirdiniz. Güncel raporu yeniden indirmek istiyor musunuz?';
+            pdfModalMessage.innerHTML = '⚠️ Bu analiz raporunu daha önce indirdiniz. Yeniden indirmek istiyor musunuz?';
             confirmBtnText.textContent = 'Tekrar İndir';
         } else {
             pdfModalIcon.className = 'w-10 h-10 txtseo-rounded-full txtseo-flex txtseo-items-center txtseo-justify-center txtseo-text-xl txtseo-bg-blue-100 txtseo-text-primary';
-            pdfModalMessage.innerHTML = 'Tüm analizler, grafikler, strateji tablosu ve optimize edilmiş metin PDF olarak hazırlanacaktır. İndirmeyi onaylıyor musunuz?';
-            confirmBtnText.textContent = 'PDF Raporunu İndir';
+            pdfModalMessage.innerHTML = 'Tüm analiz sonuçlarını, kelime stratejisini ve önerilen yeni metni içeren detaylı PDF raporunu indirmek üzeresiniz.';
+            confirmBtnText.textContent = 'İndir';
         }
         
         pdfModal.classList.remove('txtseo-hidden');
@@ -737,6 +757,11 @@ document.addEventListener('DOMContentLoaded', () => {
         // 1. KATMAN: HERO 4'LÜ KARTLARI DOLDUR
         const heroCardsContainer = document.getElementById('anatomyHeroCards');
         if (heroCardsContainer) {
+            const longSentences = sentenceMetrics.sentences_over_25_words || 0;
+            const infoDensity = lexical.stopwords_and_density?.information_density_percentage || 0;
+            const ttr = lexical.lexical_diversity?.type_token_ratio || 0;
+            const powerWordsCount = intent.power_words?.matched_count || 0;
+
             heroCardsContainer.innerHTML = `
                 <!-- Kelime Hacmi -->
                 <div class="txtseo-bg-gray-50 txtseo-p-3.5 txtseo-rounded-xl txtseo-border txtseo-border-slate-100 txtseo-flex txtseo-flex-col txtseo-justify-between txtseo-items-center txtseo-text-center txtseo-hover-border-blue-200 txtseo-transition">
@@ -779,161 +804,64 @@ document.addEventListener('DOMContentLoaded', () => {
                 <!-- Paragraf & Mobil Blok -->
                 <div class="txtseo-bg-gray-50 txtseo-p-3.5 txtseo-rounded-xl txtseo-border txtseo-border-slate-100 txtseo-flex txtseo-flex-col txtseo-justify-between txtseo-items-center txtseo-text-center txtseo-hover-border-blue-200 txtseo-transition">
                     <span class="txtseo-text-[10px] txtseo-font-bold txtseo-text-gray-400 txtseo-uppercase txtseo-tracking-wider txtseo-flex txtseo-items-center txtseo-justify-center txtseo-gap-1.5">
-                        Okumayı Zorlaştıran Uzun Paragraflar
+                        Uzun Paragraflar
                         <i class="ph ph-paragraphs txtseo-text-slate-400"></i>
                     </span>
                     <span class="txtseo-text-2xl txtseo-font-extrabold txtseo-text-slate-800 txtseo-mt-1">${anatomy.paragraph_count || 0}</span>
                     <span class="txtseo-text-[11px] txtseo-font-semibold txtseo-mt-0.5 txtseo-flex txtseo-items-center txtseo-gap-1 ${monolithicCount === 0 ? 'txtseo-text-emerald-600' : 'txtseo-text-rose-600'}">
                         <i class="ph-fill ${monolithicCount === 0 ? 'ph-check-circle' : 'ph-warning-circle'}"></i>
-                        ${monolithicCount === 0 ? 'Kusursuz Paragraf Düzeni' : `${monolithicCount} Uzun ve Yorucu Paragraf!`}
+                        ${monolithicCount === 0 ? 'İyi Paragraf Düzeni' : `${monolithicCount} Uzun Paragraf`}
+                    </span>
+                </div>
+                
+                <!-- Nefes Kesen Uzun Cümle -->
+                <div class="txtseo-bg-gray-50 txtseo-p-3.5 txtseo-rounded-xl txtseo-border txtseo-border-slate-100 txtseo-flex txtseo-flex-col txtseo-justify-between txtseo-items-center txtseo-text-center txtseo-hover-border-blue-200 txtseo-transition">
+                    <span class="txtseo-text-[10px] txtseo-font-bold txtseo-text-gray-400 txtseo-uppercase txtseo-tracking-wider txtseo-flex txtseo-items-center txtseo-justify-center txtseo-gap-1.5">
+                        Uzun Cümleler
+                        <i class="ph ph-text-b txtseo-text-slate-400"></i>
+                    </span>
+                    <span class="txtseo-text-2xl txtseo-font-extrabold txtseo-mt-1 ${longSentences > 0 ? 'txtseo-text-amber-600' : 'txtseo-text-emerald-600'}">${longSentences}</span>
+                    <span class="txtseo-text-[11px] txtseo-text-slate-500 txtseo-mt-0.5 txtseo-font-medium">
+                        25+ Kelimelik Cümleler
+                    </span>
+                </div>
+                
+                <!-- Saf Bilgi Yoğunluğu -->
+                <div class="txtseo-bg-gray-50 txtseo-p-3.5 txtseo-rounded-xl txtseo-border txtseo-border-slate-100 txtseo-flex txtseo-flex-col txtseo-justify-between txtseo-items-center txtseo-text-center txtseo-hover-border-blue-200 txtseo-transition">
+                    <span class="txtseo-text-[10px] txtseo-font-bold txtseo-text-gray-400 txtseo-uppercase txtseo-tracking-wider txtseo-flex txtseo-items-center txtseo-justify-center txtseo-gap-1.5">
+                        Bilgi Yoğunluğu
+                        <i class="ph ph-brain txtseo-text-slate-400"></i>
+                    </span>
+                    <span class="txtseo-text-2xl txtseo-font-extrabold txtseo-mt-1 ${infoDensity >= 55 ? 'txtseo-text-purple-600' : 'txtseo-text-amber-600'}">%${infoDensity}</span>
+                    <span class="txtseo-text-[11px] txtseo-text-slate-500 txtseo-mt-0.5 txtseo-font-medium">
+                        Faydalı Bilgi Oranı
+                    </span>
+                </div>
+                
+                <!-- İkna Gücü -->
+                <div class="txtseo-bg-gray-50 txtseo-p-3.5 txtseo-rounded-xl txtseo-border txtseo-border-slate-100 txtseo-flex txtseo-flex-col txtseo-justify-between txtseo-items-center txtseo-text-center txtseo-hover-border-blue-200 txtseo-transition">
+                    <span class="txtseo-text-[10px] txtseo-font-bold txtseo-text-gray-400 txtseo-uppercase txtseo-tracking-wider txtseo-flex txtseo-items-center txtseo-justify-center txtseo-gap-1.5">
+                        İkna Edici Kelimeler
+                        <i class="ph ph-lightning txtseo-text-slate-400"></i>
+                    </span>
+                    <span class="txtseo-text-2xl txtseo-font-extrabold txtseo-mt-1 ${powerWordsCount > 0 ? 'txtseo-text-emerald-600' : 'txtseo-text-slate-800'}">${powerWordsCount}</span>
+                    <span class="txtseo-text-[11px] txtseo-text-slate-500 txtseo-mt-0.5 txtseo-font-medium">
+                        Eyleme Çağrı (CTA)
+                    </span>
+                </div>
+                
+                <!-- Kelime Zenginliği -->
+                <div class="txtseo-bg-gray-50 txtseo-p-3.5 txtseo-rounded-xl txtseo-border txtseo-border-slate-100 txtseo-flex txtseo-flex-col txtseo-justify-between txtseo-items-center txtseo-text-center txtseo-hover-border-blue-200 txtseo-transition">
+                    <span class="txtseo-text-[10px] txtseo-font-bold txtseo-text-gray-400 txtseo-uppercase txtseo-tracking-wider txtseo-flex txtseo-items-center txtseo-justify-center txtseo-gap-1.5">
+                        Kelime Zenginliği
+                        <i class="ph ph-books txtseo-text-slate-400"></i>
+                    </span>
+                    <span class="txtseo-text-2xl txtseo-font-extrabold txtseo-mt-1 ${ttr >= 0.4 ? 'txtseo-text-emerald-600' : 'txtseo-text-amber-600'}">${ttr}</span>
+                    <span class="txtseo-text-[11px] txtseo-text-slate-500 txtseo-mt-0.5 txtseo-font-medium">
+                        ${ttr >= 0.4 ? 'Geniş Kelime Dağarcığı' : 'Tekrarlayan Kelimeler'}
                     </span>
                 </div>
             `;
-        }
-
-        // 2. KATMAN: DETAYLI X-RAY PANELİNİ DOLDUR (4 SÜTUN)
-        const xrayGrid = document.getElementById('xrayGrid');
-        if (xrayGrid) {
-            const burstiness = sentenceMetrics.burstiness_score || 0;
-            const stdDev = sentenceMetrics.standard_deviation || 0;
-            const isMonotonous = sentenceMetrics.monotonous_flow_detected || false;
-            const longSentences = sentenceMetrics.sentences_over_25_words || 0;
-            
-            const isHierarchyValid = headings.hierarchy_valid !== false;
-            const boldRatio = formatting.bold_words_ratio_percentage || 0;
-            const listCount = formatting.list_items_total || 0;
-            
-            const infoDensity = lexical.stopwords_and_density?.information_density_percentage || 0;
-            const stopwordRatio = lexical.stopwords_and_density?.stopword_ratio_percentage || 0;
-            const ttr = lexical.lexical_diversity?.type_token_ratio || 0;
-            
-            const charCountWithSpaces = anatomy.character_count?.with_spaces || 0;
-            const syllableCount = anatomy.syllable_count || 0;
-            
-            const tone = intent.modality_and_tone?.tone_classification || 'NEUTRAL';
-            const hasClosingCta = intent.cta_metrics?.has_closing_cta || false;
-            const questionRatio = lexical.questions_and_snippets?.question_sentences_ratio_percentage || 0;
-            const powerWordsCount = intent.power_words?.matched_count || 0;
-
-            xrayGrid.innerHTML = `
-                <!-- SÜTUN 1: RİTİM & AKIŞ DİNAMİĞİ -->
-                <div class="txtseo-bg-gradient-to-br txtseo-from-slate-50 txtseo-to-white txtseo-p-4 txtseo-rounded-xl txtseo-border txtseo-border-slate-200/80 txtseo-shadow-xs txtseo-space-y-3">
-                    <div class="txtseo-flex txtseo-items-center txtseo-justify-between txtseo-border-b txtseo-border-slate-100 txtseo-pb-2">
-                        <span class="txtseo-text-xs txtseo-font-bold txtseo-text-slate-700 txtseo-flex txtseo-items-center txtseo-gap-1.5">
-                            <i class="ph ph-wave-sine txtseo-text-indigo-500 txtseo-text-sm"></i> Cümle Akıcılık ve Dalgalanma Ritmi
-                        </span>
-                        <span class="txtseo-text-[10px] txtseo-font-bold txtseo-px-2 txtseo-py-0.5 txtseo-rounded-full ${!isMonotonous ? 'txtseo-bg-emerald-100 txtseo-text-emerald-700 txtseo-border txtseo-border-emerald-200' : 'txtseo-bg-amber-100 txtseo-text-amber-700 txtseo-border txtseo-border-amber-200'}">
-                            ${!isMonotonous ? 'Doğal İnsan Ritmi' : 'Monoton Akış'}
-                        </span>
-                    </div>
-                    <div class="txtseo-space-y-2 txtseo-text-xs">
-                        <div class="txtseo-flex txtseo-justify-between txtseo-items-center txtseo-text-slate-600">
-                            <span>Cümle Akıcılık Ritmi (Varyans):</span>
-                            <span class="txtseo-font-bold txtseo-text-slate-800">${burstiness} <span class="txtseo-text-[10px] txtseo-text-slate-400">(Değişkenlik: ${stdDev})</span></span>
-                        </div>
-                        <div class="txtseo-flex txtseo-justify-between txtseo-items-center txtseo-text-slate-600">
-                            <span>25+ Kelimelik Ağır Cümleler:</span>
-                            <span class="txtseo-font-bold ${longSentences > 0 ? 'txtseo-text-amber-600' : 'txtseo-text-emerald-600'}">${longSentences} adet</span>
-                        </div>
-                        <div class="txtseo-flex txtseo-justify-between txtseo-items-center txtseo-text-slate-600">
-                            <span>Okuması Zor Uzun Paragraf (>100 kelime):</span>
-                            <span class="txtseo-font-bold ${monolithicCount > 0 ? 'txtseo-text-rose-600' : 'txtseo-text-emerald-600'}">${monolithicCount} blok</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- SÜTUN 2: İSKELET & TARANABİLİRLİK -->
-                <div class="txtseo-bg-gradient-to-br txtseo-from-slate-50 txtseo-to-white txtseo-p-4 txtseo-rounded-xl txtseo-border txtseo-border-slate-200/80 txtseo-shadow-xs txtseo-space-y-3">
-                    <div class="txtseo-flex txtseo-items-center txtseo-justify-between txtseo-border-b txtseo-border-slate-100 txtseo-pb-2">
-                        <span class="txtseo-text-xs txtseo-font-bold txtseo-text-slate-700 txtseo-flex txtseo-items-center txtseo-gap-1.5">
-                            <i class="ph ph-list-dashes txtseo-text-blue-500 txtseo-text-sm"></i> İçerik Düzeni ve Okunabilirlik
-                        </span>
-                        <span class="txtseo-text-[10px] txtseo-font-bold txtseo-px-2 txtseo-py-0.5 txtseo-rounded-full ${isHierarchyValid ? 'txtseo-bg-emerald-100 txtseo-text-emerald-700 txtseo-border txtseo-border-emerald-200' : 'txtseo-bg-rose-100 txtseo-text-rose-700 txtseo-border txtseo-border-rose-200'}">
-                            ${isHierarchyValid ? 'Başlıklar Düzenli' : 'Başlık Sıralaması Hatalı'}
-                        </span>
-                    </div>
-                    <div class="txtseo-space-y-2 txtseo-text-xs">
-                        <div class="txtseo-flex txtseo-justify-between txtseo-items-center txtseo-text-slate-600">
-                            <span>Kullanılan Başlık Türleri:</span>
-                            <span class="txtseo-font-bold txtseo-text-slate-800">${h1Count} H1 • ${h2Count} H2 • ${h3Count} H3</span>
-                        </div>
-                        <div class="txtseo-flex txtseo-justify-between txtseo-items-center txtseo-text-slate-600">
-                            <span>Madde İmleri & Tablolar:</span>
-                            <span class="txtseo-font-bold ${listCount > 0 ? 'txtseo-text-emerald-600' : 'txtseo-text-slate-500'}">${listCount} madde ${formatting.tables_count > 0 ? '+ Tablo' : ''}</span>
-                        </div>
-                        <div class="txtseo-flex txtseo-justify-between txtseo-items-center txtseo-text-slate-600">
-                            <span>Kalın (Bold) Yazılan Kelimeler:</span>
-                            <span class="txtseo-font-bold ${boldRatio <= 3.5 ? 'txtseo-text-emerald-600' : 'txtseo-text-amber-600'}">%${boldRatio} <span class="txtseo-text-[10px] txtseo-text-slate-400">(İdeal: %1-%3)</span></span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- SÜTUN 3: BİLGİ YOĞUNLUĞU & SÖZCÜK -->
-                <div class="txtseo-bg-gradient-to-br txtseo-from-slate-50 txtseo-to-white txtseo-p-4 txtseo-rounded-xl txtseo-border txtseo-border-slate-200/80 txtseo-shadow-xs txtseo-space-y-3">
-                    <div class="txtseo-flex txtseo-items-center txtseo-justify-between txtseo-border-b txtseo-border-slate-100 txtseo-pb-2">
-                        <span class="txtseo-text-xs txtseo-font-bold txtseo-text-slate-700 txtseo-flex txtseo-items-center txtseo-gap-1.5">
-                            <i class="ph ph-brain txtseo-text-purple-500 txtseo-text-sm"></i> Net ve Faydalı Bilgi Yoğunluğu
-                        </span>
-                        <span class="txtseo-text-[10px] txtseo-font-bold txtseo-px-2 txtseo-py-0.5 txtseo-rounded-full ${infoDensity >= 55 ? 'txtseo-bg-purple-100 txtseo-text-purple-700 txtseo-border txtseo-border-purple-200' : 'txtseo-bg-amber-100 txtseo-text-amber-700 txtseo-border txtseo-border-amber-200'}">
-                            %${infoDensity} Faydalı Bilgi
-                        </span>
-                    </div>
-                    <div class="txtseo-space-y-2 txtseo-text-xs">
-                        <div class="txtseo-flex txtseo-justify-between txtseo-items-center txtseo-text-slate-600">
-                            <span>Dolgu Kelime Kullanımı:</span>
-                            <span class="txtseo-font-bold txtseo-text-slate-800">%${stopwordRatio}</span>
-                        </div>
-                        <div class="txtseo-flex txtseo-justify-between txtseo-items-center txtseo-text-slate-600">
-                            <span>Kelime Zenginliği ve Çeşitliliği:</span>
-                            <span class="txtseo-font-bold ${ttr >= 0.4 ? 'txtseo-text-emerald-600' : 'txtseo-text-amber-600'}">${ttr} <span class="txtseo-text-[10px] txtseo-text-slate-400">(${ttr >= 0.4 ? 'Zengin' : 'Tekrarlı'})</span></span>
-                        </div>
-                        <div class="txtseo-flex txtseo-justify-between txtseo-items-center txtseo-text-slate-600">
-                            <span>Karakter / Hece Hacmi:</span>
-                            <span class="txtseo-font-bold txtseo-text-slate-800">${charCountWithSpaces.toLocaleString()} kr / ${syllableCount.toLocaleString()} hece</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- SÜTUN 4: NİYET, TON & EYLEME ÇAĞRI -->
-                <div class="txtseo-bg-gradient-to-br txtseo-from-slate-50 txtseo-to-white txtseo-p-4 txtseo-rounded-xl txtseo-border txtseo-border-slate-200/80 txtseo-shadow-xs txtseo-space-y-3">
-                    <div class="txtseo-flex txtseo-items-center txtseo-justify-between txtseo-border-b txtseo-border-slate-100 txtseo-pb-2">
-                        <span class="txtseo-text-xs txtseo-font-bold txtseo-text-slate-700 txtseo-flex txtseo-items-center txtseo-gap-1.5">
-                            <i class="ph ph-target txtseo-text-amber-500 txtseo-text-sm"></i> Uzman ve Güven Veren Anlatım Dili
-                        </span>
-                        <span class="txtseo-text-[10px] txtseo-font-bold txtseo-px-2 txtseo-py-0.5 txtseo-rounded-full ${tone === 'AUTHORITATIVE' ? 'txtseo-bg-emerald-100 txtseo-text-emerald-700 txtseo-border txtseo-border-emerald-200' : (tone === 'HESITANT' ? 'txtseo-bg-amber-100 txtseo-text-amber-700 txtseo-border txtseo-border-amber-200' : 'txtseo-bg-blue-100 txtseo-text-blue-700 txtseo-border txtseo-border-blue-200')}">
-                            ${tone === 'AUTHORITATIVE' ? 'Uzman ve Güvenilir' : (tone === 'HESITANT' ? 'Güvensiz İfadeler' : 'Dengeli ve Profesyonel')}
-                        </span>
-                    </div>
-                    <div class="txtseo-space-y-2 txtseo-text-xs">
-                        <div class="txtseo-flex txtseo-justify-between txtseo-items-center txtseo-text-slate-600">
-                            <span>Google'da En Çok Sorulan Sorular:</span>
-                            <span class="txtseo-font-bold ${questionRatio > 0 ? 'txtseo-text-emerald-600' : 'txtseo-text-slate-500'}">%${questionRatio} Soru Cümlesi</span>
-                        </div>
-                        <div class="txtseo-flex txtseo-justify-between txtseo-items-center txtseo-text-slate-600">
-                            <span>Müşteriyi Harekete Geçiren Mesaj:</span>
-                            <span class="txtseo-font-bold ${hasClosingCta ? 'txtseo-text-emerald-600' : 'txtseo-text-amber-600'}">${hasClosingCta ? 'Var (Son Bölümde)' : 'Bulunamadı'}</span>
-                        </div>
-                        <div class="txtseo-flex txtseo-justify-between txtseo-items-center txtseo-text-slate-600">
-                            <span>İkna Edici ve Etkili Kelimeler:</span>
-                            <span class="txtseo-font-bold txtseo-text-slate-800">${powerWordsCount} adet tespit edildi</span>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-
-        // 3. ACCORDION EVENT LISTENER BAĞLANTISI
-        const toggleBtn = document.getElementById('toggleXrayBtn');
-        const xrayPanel = document.getElementById('xrayDetailPanel');
-        const xrayChevron = document.getElementById('xrayChevron');
-        
-        if (toggleBtn && xrayPanel && xrayChevron) {
-            const newToggleBtn = toggleBtn.cloneNode(true);
-            toggleBtn.parentNode.replaceChild(newToggleBtn, toggleBtn);
-            newToggleBtn.addEventListener('click', () => {
-                const isHidden = xrayPanel.classList.toggle('txtseo-hidden');
-                document.getElementById('xrayChevron').classList.toggle('txtseo-rotate-180', !isHidden);
-            });
         }
     }
 

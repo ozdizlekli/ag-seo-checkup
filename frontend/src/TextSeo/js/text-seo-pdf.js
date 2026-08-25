@@ -177,7 +177,7 @@ window.generatePDF = function(apiData, chartCanvas) {
             </div>
             
             <div class="pdf-card">
-                <h3 style="font-size: 14px; margin-top: 0; margin-bottom: 10px;">En Sık Kullanılan Kelimeler ve Odak Terimler</h3>
+                <h3 style="font-size: 14px; margin-top: 0; margin-bottom: 10px;">Sık Kullanılan Kelimeler</h3>
                 <div class="pdf-chart-container">
                     ${chartImageURI ? `<img src="${chartImageURI}" />` : '<p style="font-size:12px;color:#94a3b8;">Grafik bulunamadı</p>'}
                 </div>
@@ -190,21 +190,21 @@ window.generatePDF = function(apiData, chartCanvas) {
             <h2 class="pdf-section-title">Bölüm 2: Anahtar Kelime Stratejisi</h2>
             <div class="pdf-grid-2">
                 <div class="pdf-card pdf-avoid-break">
-                    <h3 style="font-size: 14px; margin-top: 0; margin-bottom: 10px;">İçeriğe Eklenmesi Önerilen Anahtar Kelimeler</h3>
+                    <h3 style="font-size: 14px; margin-top: 0; margin-bottom: 10px;">Önerilen Anahtar Kelimeler</h3>
                     <table class="pdf-table">
-                        <thead><tr><th>Anahtar Kelime</th><th style="text-align:center;">Adet</th></tr></thead>
+                        <thead><tr><th>Kelime</th><th style="text-align:center;">Önerilen Sayı</th></tr></thead>
                         <tbody>
                             ${quotasTableHTML || '<tr><td colspan="2">Veri yok</td></tr>'}
                         </tbody>
                     </table>
                 </div>
                 <div class="pdf-card pdf-avoid-break">
-                    <h3 style="font-size: 14px; margin-top: 0; margin-bottom: 10px;">İçerikte Eksik Kalan Önemli Konular</h3>
+                    <h3 style="font-size: 14px; margin-top: 0; margin-bottom: 10px;">Eksik Konular</h3>
                     <div style="margin-bottom: 15px;">
                         ${gapsHTML || '<span style="font-size:12px;color:#94a3b8;">Veri yok</span>'}
                     </div>
                     
-                    <h3 style="font-size: 14px; margin-top: 0; margin-bottom: 10px;">Google'da Kullanıcıların En Çok Sorduğu Sorular</h3>
+                    <h3 style="font-size: 14px; margin-top: 0; margin-bottom: 10px;">Sık Sorulan Sorular (Google PAA)</h3>
                     <ul class="pdf-list">
                         ${paaHTML || '<li>Veri yok</li>'}
                     </ul>
@@ -213,7 +213,7 @@ window.generatePDF = function(apiData, chartCanvas) {
         </div>
 
         <div class="pdf-section pdf-avoid-break">
-            <h2 class="pdf-section-title">Bölüm 3: İçerik Geliştirme Yol Haritası</h2>
+            <h2 class="pdf-section-title">Bölüm 3: Adım Adım İyileştirme Planı</h2>
             <div class="pdf-card">
                 ${roadmapHTML || '<p style="font-size:12px;color:#94a3b8;">Veri yok</p>'}
             </div>
@@ -222,7 +222,7 @@ window.generatePDF = function(apiData, chartCanvas) {
         <div class="page-break"></div>
 
         <div class="pdf-section">
-            <h2 class="pdf-section-title">Bölüm 4: Google Dostu Yeni Metin</h2>
+            <h2 class="pdf-section-title">Bölüm 4: Optimize Edilmiş Metin</h2>
             <div class="pdf-text-content">${formattedTextHTML}</div>
         </div>
     `;
@@ -233,7 +233,7 @@ window.generatePDF = function(apiData, chartCanvas) {
     // 3. Generate PDF Configuration
     const opt = {
         margin: [8, 0, 15, 0],
-        filename: 'Kurumsal-SEO-Analiz-Raporu.pdf',
+        filename: 'SEO-Analiz-Raporu.pdf',
         image: { type: 'jpeg', quality: 0.98 },
         html2canvas: { scale: 2, useCORS: true, logging: false, scrollX: 0, scrollY: 0 },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
@@ -256,7 +256,7 @@ window.generatePDF = function(apiData, chartCanvas) {
             pdf.text('Sayfa ' + i + ' / ' + totalPages, 180, 287);
             
             // Footer left (brand)
-            pdf.text('SEOMaster İçerik - Kurumsal SEO Raporu', 15, 287);
+            pdf.text('SEOMaster İçerik - PDF SEO Raporu', 15, 287);
         }
     }).save().then(() => {
         document.body.removeChild(wrapper);
