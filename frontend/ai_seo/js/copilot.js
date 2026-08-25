@@ -17,7 +17,7 @@ window.renderDynamicQuickActions = function() {
   if (!quickActionsContainer) return;
 
   const shuffled = [...seoQuestionPool].sort(() => 0.5 - Math.random());
-  const selected = shuffled.slice(0, 4);
+  const selected = shuffled.slice(0, 3);
 
   const infoIconBlue = '';
 
@@ -620,8 +620,6 @@ function resetChat(loadFromHistory = null, forceActionView = false) {
       setTimeout(() => textInput.focus(), 100);
   }
   
-  const secInput = document.getElementById('copilot-secondary-input');
-  if (secInput) secInput.style.display = 'none';
   
   if (copilotSaveBtn) {
     copilotSaveBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px;"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg> Kaydet`;
@@ -630,7 +628,9 @@ function resetChat(loadFromHistory = null, forceActionView = false) {
     copilotSaveBtn.style.pointerEvents = 'auto';
     copilotSaveBtn.onclick = null;
   }
-  renderAiSeoActions();
+  if (loadFromHistory) {
+      renderAiSeoActions();
+  }
   if (typeof updateActiveHistoryItem === 'function') updateActiveHistoryItem();
 }
 
@@ -760,29 +760,30 @@ function renderAiSeoActions() {
   if (nextStep <= 5) {
     currentStep = nextStep;
     updateProgressUI(currentStep);
-  window.renderDynamicQuickActions();
-    
-    const analyzeText = completedSteps.size === 0 ? "⚡ Tüm Siteyi Analiz Et" : "⚡ Kalan Adımları Analiz Et";
-    const fixText = fixedIssues.size === 0 ? "🔧 Tüm Eksikleri Gider" : "🔧 Kalan Eksikleri Gider";
-
-    actionsHtml += `<div style="display: flex; flex-direction: row; width: 100%; gap: 16px; margin-bottom: 16px;">
-            <button class="btn btn--primary" id="btn-analyze-all" style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 12px; font-weight: 600; font-size: 14px;">⚡ ${analyzeText}</button>
-            <button class="btn btn--success" id="btn-fix-all" style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 12px; font-weight: 600; font-size: 14px; background-color: #10b981; border: none;">🔧 ${fixText}</button>
-          </div>`;
-
-  } else if (completedSteps.size >= 5 && fixedIssues.size < 6) {
-    const analyzeText = "⚡ Kalan Adımları Analiz Et";
-    const fixText = fixedIssues.size === 0 ? "🔧 Tüm Eksikleri Gider" : "🔧 Kalan Eksikleri Gider";
-
-    actionsHtml += `<div style="display: flex; flex-direction: row; width: 100%; gap: 16px; margin-bottom: 16px;">
-            <button class="btn btn--primary" id="btn-analyze-all" style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 12px; font-weight: 600; font-size: 14px;">⚡ ${analyzeText}</button>
-            <button class="btn btn--success" id="btn-fix-all" style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 12px; font-weight: 600; font-size: 14px; background-color: #10b981; border: none;">🔧 ${fixText}</button>
-          </div>`;
+    window.renderDynamicQuickActions();
   }
 
-  const isCompleted = completedSteps.size === 6 && fixedIssues.size === 6;
+  const btnAnalyze = document.getElementById('btn-auto-analyze');
+  const btnFix = document.getElementById('btn-auto-fix');
 
-  copilotActions.innerHTML = actionsHtml;
+  if (completedSteps.size < 6 || (completedSteps.size >= 5 && fixedIssues.size < 6)) {
+    const analyzeText = completedSteps.size === 0 ? "Tüm Siteyi Analiz Et" : "Kalan Adımları Analiz Et";
+    const fixText = fixedIssues.size === 0 ? "Tüm Eksikleri Gider" : "Kalan Eksikleri Gider";
+    
+    if (btnAnalyze) {
+        btnAnalyze.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg> ${analyzeText}`;
+        btnAnalyze.style.display = 'flex';
+    }
+    if (btnFix) {
+        btnFix.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg> ${fixText}`;
+        btnFix.style.display = 'flex';
+    }
+  } else {
+    if (btnAnalyze) btnAnalyze.style.display = 'none';
+    if (btnFix) btnFix.style.display = 'none';
+  }
+
+  copilotActions.innerHTML = '';
 
   const topPdfBtn = document.getElementById('btn-download-pdf');
   const topTodosBtn = document.getElementById('btn-send-to-todos');
@@ -853,15 +854,22 @@ function renderAiSeoActions() {
   }
 
   // btn-ai-step removed
-  if (document.getElementById('btn-analyze-all')) {
-    document.getElementById('btn-analyze-all').addEventListener('click', async () => {
+  if (document.getElementById('btn-auto-analyze')) {
+    // avoid multiple bindings by replacing the node or using a flag
+    const btn = document.getElementById('btn-auto-analyze');
+    const newBtn = btn.cloneNode(true);
+    btn.parentNode.replaceChild(newBtn, btn);
+    newBtn.addEventListener('click', async () => {
       window.isAutoAnalyzing = true;
       await runAutoAnalysis();
     });
   }
 
-  if (document.getElementById('btn-fix-all')) {
-    document.getElementById('btn-fix-all').addEventListener('click', async () => {
+  if (document.getElementById('btn-auto-fix')) {
+    const btn = document.getElementById('btn-auto-fix');
+    const newBtn = btn.cloneNode(true);
+    btn.parentNode.replaceChild(newBtn, btn);
+    newBtn.addEventListener('click', async () => {
       window.isAutoFixing = true;
       await runAutoFixes();
     });

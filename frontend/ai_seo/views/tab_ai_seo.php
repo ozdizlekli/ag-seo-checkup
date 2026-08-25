@@ -103,9 +103,6 @@
 
           <!-- QUICK ACTIONS (3 adet soru önerisi, butonların ÜSTÜNDE) -->
           <div id="copilot-quick-actions" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px;">
-            <button class="quick-action-btn" title="İçeriği daha inandırıcı hale getirmek için ipuçları iste." onclick="document.getElementById('copilot-secondary-input').value='İçeriği daha ikna edici nasıl yaparım?'; document.getElementById('btn-send-message').click();">İçeriği daha ikna edici nasıl yaparım?</button>
-            <button class="quick-action-btn" title="Eksik olan E-E-A-T veya semantik unsurları listele." onclick="document.getElementById('copilot-secondary-input').value='Bana içerik eksiklerimi söyle'; document.getElementById('btn-send-message').click();">Bana içerik eksiklerimi söyle</button>
-            <button class="quick-action-btn" title="Rakiplerin senden daha iyi olduğu spesifik noktaları öğren." onclick="document.getElementById('copilot-secondary-input').value='Rakiplerimden neden gerideyim?'; document.getElementById('btn-send-message').click();">Rakiplerimden neden gerideyim?</button>
           </div>
 
           <!-- ANALYZE BUTTONS (Tüm Siteyi Analiz Et / Eksikleri Gider) — GRİ -->
@@ -124,7 +121,6 @@
           <div class="input-wrapper" style="display:flex; align-items:center; gap:8px;">
             <div style="flex:1; position:relative;">
               <input type="text" id="copilot-text-input" placeholder="Örn: https://www.site.com/hizmet" class="form-input" style="width:100%; border-radius:24px; padding-left:16px; padding-right:48px;">
-              <input type="text" id="copilot-secondary-input" placeholder="Başka sormak istediğiniz bir şey var mı?" class="form-input" style="width:100%; border-radius:24px; padding-left:16px; padding-right:48px; display:none;">
             </div>
             <button class="btn" id="btn-send-message" style="border-radius:24px; padding:0 24px; height:42px; background:#475569; color:white; border:none; font-weight:600;">Gönder</button>
           </div>
