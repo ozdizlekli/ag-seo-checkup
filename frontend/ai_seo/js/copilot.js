@@ -1247,11 +1247,14 @@ if (btnClearHistory) {
 
 if (copilotResetBtn) {
   copilotResetBtn.addEventListener('click', () => {
-    // Only warn if there's an ACTIVE (unsaved) new chat with user messages
-    const hasUserMessages = chatMessages.some(m => m.sender === 'user');
-    const hasUnsavedMessages = hasUserMessages && currentState !== 'WAITING_FOR_URL' && !window._chatLoadedFromHistory;
-    if (hasUnsavedMessages && !confirm('Mevcut sohbet kaydedilmedi. Yeni bir sohbet/URL başlatmak istediğinize emin misiniz?')) return;
-    resetChat(null, true);
+    try {
+        const hasUserMessages = chatMessages.some(m => m.sender === 'user');
+        const hasUnsavedMessages = hasUserMessages && currentState !== 'WAITING_FOR_URL' && !window._chatLoadedFromHistory;
+        if (hasUnsavedMessages && !confirm('Mevcut sohbet kaydedilmedi. Yeni bir sohbet/URL başlatmak istediğinize emin misiniz?')) return;
+        resetChat(null, true);
+    } catch(err) {
+        alert("Reset error: " + err.message);
+    }
   });
 }
 
@@ -1750,11 +1753,11 @@ window.startFreshAnalysis = function() {
       if (typeof window._forceResetChat === 'function') {
           window._forceResetChat(null, true);
       } else {
-          location.reload();
+          alert('Error: _forceResetChat is not a function');
       }
   } catch(e) {
+      alert("startFreshAnalysis error: " + e.message);
       console.error("startFreshAnalysis error:", e);
-      location.reload();
   }
 };
 window.startNewAnalysisFromDashboard = window.startFreshAnalysis;
