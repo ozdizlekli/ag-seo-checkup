@@ -65,16 +65,16 @@ document.addEventListener('DOMContentLoaded', () => {
             if (item.healthScore < 50) badgeClass = 'text-danger';
 
             const card = document.createElement('div');
-            card.className = 'bg-white dark:bg-darkCard p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 cursor-pointer hover:shadow-md transition flex justify-between items-center group';
+            card.className = 'bg-white p-4 rounded-xl shadow-sm border border-gray-100 cursor-pointer hover:shadow-md transition flex justify-between items-center group';
             card.innerHTML = `
                 <div class="flex flex-col gap-1 w-full">
                     <div class="flex justify-between items-start">
                         <div>
-                            <span class="text-xs font-semibold text-gray-500 dark:text-gray-400 block mb-1">${item.date}</span>
-                            <span class="font-bold text-gray-800 dark:text-gray-200">${item.targetKeyword}</span>
+                            <span class="text-xs font-semibold text-gray-500 block mb-1">${item.date}</span>
+                            <span class="font-bold text-gray-800">${item.targetKeyword}</span>
                         </div>
                         <div class="flex flex-col items-end gap-2">
-                            <span class="text-xs font-bold px-2 py-1 rounded bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 ${badgeClass}">
+                            <span class="text-xs font-bold px-2 py-1 rounded bg-gray-50 border border-gray-200 ${badgeClass}">
                                 Skor: ${item.healthScore}
                             </span>
                         </div>
@@ -294,13 +294,13 @@ document.addEventListener('DOMContentLoaded', () => {
             const icon = li.querySelector('i');
             if (idx < stepIndex) {
                 icon.className = 'ph-fill ph-check-circle text-success';
-                li.classList.add('text-gray-900', 'dark:text-gray-100');
+                li.classList.add('text-gray-900', '');
             } else if (idx === stepIndex) {
                 icon.className = 'ph-fill ph-spinner-gap animate-spin text-primary';
                 li.classList.add('text-primary');
             } else {
                 icon.className = 'ph ph-circle';
-                li.classList.remove('text-gray-900', 'dark:text-gray-100', 'text-primary');
+                li.classList.remove('text-gray-900', '', 'text-primary');
             }
         });
     }
@@ -352,9 +352,9 @@ document.addEventListener('DOMContentLoaded', () => {
         renderEnhancedAnatomy(telemetry);
 
         const getBadgeClass = (status) => {
-            if (status === 'success') return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 border border-green-200 dark:border-green-800';
-            if (status === 'warning') return 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 border border-yellow-200 dark:border-yellow-800';
-            return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 border border-red-200 dark:border-red-800';
+            if (status === 'success') return 'bg-green-100 text-green-700 border border-green-200';
+            if (status === 'warning') return 'bg-yellow-100 text-yellow-700 border border-yellow-200';
+            return 'bg-red-100 text-red-700 border border-red-200';
         };
         
         const getBadgeLabel = (status) => {
@@ -371,7 +371,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const readabilityStatsEl = document.getElementById('readabilityStats');
         // Kapsayıcı sınıflarını (grid yapısını) bozmamak için className ezilmez.
         readabilityStatsEl.innerHTML = `
-            <div class="bg-gray-50 dark:bg-gray-800/50 p-3 rounded-lg border border-gray-100 dark:border-gray-800">
+            <div class="bg-gray-50 p-3 rounded-lg border border-gray-100">
                 <div class="flex justify-between items-start">
                     <h4 class="text-sm font-bold text-slate-700">Okunabilirlik Puanı: <span class="text-primary">${readability.atesman_index || '-'}</span></h4>
                     <span class="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${getBadgeClass(atesmanFb.status)}">${atesmanFb.label || getBadgeLabel(atesmanFb.status)}</span>
@@ -379,7 +379,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <p class="text-xs leading-relaxed text-gray-600 mt-2 bg-gray-50 p-2.5 rounded-lg border border-gray-100">${atesmanFb.advice || '-'}</p>
             </div>
             
-            <div class="bg-gray-50 dark:bg-gray-800/50 p-3 rounded-lg border border-gray-100 dark:border-gray-800">
+            <div class="bg-gray-50 p-3 rounded-lg border border-gray-100">
                 <div class="flex justify-between items-start">
                     <h4 class="text-sm font-bold text-slate-700">Karmaşık Kelime: <span class="text-primary">%${readability.complex_words_percentage || '-'}</span> <span class="text-[10px] font-normal text-slate-500 block sm:inline mt-1 sm:mt-0">(Toplam ${readability.complex_polysyllabic_words_count || 0} adet 3+ heceli kelime)</span></h4>
                     <span class="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${getBadgeClass(complexFb.status)}">${getBadgeLabel(complexFb.status)}</span>
@@ -387,7 +387,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <p class="text-xs leading-relaxed text-gray-600 mt-2 bg-gray-50 p-2.5 rounded-lg border border-gray-100">${complexFb.advice || '-'}</p>
             </div>
             
-            <div class="bg-gray-50 dark:bg-gray-800/50 p-3 rounded-lg border border-gray-100 dark:border-gray-800">
+            <div class="bg-gray-50 p-3 rounded-lg border border-gray-100">
                 <div class="flex justify-between items-start">
                     <h4 class="text-sm font-bold text-slate-700">Geçiş Kelimeleri: <span class="text-primary">%${readability.transition_words?.transition_sentence_ratio_percentage || '-'}</span> <span class="text-[10px] font-normal text-slate-500 block sm:inline mt-1 sm:mt-0">(Toplam ${readability.transition_words?.matched_count || 0} adet bağlaç kullanılmış)</span></h4>
                     <span class="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${getBadgeClass(transitionFb.status)}">${getBadgeLabel(transitionFb.status)}</span>
@@ -395,7 +395,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <p class="text-xs leading-relaxed text-gray-600 mt-2 bg-gray-50 p-2.5 rounded-lg border border-gray-100">${transitionFb.advice || '-'}</p>
             </div>
             
-            <div class="bg-gray-50 dark:bg-gray-800/50 p-3 rounded-lg border border-gray-100 dark:border-gray-800">
+            <div class="bg-gray-50 p-3 rounded-lg border border-gray-100">
                 <div class="flex justify-between items-start">
                     <h4 class="text-sm font-bold text-slate-700">Pasif Cümle: <span class="text-primary">%${readability.passive_voice?.passive_voice_percentage || '-'}</span> <span class="text-[10px] font-normal text-slate-500 block sm:inline mt-1 sm:mt-0">(Toplam ${readability.passive_voice?.passive_sentences_count || 0} adet edilgen cümle)</span></h4>
                     <span class="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${getBadgeClass(passiveFb.status)}">${getBadgeLabel(passiveFb.status)}</span>
@@ -475,9 +475,9 @@ document.addEventListener('DOMContentLoaded', () => {
             for (const [kw, count] of Object.entries(adetler)) {
                 quotasTable.innerHTML += `
                     <tr>
-                        <td class="px-4 py-3 font-medium text-gray-900 dark:text-white">${kw}</td>
+                        <td class="px-4 py-3 font-medium text-gray-900">${kw}</td>
                         <td class="px-4 py-3 text-center">
-                            <span class="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300 text-xs font-semibold px-2.5 py-0.5 rounded-full">+${count}</span>
+                            <span class="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded-full">+${count}</span>
                         </td>
                     </tr>
                 `;
@@ -489,7 +489,7 @@ document.addEventListener('DOMContentLoaded', () => {
         gapsContainer.innerHTML = '';
         const gaps = ai.strateji?.semantik_bosluklar || [];
         gaps.forEach(gap => {
-            gapsContainer.innerHTML += `<span class="bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400 text-xs font-medium px-2.5 py-1 rounded border border-yellow-200 dark:border-yellow-800">${gap}</span>`;
+            gapsContainer.innerHTML += `<span class="bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-1 rounded border border-yellow-200">${gap}</span>`;
         });
 
         // Tab 2: PAA
@@ -498,7 +498,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const paas = ai.strateji?.paa_hedefleri || [];
         paas.forEach(paa => {
             paaList.innerHTML += `
-                <li class="flex gap-3 bg-gray-50 dark:bg-gray-800/50 p-3 rounded-lg border border-gray-100 dark:border-gray-800">
+                <li class="flex gap-3 bg-gray-50 p-3 rounded-lg border border-gray-100">
                     <i class="ph-fill ph-check-circle text-purple-500 mt-0.5"></i>
                     <span class="text-sm font-medium">${paa}</span>
                 </li>`;
@@ -513,10 +513,10 @@ document.addEventListener('DOMContentLoaded', () => {
         steps.forEach((step, idx) => {
             roadmapList.innerHTML += `
                 <div class="relative">
-                    <span class="absolute -left-[35px] top-1 h-5 w-5 rounded-full bg-primary flex items-center justify-center text-white text-[10px] font-bold ring-4 ring-white dark:ring-darkCard pulse-circle">
+                    <span class="absolute -left-[35px] top-1 h-5 w-5 rounded-full bg-primary flex items-center justify-center text-white text-[10px] font-bold ring-4 ring-white pulse-circle">
                         ${idx + 1}
                     </span>
-                    <p class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed font-medium bg-gray-50 dark:bg-gray-800/40 p-3 rounded-lg border border-gray-100 dark:border-gray-800">${step}</p>
+                    <p class="text-sm text-gray-700 leading-relaxed font-medium bg-gray-50 p-3 rounded-lg border border-gray-100">${step}</p>
                 </div>
             `;
         });

@@ -6,9 +6,12 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
     exit;
 }
 
-header("Access-Control-Allow-Origin: *");
+// CORS Güvenlik İyileştirmesi: Gelen origin yansıtılıyor, production için whitelist önerilir.
+$origin = $_SERVER['HTTP_ORIGIN'] ?? '*';
+header("Access-Control-Allow-Origin: $origin");
+header("Access-Control-Allow-Credentials: true");
 header("Content-Type: application/json; charset=UTF-8");
-header("Access-Control-Allow-Methods: POST");
+header("Access-Control-Allow-Methods: POST, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
@@ -39,11 +42,17 @@ use Services\GeminiService;
 try {
     $input = json_decode(file_get_contents("php://input"), true);
     
-    if (!$input || empty($input['text'])) {
-        throw new \Exception("JSON payload içinde 'text' (metin) parametresi zorunludur.");
+    if (json_last_error() !== JSON_ERROR_NONE || empty($input['text'])) {
+        error_log("[CMD HATA] !!! Geçersiz JSON veya eksik 'text' parametresi.");
+        http_response_code(400);
+        echo json_encode([
+            "success" => false, 
+            "error" => "Bad Request: JSON payload içinde 'text' (metin) parametresi zorunludur."
+        ], JSON_UNESCAPED_UNICODE);
+        exit;
     }
 
-    $rawText = $input['text'];
+    $rawText = trim($input['text']); // Temel sanitizasyon
     error_log("[CMD LOG] >>> Yeni analiz isteği alındı. Metin uzunluğu: " . mb_strlen($rawText) . " karakter.");
     $targetKeyword = $input['target_keyword'] ?? null;
     $secondaryKeywords = $input['secondary_keywords'] ?? [];

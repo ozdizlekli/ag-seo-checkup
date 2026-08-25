@@ -123,7 +123,7 @@
         </div>
 
         <!-- Tabs Navigation -->
-        <div class="border-b border-gray-200 mb-6 flex overflow-x-auto hide-scrollbar">
+        <div class="border-b border-gray-200 mb-6 flex overflow-x-auto pb-2">
             <button class="tab-btn active px-6 py-3 font-semibold text-sm border-b-2 border-primary text-primary flex items-center gap-2 whitespace-nowrap" data-target="tab1">
                 <i class="ph ph-chart-bar text-lg"></i> İçerik Analizi & Karne
             </button>
