@@ -15,18 +15,18 @@
       
       <!-- Sağ Üst (Kompakt İkonlu Butonlar) -->
       <div style="display: flex; gap: 6px; align-items: center;">
-        <button class="btn btn--danger btn--sm has-tooltip" data-tooltip="Sitenizi en dişli rakiplerinizle kıyaslayın." id="btn-open-battle-mode" style="display:inline-flex; align-items:center; background:#dc2626; color:white; border:none; box-shadow:0 2px 8px rgba(220,38,38,0.4); border-radius:12px; padding: 6px 12px; font-size:12px;">
+        <button class="btn btn--danger btn--sm " title="Sitenizi en dişli rakiplerinizle kıyaslayın." id="btn-open-battle-mode" style="display:inline-flex; align-items:center; background:#475569; color:white; border:none; box-shadow:0 2px 8px rgba(71,85,105,0.4); border-radius:12px; padding: 6px 12px; font-size:12px;">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px;"><path d="M12 2L2 7l10 5 10-5-10-5z"></path><path d="M2 17l10 5 10-5"></path><path d="M2 12l10 5 10-5"></path></svg>
             Savaş Modu
         </button>
-        <button class="btn btn--secondary btn--sm has-tooltip" data-tooltip="Tüm analiz adımları tamamlandıktan sonra indirilebilir." id="btn-download-pdf" style="display:inline-flex; align-items:center; background:#ef4444; color:white; border:none; opacity:0.5; cursor:not-allowed; padding: 6px 12px; font-size:12px; border-radius:12px;">
+        <button class="btn btn--secondary btn--sm " title="Tüm analiz adımları tamamlandıktan sonra indirilebilir." id="btn-download-pdf" style="display:inline-flex; align-items:center; background:#64748b; color:white; border:none; opacity:0.5; cursor:not-allowed; padding: 6px 12px; font-size:12px; border-radius:12px;">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
             Rapor
         </button>
-        <button class="btn btn--primary btn--sm has-tooltip" data-tooltip="Eksikleri listeye aktar." id="btn-send-to-todos" style="display:inline-flex; align-items:center; opacity:0.5; cursor:not-allowed; padding: 6px 12px; background: #2563eb; color: white; border: none; font-size:12px; border-radius:12px;">
+        <button class="btn btn--primary btn--sm " title="Eksikleri listeye aktar." id="btn-send-to-todos" style="display:inline-flex; align-items:center; opacity:0.5; cursor:not-allowed; padding: 6px 12px; background:#475569; color: white; border: none; font-size:12px; border-radius:12px;">
             📋 Gönder
         </button>
-        <button class="btn btn--primary btn--sm has-tooltip" data-tooltip="Sohbeti geçmişe kaydeder." id="copilot-manual-save-btn" style="display:inline-flex; align-items:center; padding: 6px 12px; font-size:12px; border-radius:12px;">
+        <button class="btn btn--primary btn--sm " title="Sohbeti geçmişe kaydeder." id="copilot-manual-save-btn" style="display:inline-flex; align-items:center; padding: 6px 12px; font-size:12px; border-radius:12px; background:#475569; color:white; border:none;">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px;"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
             Kaydet
         </button>
@@ -37,15 +37,16 @@
                 <span class="slider round"></span>
             </label>
             <span style="font-size:12px; font-weight:600; color:var(--muted);">Sunum</span>
-            <button class="btn btn--ghost btn--sm has-tooltip" data-tooltip="Sohbeti temizle" id="btn-clear-chat" style="padding: 4px; margin-left:4px;">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+            <button class="btn btn--ghost btn--sm has-tooltip" data-tooltip="Yeni bir sohbet / yeni URL analizi başlatır." id="btn-clear-chat" style="display:inline-flex; align-items:center; gap:4px; padding:4px 10px; margin-left:4px; font-size:12px; font-weight:600; color:var(--muted);">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+              Yeni Sohbet
             </button>
         </div>
       </div>
     </div>
     
     <!-- MAIN TWO-COLUMN AREA -->
-    <div style="display: flex; flex-direction: row; gap: 24px; align-items: flex-start; width: 100%;">
+    <div style="display: flex; flex-direction: row; gap: 24px; align-items: stretch; width: 100%;">
       
       <!-- CHAT INTERFACE (Left Column - flex: 3) -->
       <div class="card" id="copilot-card" style="flex: 3; border-top: 4px solid var(--accent); padding:0; display:flex; flex-direction:column; height: calc(100vh - 120px); overflow: hidden;">
@@ -59,7 +60,7 @@
             
             <!-- Progress Bar -->
             <div style="display:flex; justify-content:center; width:100%; border-top: 1px solid var(--border); padding-top:16px; margin-top:8px;">
-              <div class="copilot-progress" id="copilot-progress" style="display:flex; justify-content:center; align-items:center; gap:12px; width:100%; overflow-x:auto; padding-bottom:4px;">
+              <div class="copilot-progress" id="copilot-progress" style="display:flex; justify-content:center; align-items:center; gap:12px; width:100%; flex-wrap:wrap; margin-bottom:8px;">
                 <div class="copilot-step active has-tooltip" data-step="1" id="cp-step-1" data-tooltip="İş Bağlamı (Bağlamsal Alaka) analizi.">
                   <div class="copilot-step-circle"><span class="num">1</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
                   <span>İş Bağlamı</span>
@@ -100,23 +101,26 @@
           
           <div class="copilot-input-area" id="copilot-input-area-container" style="padding:24px; background:#f8fafc; border-top:1px solid var(--border); border-radius:0 0 12px 12px; position:relative;">
             
-            <!-- GREEN BUTTONS (Tüm Siteyi Analiz Et / Eksikleri Gider) -->
+            <!-- Dinamik adım aksiyonları (copilot.js -> renderAiSeoActions/handleSend tarafından dolduruluyor) -->
+            <div id="copilot-actions" style="display:flex; flex-direction:column; gap:8px; margin-bottom:16px;"></div>
+
+            <!-- QUICK ACTIONS (Soru Önerileri - Max 3 adet, Butonların Üstünde) -->
+            <div id="copilot-quick-actions" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px; justify-content:center;">
+              <button class="quick-action-btn" title="İçeriği daha inandırıcı hale getirmek için ipuçları iste." onclick="document.getElementById('copilot-secondary-input').value='İçeriği daha ikna edici nasıl yaparım?'; document.getElementById('btn-send-message').click();">İçeriği daha ikna edici nasıl yaparım?</button>
+              <button class="quick-action-btn" title="Eksik olan E-E-A-T veya semantik unsurları listele." onclick="document.getElementById('copilot-secondary-input').value='Bana içerik eksiklerimi söyle'; document.getElementById('btn-send-message').click();">Bana içerik eksiklerimi söyle</button>
+              <button class="quick-action-btn" title="Rakiplerin senden daha iyi olduğu spesifik noktaları öğren." onclick="document.getElementById('copilot-secondary-input').value='Rakiplerimden neden gerideyim?'; document.getElementById('btn-send-message').click();">Rakiplerimden neden gerideyim?</button>
+            </div>
+
+            <!-- ANALYZER BUTTONS (Tüm Siteyi Analiz Et / Eksikleri Gider) -->
             <div id="copilot-llms-container" style="display:flex; flex-direction:row; gap:16px; margin-bottom: 16px;">
-               <button class="btn btn--primary" id="btn-auto-analyze" style="flex:1; padding: 12px; font-weight:600; background:#10b981; border:none;">
-                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px; color:#fbbf24;"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+               <button class="btn btn--primary" id="btn-auto-analyze" style="flex:1; padding: 12px; font-weight:600; background:#475569; border:none; border-radius:8px; color:white; display:flex; justify-content:center; align-items:center;">
+                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px; color:#cbd5e1;"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
                    Tüm Siteyi Analiz Et
                </button>
-               <button class="btn btn--primary" id="btn-auto-fix" style="flex:1; padding: 12px; font-weight:600; background:#10b981; border:none; display:none;">
+               <button class="btn btn--primary" id="btn-auto-fix" style="flex:1; padding: 12px; font-weight:600; background:#475569; border:none; display:none; border-radius:8px; color:white; justify-content:center; align-items:center;">
                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px;"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>
                    Tüm Eksikleri Gider
                </button>
-            </div>
-            
-            <div class="quick-actions" id="copilot-quick-actions" style="margin-bottom:12px; padding-top:4px;">
-              <button class="quick-action-btn has-tooltip" data-tooltip="İçeriği daha inandırıcı hale getirmek için ipuçları iste." onclick="document.getElementById('copilot-secondary-input').value='İçeriği daha ikna edici nasıl yaparım?'; document.getElementById('btn-send-message').click();">İçeriği daha ikna edici nasıl yaparım?</button>
-              <button class="quick-action-btn has-tooltip" data-tooltip="Eksik olan E-E-A-T veya semantik unsurları listele." onclick="document.getElementById('copilot-secondary-input').value='Bana içerik eksiklerimi söyle'; document.getElementById('btn-send-message').click();">Bana içerik eksiklerimi söyle</button>
-              <button class="quick-action-btn has-tooltip" data-tooltip="Makalenin anlamsal derinliğini artıracak anahtar kelimeler öner." onclick="document.getElementById('copilot-secondary-input').value='Hangi LSI kelimelerini kullanmalıyım?'; document.getElementById('btn-send-message').click();">Hangi LSI kelimelerini kullanmalıyım?</button>
-              <button class="quick-action-btn has-tooltip" data-tooltip="Rakiplerin senden daha iyi olduğu spesifik noktaları öğren." onclick="document.getElementById('copilot-secondary-input').value='Rakiplerimden neden gerideyim?'; document.getElementById('btn-send-message').click();">Rakiplerimden neden gerideyim?</button>
             </div>
             
             <div class="input-wrapper" style="display:flex; align-items:center; gap:8px;">
@@ -124,14 +128,14 @@
                 <input type="text" id="copilot-text-input" placeholder="Örn: https://www.site.com/hizmet" class="form-input" style="width:100%; border-radius:24px; padding-left:16px; padding-right:48px;">
                 <input type="text" id="copilot-secondary-input" placeholder="Başka sormak istediğiniz bir şey var mı?" class="form-input" style="width:100%; border-radius:24px; padding-left:16px; padding-right:48px; display:none;">
               </div>
-              <button class="btn btn--primary" id="btn-send-message" style="border-radius:24px; padding:0 24px; height:42px;">Gönder</button>
+              <button class="btn btn--primary" id="btn-send-message" style="border-radius:24px; padding:0 24px; height:42px; background:#475569; color:white; border:none;">Gönder</button>
             </div>
           </div>
         </div>
       </div>
       
       <!-- LIVE REPORT PANEL (Right Column - flex: 2) -->
-      <div class="live-report-panel" id="live-report-panel" style="flex: 2; padding: 24px; background: #fff; border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); position: sticky; top: 24px; display: flex; flex-direction: column; gap: 24px; max-height: calc(100vh - 100px); overflow-y: auto;">
+      <div class="live-report-panel" id="live-report-panel" style="flex: 2; padding: 24px; background: #fff; border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); position: sticky; top: 24px; display: flex; flex-direction: column; gap: 24px; height: calc(100vh - 120px); overflow-y: auto;">
          <h3 style="font-size: 16px; font-weight: 700; color: #0f172a; margin: 0; display: flex; align-items: center; gap: 8px;">
              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:#2563eb;"><path d="M3 3v18h18"/><path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"/></svg>
              Canlı Rapor Paneli
