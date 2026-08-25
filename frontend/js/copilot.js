@@ -195,6 +195,12 @@ document.addEventListener('DOMContentLoaded', () => {
     addTypingIndicator();
     copilotActions.style.display = 'none';
 
+        p += `\n\nÖNEMLİ: Yanıtının SONUNA, analizine dayanan şu verileri içeren bir JSON bloğu ekle (\`\`\`json ... \`\`\` içinde olsun):
+{
+  "genel_skor": 0-100 arası genel sağlık skoru,
+  "eeat_scores": { "deneyim": 0-100, "uzmanlik": 0-100, "otorite": 0-100, "guvenilirlik": 0-100 },
+  "acil_aksiyon_plani": [ { "sorun": "Aksiyon açıklaması", "kategori": "Teknik/İçerik/UX vs", "onem": "Yüksek/Orta/Düşük" } ]
+}`;
     try {
       const res = await fetch('form_submit.php', {
         method: 'POST',
@@ -212,8 +218,33 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
-      let aiText = result.candidates[0].content.parts[0].text;
-      let htmlText = typeof marked !== 'undefined' ? marked.parse(aiText) : aiText;
+            let aiText = result.candidates[0].content.parts[0].text;
+      
+      // JSON Extraction
+      let cleanText = aiText;
+      let chartData = null;
+      try {
+          const jsonMatch = aiText.match(/```json\s*(\{[\s\S]*?\})\s*```/);
+          if (jsonMatch) {
+              chartData = JSON.parse(jsonMatch[1]);
+              cleanText = aiText.replace(jsonMatch[0], '').trim(); // Remove JSON from chat
+          } else {
+              // Try finding JSON block at the very end if no backticks
+              const fallbackMatch = aiText.match(/\{[\s\S]*"genel_skor"[\s\S]*\}$/);
+              if (fallbackMatch) {
+                  chartData = JSON.parse(fallbackMatch[0]);
+                  cleanText = aiText.replace(fallbackMatch[0], '').trim();
+              }
+          }
+      } catch (e) {
+          console.warn("JSON Parse Error:", e);
+      }
+      
+      if (chartData) {
+          initOrUpdateCharts(chartData);
+      }
+
+      let htmlText = (typeof marked !== 'undefined' ? marked.parse(cleanText) : cleanText) + (typeof jsonMatch !== 'undefined' && jsonMatch ? '<div class="ai-raw-json" style="display:none;">' + jsonMatch[0] + '</div>' : '');
       addMessage(htmlText, 'ai', true);
 
       fixedIssues.add(step);
@@ -313,6 +344,133 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       if(actionView) actionView.style.display = 'none';
   }
+
+// --- CHART.JS LOGIC START ---
+let overallHealthChart = null;
+let eeatChart = null;
+let battleChart = null;
+
+function initOrUpdateCharts(data) {
+    if (typeof Chart === 'undefined') return;
+
+    // 1. Genel Sağlık (Doughnut)
+    const ctxOverall = document.getElementById('chart-overall-health');
+    if (ctxOverall) {
+        if (overallHealthChart) overallHealthChart.destroy();
+        overallHealthChart = new Chart(ctxOverall, {
+            type: 'doughnut',
+            data: {
+                labels: ['Güven Skoru', 'Risk'],
+                datasets: [{
+                    data: [data.genel_skor || 0, 100 - (data.genel_skor || 0)],
+                    backgroundColor: ['#10b981', '#f1f5f9'],
+                    borderWidth: 0,
+                    cutout: '75%'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { enabled: false }
+                }
+            },
+            plugins: [{
+                id: 'textCenter',
+                beforeDraw: function(chart) {
+                    var width = chart.width, height = chart.height, ctx = chart.ctx;
+                    ctx.restore();
+                    var fontSize = (height / 100).toFixed(2);
+                    ctx.font = "bold " + (fontSize * 1.5) + "em sans-serif";
+                    ctx.textBaseline = "middle";
+                    ctx.fillStyle = "#0f172a";
+                    var text = (data.genel_skor || 0) + "%",
+                        textX = Math.round((width - ctx.measureText(text).width) / 2),
+                        textY = height / 2;
+                    ctx.fillText(text, textX, textY);
+                    
+                    ctx.font = (fontSize * 0.8) + "em sans-serif";
+                    ctx.fillStyle = "#64748b";
+                    var subtext = "Skor",
+                        subtextX = Math.round((width - ctx.measureText(subtext).width) / 2),
+                        subtextY = (height / 2) + 20;
+                    ctx.fillText(subtext, subtextX, subtextY);
+                    ctx.save();
+                }
+            }]
+        });
+    }
+
+    // 2. E-E-A-T Radar
+    const ctxEeat = document.getElementById('chart-eeat');
+    if (ctxEeat && data.eeat_scores) {
+        if (eeatChart) eeatChart.destroy();
+        eeatChart = new Chart(ctxEeat, {
+            type: 'radar',
+            data: {
+                labels: ['Deneyim', 'Uzmanlık', 'Otorite', 'Güvenilirlik'],
+                datasets: [{
+                    label: 'E-E-A-T Skoru',
+                    data: [
+                        data.eeat_scores.deneyim || 0, 
+                        data.eeat_scores.uzmanlik || 0, 
+                        data.eeat_scores.otorite || 0, 
+                        data.eeat_scores.guvenilirlik || 0
+                    ],
+                    backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                    borderColor: '#3b82f6',
+                    pointBackgroundColor: '#3b82f6',
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: '#3b82f6',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    r: {
+                        angleLines: { color: 'rgba(0, 0, 0, 0.05)' },
+                        grid: { color: 'rgba(0, 0, 0, 0.05)' },
+                        pointLabels: { font: { size: 11, weight: '600' }, color: '#475569' },
+                        ticks: { display: false, min: 0, max: 100 }
+                    }
+                },
+                plugins: { legend: { display: false } }
+            }
+        });
+    }
+
+    // 3. Aksiyon Planı Tablosu
+    const tableContainer = document.getElementById('action-plan-table-container');
+    if (tableContainer && data.acil_aksiyon_plani && data.acil_aksiyon_plani.length > 0) {
+        let tableHtml = `<table style="width: 100%; border-collapse: collapse; margin-top: 8px;">
+            <thead>
+                <tr style="background: #f8fafc; border-bottom: 2px solid #e2e8f0; text-align: left;">
+                    <th style="padding: 8px; font-weight: 600; color: #475569;">Sorun / Aksiyon</th>
+                    <th style="padding: 8px; font-weight: 600; color: #475569;">Kategori</th>
+                    <th style="padding: 8px; font-weight: 600; color: #475569;">Önem</th>
+                </tr>
+            </thead>
+            <tbody>`;
+        
+        data.acil_aksiyon_plani.forEach(item => {
+            let color = item.onem === 'Yüksek' || item.onem === 'Kritik' ? '#ef4444' : (item.onem === 'Orta' ? '#f59e0b' : '#10b981');
+            tableHtml += `
+                <tr style="border-bottom: 1px solid #f1f5f9;">
+                    <td style="padding: 8px; color: #1e293b;">${item.sorun || item.aksiyon || '-'}</td>
+                    <td style="padding: 8px; color: #64748b; font-size: 12px;">${item.kategori || '-'}</td>
+                    <td style="padding: 8px;"><span style="background: ${color}20; color: ${color}; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600;">${item.onem || '-'}</span></td>
+                </tr>`;
+        });
+        tableHtml += `</tbody></table>`;
+        tableContainer.innerHTML = tableHtml;
+    }
+}
+// --- CHART.JS LOGIC END ---
+
 function resetChat(loadFromHistory = null) {
     const dbView = document.getElementById('ai-seo-dashboard-view');
     const actionView = document.getElementById('copilot-action-view');
@@ -434,14 +592,45 @@ function resetChat(loadFromHistory = null) {
       
       let p = `Sen bir GEO uzmanısın. Kullanıcı şu an "${targetUrl}" sitesi hakkında ekstra bir soru soruyor: "${val}"\n\nSite Başlığı: ${fetchedData ? fetchedData.title : ''}\nLütfen soruyu markdown formatında yanıtla.`;
       
-      try {
-        const res = await fetch('form_submit.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: p }] }], generationConfig: { temperature: 0.5 } }) });
+          p += `\n\nÖNEMLİ: Yanıtının SONUNA, analizine dayanan şu verileri içeren bir JSON bloğu ekle (\`\`\`json ... \`\`\` içinde olsun):
+{
+  "genel_skor": 0-100 arası genel sağlık skoru,
+  "eeat_scores": { "deneyim": 0-100, "uzmanlik": 0-100, "otorite": 0-100, "guvenilirlik": 0-100 },
+  "acil_aksiyon_plani": [ { "sorun": "Aksiyon açıklaması", "kategori": "Teknik/İçerik/UX vs", "onem": "Yüksek/Orta/Düşük" } ]
+}`;
+    try {
+      const res = await fetch('form_submit.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: p }] }], generationConfig: { temperature: 0.5 } }) });
         const result = await res.json();
         removeTypingIndicator();
         if (result.error) { addMessage(`Hata: ${result.error.message || result.error}`, 'ai'); return; }
         
-        let aiText = result.candidates[0].content.parts[0].text;
-        let htmlText = typeof marked !== 'undefined' ? marked.parse(aiText) : aiText;
+              let aiText = result.candidates[0].content.parts[0].text;
+      
+      // JSON Extraction
+      let cleanText = aiText;
+      let chartData = null;
+      try {
+          const jsonMatch = aiText.match(/```json\s*(\{[\s\S]*?\})\s*```/);
+          if (jsonMatch) {
+              chartData = JSON.parse(jsonMatch[1]);
+              cleanText = aiText.replace(jsonMatch[0], '').trim(); // Remove JSON from chat
+          } else {
+              // Try finding JSON block at the very end if no backticks
+              const fallbackMatch = aiText.match(/\{[\s\S]*"genel_skor"[\s\S]*\}$/);
+              if (fallbackMatch) {
+                  chartData = JSON.parse(fallbackMatch[0]);
+                  cleanText = aiText.replace(fallbackMatch[0], '').trim();
+              }
+          }
+      } catch (e) {
+          console.warn("JSON Parse Error:", e);
+      }
+      
+      if (chartData) {
+          initOrUpdateCharts(chartData);
+      }
+
+      let htmlText = (typeof marked !== 'undefined' ? marked.parse(cleanText) : cleanText) + (typeof jsonMatch !== 'undefined' && jsonMatch ? '<div class="ai-raw-json" style="display:none;">' + jsonMatch[0] + '</div>' : '');
         addMessage(htmlText, 'ai', true);
       } catch (err) {
         removeTypingIndicator();
@@ -684,14 +873,45 @@ Son olarak, önceki 4 adımda çıkardığın tüm analizleri (İş bağlamı, k
       p += `ÖNEMLİ: Sen bir Bütünsel Entegrasyon Şefisin. Önceki 5 adımdaki Metin ve Teknik yapıları birbirine nasıl bağlamamız gerektiğini analiz et. Hangi içeriğin, hangi şemayla veya hangi linkleme kurgusuyla birlikte canlıya alınması gerektiğini açıkla. Hiçbir içerik veya kod üretme, sadece bu organik bağı analiz et.`;
     }
 
+        p += `\n\nÖNEMLİ: Yanıtının SONUNA, analizine dayanan şu verileri içeren bir JSON bloğu ekle (\`\`\`json ... \`\`\` içinde olsun):
+{
+  "genel_skor": 0-100 arası genel sağlık skoru,
+  "eeat_scores": { "deneyim": 0-100, "uzmanlik": 0-100, "otorite": 0-100, "guvenilirlik": 0-100 },
+  "acil_aksiyon_plani": [ { "sorun": "Aksiyon açıklaması", "kategori": "Teknik/İçerik/UX vs", "onem": "Yüksek/Orta/Düşük" } ]
+}`;
     try {
       const res = await fetch('form_submit.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: p }] }], generationConfig: { temperature: 0.2 } }) });
       const result = await res.json();
       removeTypingIndicator();
       if (result.error) { addMessage(`Hata: ${result.error.message || result.error}`, 'ai'); copilotActions.style.display = 'flex'; return; }
       
-      let aiText = result.candidates[0].content.parts[0].text;
-      let htmlText = typeof marked !== 'undefined' ? marked.parse(aiText) : aiText;
+            let aiText = result.candidates[0].content.parts[0].text;
+      
+      // JSON Extraction
+      let cleanText = aiText;
+      let chartData = null;
+      try {
+          const jsonMatch = aiText.match(/```json\s*(\{[\s\S]*?\})\s*```/);
+          if (jsonMatch) {
+              chartData = JSON.parse(jsonMatch[1]);
+              cleanText = aiText.replace(jsonMatch[0], '').trim(); // Remove JSON from chat
+          } else {
+              // Try finding JSON block at the very end if no backticks
+              const fallbackMatch = aiText.match(/\{[\s\S]*"genel_skor"[\s\S]*\}$/);
+              if (fallbackMatch) {
+                  chartData = JSON.parse(fallbackMatch[0]);
+                  cleanText = aiText.replace(fallbackMatch[0], '').trim();
+              }
+          }
+      } catch (e) {
+          console.warn("JSON Parse Error:", e);
+      }
+      
+      if (chartData) {
+          initOrUpdateCharts(chartData);
+      }
+
+      let htmlText = (typeof marked !== 'undefined' ? marked.parse(cleanText) : cleanText) + (typeof jsonMatch !== 'undefined' && jsonMatch ? '<div class="ai-raw-json" style="display:none;">' + jsonMatch[0] + '</div>' : '');
       addMessage(htmlText, 'ai', true);
       
       reportData[step - 1] = htmlText;
@@ -1305,7 +1525,7 @@ ${(dataT.text || '').substring(0, 10000)}
 Site B (Rakip):
 ${(dataC.text || '').substring(0, 10000)}
 
-Site A'nın rakibine göre içerik derinliği, SEO kalitesi ve E-E-A-T sinyalleri açısından eksiklerini ve rakibin neden daha iyi olduğunu JSON olarak analiz et.`;
+Site A'nın rakibine göre içerik derinliği, SEO kalitesi ve E-E-A-T sinyalleri açısından eksiklerini JSON olarak analiz et. Ayrıca JSON içine "site_a_skorlari": {"icerik": 60, "seo": 65, "eeat": 50} ve "site_b_skorlari": {"icerik": 85, "seo": 90, "eeat": 88} şeklinde iki sitenin 100 üzerinden tahmini skorlarını da ekle.`;
 
             const aiRes = await fetch('form_submit.php', { 
                 method: 'POST', 
@@ -1326,6 +1546,24 @@ Site A'nın rakibine göre içerik derinliği, SEO kalitesi ve E-E-A-T sinyaller
                 if (jsonMatch) {
                     const parsedData = JSON.parse(jsonMatch[0]);
                     const analysis = parsedData.battle_mode_analysis || parsedData;
+
+                    if (typeof Chart !== 'undefined') {
+                        document.getElementById('battle-chart-container').style.display = 'block';
+                        const ctxB = document.getElementById('chart-battle');
+                        if (ctxB) {
+                            if (battleChart) battleChart.destroy();
+                            battleChart = new Chart(ctxB, {
+                                type: 'bar',
+                                data: {
+                                    labels: ['İçerik Derinliği', 'SEO Kalitesi', 'E-E-A-T'],
+                                    datasets: [
+                                        { label: 'Senin Siten', data: [analysis.site_a_skorlari?.icerik || 60, analysis.site_a_skorlari?.seo || 65, analysis.site_a_skorlari?.eeat || 50], backgroundColor: '#3b82f6' },
+                                        { label: 'Rakip', data: [analysis.site_b_skorlari?.icerik || 85, analysis.site_b_skorlari?.seo || 90, analysis.site_b_skorlari?.eeat || 88], backgroundColor: '#ef4444' }
+                                    ]
+                                }
+                            });
+                        }
+                    }
                     
                     const formatArray = (arr) => arr && arr.length ? `<ul>${arr.map(item => `<li>${item}</li>`).join('')}</ul>` : 'Veri yok.';
                     
