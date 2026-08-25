@@ -303,10 +303,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
            <div style="text-align: center;">
               <button class="btn btn--primary" style="padding: 12px 24px; font-size: 14px; font-weight: 600;" onclick="startNewAnalysisFromDashboard()">
-    <svg style="width: 100px; height: 100px; opacity: 0.05; margin-bottom: 24px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
-    <h3 style="font-size: 18px; font-weight: 600; color: var(--text); margin-bottom: 8px;">Analiz etmek istediğiniz sayfanın URL\'sini aşağıdaki kutuya yapıştırın</h3>
-    <p style="color: var(--muted); font-size: 14px;">Yapay zeka (LLM) arama motorları için derinlemesine optimizasyon başlasın.</p>
-</div>`; document.getElementById('copilot-text-input').focus();">
                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:8px; vertical-align:middle;"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                  Yeni Analiz Başlat
               </button>
@@ -1411,11 +1407,7 @@ window.openLlmsGenerator = function() {
 window.startNewAnalysisFromDashboard = function() {
     document.getElementById('ai-seo-dashboard-view').style.display = 'none';
     document.getElementById('copilot-action-view').style.display = 'block';
-    const emptyStateHtml = `<div id="copilot-empty-state" id="copilot-empty-state" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; min-height: 350px; padding: 40px 20px; text-align: center;">
-        <svg style="width: 100px; height: 100px; opacity: 0.05; margin-bottom: 24px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
-        <h3 style="font-size: 18px; font-weight: 600; color: var(--text); margin-bottom: 8px;">Analiz etmek istediğiniz sayfanın URL'sini aşağıdaki kutuya yapıştırın</h3>
-        <p style="color: var(--muted); font-size: 14px;">Yapay zeka (LLM) arama motorları için derinlemesine optimizasyon başlasın.</p>
-    </div>`;
+    
     document.getElementById('copilot-chat-messages-container').innerHTML = emptyStateHtml;
     document.getElementById('copilot-text-input').focus();
 };

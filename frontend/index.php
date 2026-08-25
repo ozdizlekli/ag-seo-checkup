@@ -496,6 +496,9 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
           Rapor
       </button>
+      <button class="btn btn--primary btn--sm has-tooltip" data-tooltip="Eksikleri listeye aktar." id="btn-send-to-todos" style="display:inline-flex; align-items:center; opacity:0.5; cursor:not-allowed; padding: 6px 12px; background: #2563eb; color: white; border: none;">
+          📋 Gönder
+      </button>
       <button class="btn btn--primary btn--sm has-tooltip" data-tooltip="Sohbeti geçmişe kaydeder." id="copilot-manual-save-btn" style="display:inline-flex; align-items:center; padding: 6px 12px;">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px;"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
           Kaydet
@@ -603,7 +606,7 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
               </div>
 </div>
             <div class="copilot-chat" id="copilot-chat" style="height: 40vh; min-height: 300px; max-height: 500px; overflow-y: auto;">
-              <div id="copilot-chat-messages-container" style="display: flex; flex-direction: column; gap: 16px;"><div class="empty-state" id="copilot-empty-state"><svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg><p>Burada henüz bir analiz yok. Hemen yukarıya bir URL yapıştırarak sitenizin Google SGE (Yapay Zeka Aramaları) uyumluluğunu test etmeye başlayın!</p></div></div>
+              <div id="copilot-chat-messages-container" style="display: flex; flex-direction: column; gap: 16px;"></div>
             </div>
             
             <div class="copilot-actions" id="copilot-actions">
