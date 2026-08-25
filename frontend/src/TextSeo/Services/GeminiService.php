@@ -12,7 +12,7 @@ class GeminiService {
         $envPath = __DIR__ . '/../../../.env';
         
         if (file_exists($envPath)) {
-            // SatÄ±r satÄ±r gÃ¼venli okuma ve Ã¶zel karakter hatalarÄ±nÄ± Ã¶nleme
+            // Satır satır güvenli okuma ve özel karakter hatalarını önleme
             $env = parse_ini_file($envPath, false, INI_SCANNER_RAW);
             if ($env && isset($env['GEMINI_API_KEY'])) {
                 $this->apiKey = trim($env['GEMINI_API_KEY'], "\"' ");
@@ -24,7 +24,7 @@ class GeminiService {
         }
 
         if (empty($this->apiKey) || $this->apiKey === 'YOUR_API_KEY_HERE') {
-            throw new \Exception("Sunucu yapÄ±landÄ±rma hatasÄ±: .env dosyasÄ± iÃ§inde GEMINI_API_KEY tanÄ±mlÄ± deÄŸil.");
+            throw new \Exception("Sunucu yapılandırma hatası: .env dosyası içinde GEMINI_API_KEY tanımlı değil.");
         }
     }
 
@@ -32,7 +32,7 @@ class GeminiService {
 
     private function makeRequest(string $prompt, bool $jsonMode = true): array {
         if (empty($this->apiKey)) {
-            throw new \Exception("GEMINI_API_KEY eksik. LÃ¼tfen .env dosyasÄ±na ekleyin veya istekte gÃ¶nderin.");
+            throw new \Exception("GEMINI_API_KEY eksik. Lütfen .env dosyasına ekleyin veya istekte gönderin.");
         }
 
         $url = $this->baseUrl . $this->model . ':generateContent?key=' . $this->apiKey;
@@ -63,27 +63,27 @@ class GeminiService {
         ]);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 
-        error_log("[CMD GEMINI] " . $this->model . " modeline istek atÄ±lÄ±yor...");
+        error_log("[CMD GEMINI] " . $this->model . " modeline istek atılıyor...");
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $error = curl_error($ch);
         curl_close($ch);
-        error_log("[CMD GEMINI] YanÄ±t alÄ±ndÄ±. HTTP Kodu: " . $httpCode . ", YanÄ±t Boyutu: " . strlen((string)$response) . " bayt.");
+        error_log("[CMD GEMINI] Yanıt alındı. HTTP Kodu: " . $httpCode . ", Yanıt Boyutu: " . strlen((string)$response) . " bayt.");
 
         if ($error) {
-            throw new \Exception("cURL HatasÄ±: " . $error);
+            throw new \Exception("cURL Hatası: " . $error);
         }
 
         if ($httpCode >= 400) {
             $decodedError = json_decode($response, true);
             $msg = $decodedError['error']['message'] ?? $response;
-            throw new \Exception("Gemini API HatasÄ± (HTTP $httpCode): " . $msg);
+            throw new \Exception("Gemini API Hatası (HTTP $httpCode): " . $msg);
         }
 
         $decoded = json_decode($response, true);
         
         if (!isset($decoded['candidates'][0]['content']['parts'][0]['text'])) {
-            throw new \Exception("Gemini API'den geÃ§ersiz yanÄ±t alÄ±ndÄ±: " . $response);
+            throw new \Exception("Gemini API'den geçersiz yanıt alındı: " . $response);
         }
 
         $text = $decoded['candidates'][0]['content']['parts'][0]['text'];
@@ -91,13 +91,13 @@ class GeminiService {
         if ($jsonMode) {
             $json = json_decode($text, true);
             if (json_last_error() !== JSON_ERROR_NONE) {
-                // Markdown formatÄ±nda dÃ¶nmÃ¼ÅŸse ayÄ±klamaya Ã§alÄ±ÅŸ (Ã–rn: ```json ... ```)
+                // Markdown formatında dönmüşse ayıklamaya çalış (Örn: ```json ... ```)
                 if (preg_match('/```json\s*(.*?)\s*```/s', $text, $matches)) {
                     $json = json_decode($matches[1], true);
                 }
                 
                 if (!$json) {
-                    throw new \Exception("Gemini API geÃ§erli bir JSON dÃ¶ndÃ¼rmedi: " . $text);
+                    throw new \Exception("Gemini API geçerli bir JSON döndürmedi: " . $text);
                 }
             }
             return $json;
@@ -107,11 +107,11 @@ class GeminiService {
     }
 
     /**
-     * AÅŸama A: Semantik KeÅŸif (Semantic Discovery)
+     * Aşama A: Semantik Keşif (Semantic Discovery)
      */
     public function discoverSemantics(string $text): array {
-        $prompt = "AÅŸaÄŸÄ±daki metni analiz et ve SEO (Arama Motoru Optimizasyonu) aÃ§Ä±sÄ±ndan odak anahtar kelimesini (target keyword), arama niyetini (search intent) ve yan anahtar kelimeleri (secondary keywords / LSI) Ã§Ä±kar.\n\n"
-                . "YanÄ±tÄ± SADECE aÅŸaÄŸÄ±daki JSON formatÄ±nda ver:\n"
+        $prompt = "Aşağıdaki metni analiz et ve SEO (Arama Motoru Optimizasyonu) açısından odak anahtar kelimesini (target keyword), arama niyetini (search intent) ve yan anahtar kelimeleri (secondary keywords / LSI) çıkar.\n\n"
+                . "Yanıtı SADECE aşağıdaki JSON formatında ver:\n"
                 . "{\n"
                 . "  \"target_keyword\": \"ornek odak kelime\",\n"
                 . "  \"search_intent\": \"bilgi edinme / satin alma vb.\",\n"
@@ -123,43 +123,43 @@ class GeminiService {
     }
 
     /**
-     * AÅŸama B: AI BoyutlarÄ±nÄ±n Ãœretilmesi
+     * Aşama B: AI Boyutlarının Üretilmesi
      */
     public function generateExpertInsights(array $telemetryData, string $rawText): array {
         $telemetryJson = json_encode($telemetryData, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
         
-        $prompt = "Sen KÄ±demli bir AI Entegrasyon, SEO Stratejisti ve Profesyonel Ä°Ã§erik EditÃ¶rÃ¼sÃ¼n.\n"
-                . "AÅŸaÄŸÄ±da PHP motoru tarafÄ±ndan hesaplanmÄ±ÅŸ %100 deterministik SEO metriklerini iÃ§eren Telemetri verisi ve yazarÄ±n orijinal ham metni bulunmaktadÄ±r.\n"
-                . "Bu verilere dayanarak, aÅŸaÄŸÄ±daki 4 boyutu (Analiz, Strateji, Entegrasyon, Otomatik DÃ¼zeltme) oluÅŸtururken ÅŸu kurallara KESÄ°NLÄ°KLE uy:\n\n"
+        $prompt = "Sen Kıdemli bir AI Entegrasyon, SEO Stratejisti ve Profesyonel İçerik Editörüsün.\n"
+                . "Aşağıda PHP motoru tarafından hesaplanmış %100 deterministik SEO metriklerini içeren Telemetri verisi ve yazarın orijinal ham metni bulunmaktadır.\n"
+                . "Bu verilere dayanarak, aşağıdaki 4 boyutu (Analiz, Strateji, Entegrasyon, Otomatik Düzeltme) oluştururken şu kurallara KESİNLİKLE uy:\n\n"
                 . "KURALLAR:\n"
-                . "1. ANALÄ°Z BOYUTU (DÃ¼z Metin Felsefesi): KullanÄ±cÄ±ya asla 'HTML baÅŸlÄ±k etiketi eksik', 'Markdown etiketi yok' gibi teknik kodlama eleÅŸtirileri yapma. Metni profesyonel bir iÃ§erik editÃ¶rÃ¼ gÃ¶zÃ¼yle; metin akÄ±ÅŸÄ±, anahtar kelime yerleÅŸimi, baÅŸlÄ±klarÄ±n dikkat Ã§ekiciliÄŸi ve okunabilirlik Ã¼zerinden deÄŸerlendir.\n"
-                . "2. OTOMATÄ°K DÃœZELTME BOYUTU (Minimalist ve Cerrahi Optimizasyon):\n"
-                . "   - YAZARIN ORÄ°JÄ°NAL METNÄ°NÄ° KORU: SÄ±fÄ±rdan yeni bir makale veya farklÄ± paragraflar YAZMA. YazarÄ±n orijinal cÃ¼mlelerini, dÃ¼ÅŸÃ¼ncelerini, Ã¶rneklerini ve Ã¼slubunu en az %85-90 oranÄ±nda aynen muhafaza et.\n"
-                . "   - NOKTA ATIÅI MÃœDAHALE YAP: Sadece ve sadece raporda tespit edilen eksiklikleri gider. Eksik olan hedef anahtar kelimeleri ve yan kavramlarÄ±, cÃ¼mlenin doÄŸal akÄ±ÅŸÄ±nÄ± bozmadan orijinal paragraflarÄ±n uygun yerlerine yerleÅŸtir. EÄŸer Ã§ok uzun (monolitik) bir paragraf varsa, onu anlam bÃ¼tÃ¼nlÃ¼ÄŸÃ¼nÃ¼ bozmadan sadece ikiye bÃ¶l. AnlatÄ±mÄ± gereksiz yere uzatma veya kÄ±saltma; yazarÄ±n metniyle birebir aynÄ± yapÄ±da ilerle.\n"
-                . "   - TEMÄ°Z DÃœZ METÄ°N Ã‡IKTISI (Plain Text): 'yeniden_yazilmis_metin' Ã§Ä±ktÄ±sÄ±nda KESÄ°NLÄ°KLE markdown sembolleri (#, ##, ###, **, *, _, -) KULLANMA. BaÅŸlÄ±klarÄ± sadece bir satÄ±r boÅŸluk bÄ±rakÄ±p bÃ¼yÃ¼k harfle veya doÄŸal baÅŸlÄ±k formatÄ±nda yaz. Metin, doÄŸrudan Word veya CMS editÃ¶rÃ¼ne yapÄ±ÅŸtÄ±rÄ±lacak %100 saf, pÃ¼rÃ¼zsÃ¼z ve temiz dÃ¼z metin olmalÄ±dÄ±r.\n\n"
+                . "1. ANALİZ BOYUTU (Düz Metin Felsefesi): Kullanıcıya asla 'HTML başlık etiketi eksik', 'Markdown etiketi yok' gibi teknik kodlama eleştirileri yapma. Metni profesyonel bir içerik editörü gözüyle; metin akışı, anahtar kelime yerleşimi, başlıkların dikkat çekiciliği ve okunabilirlik üzerinden değerlendir.\n"
+                . "2. OTOMATİK DÜZELTME BOYUTU (Minimalist ve Cerrahi Optimizasyon):\n"
+                . "   - YAZARIN ORİJİNAL METNİNİ KORU: Sıfırdan yeni bir makale veya farklı paragraflar YAZMA. Yazarın orijinal cümlelerini, düşüncelerini, örneklerini ve üslubunu en az %85-90 oranında aynen muhafaza et.\n"
+                . "   - NOKTA ATIŞI MÜDAHALE YAP: Sadece ve sadece raporda tespit edilen eksiklikleri gider. Eksik olan hedef anahtar kelimeleri ve yan kavramları, cümlenin doğal akışını bozmadan orijinal paragrafların uygun yerlerine yerleştir. Eğer çok uzun (monolitik) bir paragraf varsa, onu anlam bütünlüğünü bozmadan sadece ikiye böl. Anlatımı gereksiz yere uzatma veya kısaltma; yazarın metniyle birebir aynı yapıda ilerle.\n"
+                . "   - TEMİZ DÜZ METİN ÇIKTISI (Plain Text): 'yeniden_yazilmis_metin' çıktısında KESİNLİKLE markdown sembolleri (#, ##, ###, **, *, _, -) KULLANMA. Başlıkları sadece bir satır boşluk bırakıp büyük harfle veya doğal başlık formatında yaz. Metin, doğrudan Word veya CMS editörüne yapıştırılacak %100 saf, pürüzsüz ve temiz düz metin olmalıdır.\n\n"
                 . "Telemetri Verisi:\n" . $telemetryJson . "\n\n"
                 . "Ham Metin:\n" . $rawText . "\n\n"
-                . "YanÄ±tÄ± SADECE aÅŸaÄŸÄ±daki JSON formatÄ±nda ver. JSON haricinde hiÃ§bir markdown (```) veya aÃ§Ä±klama ekleme:\n"
+                . "Yanıtı SADECE aşağıdaki JSON formatında ver. JSON haricinde hiçbir markdown (```) veya açıklama ekleme:\n"
                 . "{\n"
                 . "  \"analiz\": {\n"
-                . "    \"ozet\": \"MÃ¼ÅŸterinin anlayacaÄŸÄ± yÃ¶netici Ã¶zeti.\",\n"
+                . "    \"ozet\": \"Müşterinin anlayacağı yönetici özeti.\",\n"
                 . "    \"sorunlar\": [\"Tespit edilen sorun 1\", \"Tespit edilen sorun 2\"],\n"
                 . "    \"saglik_skoru\": 75\n"
                 . "  },\n"
                 . "  \"strateji\": {\n"
-                . "    \"hedef_yogunluklar\": \"Anahtar kelime yoÄŸunluk hedefleri.\",\n"
+                . "    \"hedef_yogunluklar\": \"Anahtar kelime yoğunluk hedefleri.\",\n"
                 . "    \"semantik_bosluklar\": [\"Eksik kavram 1\", \"Eksik kavram 2\"],\n"
                 . "    \"eklenecek_kelime_adetleri\": {\"ornek_kelime_1\": 3, \"ornek_kelime_2\": 1},\n"
-                . "    \"paa_hedefleri\": [\"Ä°lgili Soru 1\", \"Ä°lgili Soru 2\"]\n"
+                . "    \"paa_hedefleri\": [\"İlgili Soru 1\", \"İlgili Soru 2\"]\n"
                 . "  },\n"
                 . "  \"entegrasyon\": {\n"
                 . "    \"adim_adim_rehber\": [\n"
-                . "      \"AdÄ±m 1: X baÅŸlÄ±ÄŸÄ±na Y kelimesini ekle.\",\n"
-                . "      \"AdÄ±m 2: 3. paragrafÄ± ikiye bÃ¶l ve Z kelimesini Ã¶ne yÃ¼kle.\"\n"
+                . "      \"Adım 1: X başlığına Y kelimesini ekle.\",\n"
+                . "      \"Adım 2: 3. paragrafı ikiye böl ve Z kelimesini öne yükle.\"\n"
                 . "    ]\n"
                 . "  },\n"
                 . "  \"otomatik_duzeltme\": {\n"
-                . "    \"yeniden_yazilmis_metin\": \"Metnin %85-90 orijinal hali korunmuÅŸ, sadece eksiklerin eklendiÄŸi, markdown iÃ§ermeyen saf dÃ¼z metin hali.\"\n"
+                . "    \"yeniden_yazilmis_metin\": \"Metnin %85-90 orijinal hali korunmuş, sadece eksiklerin eklendiği, markdown içermeyen saf düz metin hali.\"\n"
                 . "  }\n"
                 . "}";
 
