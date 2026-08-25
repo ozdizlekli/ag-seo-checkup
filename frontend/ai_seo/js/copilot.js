@@ -506,6 +506,7 @@ function resetChat(loadFromHistory = null) {
       }
   }
   if (loadFromHistory) {
+    window._chatLoadedFromHistory = true;
     currentChatId = loadFromHistory.chatId;
     currentState = 'WAITING_FOR_TYPE';
     currentStep = 1;
@@ -561,6 +562,7 @@ function resetChat(loadFromHistory = null) {
   }
 
   currentChatId = Date.now().toString();
+  window._chatLoadedFromHistory = false;
   currentState = 'WAITING_FOR_URL';
   currentStep = 1;
   completedSteps.clear();
@@ -1220,7 +1222,9 @@ if (btnClearHistory) {
 
 if (copilotResetBtn) {
   copilotResetBtn.addEventListener('click', () => {
-    if (chatMessages.length > 0 && !confirm('Mevcut sohbet kaydedilmedi. Yeni bir sohbet/URL başlatmak istediğinize emin misiniz?')) return;
+    // Only warn if there's an ACTIVE (unsaved) new chat with messages
+    const hasUnsavedMessages = chatMessages.length > 0 && currentState !== 'WAITING_FOR_URL' && !window._chatLoadedFromHistory;
+    if (hasUnsavedMessages && !confirm('Mevcut sohbet kaydedilmedi. Yeni bir sohbet/URL başlatmak istediğinize emin misiniz?')) return;
     resetChat(null);
   });
 }
@@ -1711,9 +1715,50 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 window.startNewAnalysisFromDashboard = function() {
-  document.getElementById('ai-seo-dashboard-view').style.display = 'none';
-  document.getElementById('copilot-action-view').style.display = 'flex';
+  const dbView = document.getElementById('ai-seo-dashboard-view');
+  const actionView = document.getElementById('copilot-action-view');
+  if (dbView) dbView.style.display = 'none';
+  if (actionView) actionView.style.display = 'flex';
   
-  resetChat(null);
-  document.getElementById('copilot-text-input').focus();
+  // Reset state
+  window._chatLoadedFromHistory = false;
+  currentChatId = Date.now().toString();
+  currentState = 'WAITING_FOR_URL';
+  currentStep = 1;
+  completedSteps.clear();
+  fixedIssues.clear();
+  targetUrl = '';
+  targetType = '';
+  fetchedData = null;
+  chatMessages = [];
+  reportData = [];
+  
+  updateProgressUI(0);
+  
+  // Show welcome message
+  const msgContainer = document.getElementById('copilot-chat-messages-container');
+  if (msgContainer) {
+    msgContainer.innerHTML = '';
+    addMessage('👋 Merhaba! Ben GEO SEO Asistanı. Analiz etmek istediğiniz sayfanın URL\'sini yapıştırarak başlayabilirsiniz.', 'ai');
+  }
+  
+  // Show input area, hide action buttons
+  if (copilotInputArea) copilotInputArea.style.display = 'block';
+  const llmsC = document.getElementById('copilot-llms-container');
+  if (llmsC) llmsC.style.display = 'none';
+  const cqa = document.getElementById('copilot-quick-actions');
+  if (cqa) cqa.style.display = 'flex';
+  if (copilotActions) copilotActions.innerHTML = '';
+  if (copilotTextInput) {
+    copilotTextInput.value = '';
+    copilotTextInput.placeholder = 'Örn: https://www.site.com/hizmet';
+    copilotTextInput.focus();
+  }
+  
+  // Restore save button
+  if (copilotSaveBtn) {
+    copilotSaveBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px;"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg> Kaydet`;
+    copilotSaveBtn.style.opacity = '1';
+    copilotSaveBtn.style.pointerEvents = 'auto';
+  }
 };
