@@ -474,7 +474,15 @@ function initOrUpdateCharts(data) {
 function resetChat(loadFromHistory = null) {
     const dbView = document.getElementById('ai-seo-dashboard-view');
     const actionView = document.getElementById('copilot-action-view');
-    if (loadFromHistory && dbView && actionView) { dbView.style.display = 'none'; actionView.style.display = 'block'; }
+    if (dbView && actionView) {
+        if (loadFromHistory) {
+            dbView.style.display = 'none'; 
+            actionView.style.display = 'flex';
+        } else {
+            dbView.style.display = 'block'; 
+            actionView.style.display = 'none';
+        }
+    }
     if (loadFromHistory) {
       currentChatId = loadFromHistory.chatId;
       currentState = 'WAITING_FOR_TYPE';
@@ -515,7 +523,7 @@ function resetChat(loadFromHistory = null) {
       const msgContainer = document.getElementById('copilot-chat-messages-container');
       if (msgContainer) msgContainer.style.display = 'block';
       if (msgContainer) msgContainer.innerHTML = '';
-      chatMessages.forEach(msg => { addMessage(msg.text, msg.sender, msg.isHtml, false); });
+      chatMessages.forEach(msg => { addMessage(msg.text, msg.sender, msg.isHtml, false); if (msg.sender === 'ai') { try { const jsonMatch = msg.text.match(/<div class="ai-raw-json" style="display:none;">```json\s*(\{[\s\S]*?\})\s*```<\/div>/); if (jsonMatch) { const chartData = JSON.parse(jsonMatch[1]); initOrUpdateCharts(chartData); } } catch(e){} } });
       
       copilotInputArea.style.display = "none"; const cqa = document.getElementById("copilot-quick-actions"); if(cqa) cqa.style.display = "none";
       renderAiSeoActions();

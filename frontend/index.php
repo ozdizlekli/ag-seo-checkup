@@ -470,7 +470,9 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
       
 <section class="tab-panel" id="tab-3">
         <!-- GEO Content Copilot UI -->
-        <div class="card" id="copilot-card" style="border-top: 4px solid var(--accent); padding:0;">
+        <div id="ai-seo-dashboard-view"></div>
+        <div id="copilot-action-view" style="display: none; flex-direction: row; gap: 0; min-height: 80vh;">
+        <div class="card" id="copilot-card" style="flex: 2; border-right: 1px solid var(--border); border-top: 4px solid var(--accent); padding:0;" style="border-top: 4px solid var(--accent); padding:0;">
           <div style="padding: 24px 24px 0 24px;">
             <div class="card__title has-tooltip" style="display:inline-flex; align-items:center;" data-tooltip="Yapay zeka asistanı ile URL bazlı SEO stratejinizi oluşturun.">GEO AI Bot (URL Tabanlı)</div>
             <div class="card__hint">Web sitenizin SEO ve Yapay Zeka (SGE) görünürlüğünü sohbet asistanı ile adım adım analiz edin.</div>
@@ -669,6 +671,7 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
              </div>
           </div>
         </div>
+</div>
         </section>
 
         <!-- YENİ 4. SEKME: YAPILACAKLAR / EKSİKLİKLER -->
