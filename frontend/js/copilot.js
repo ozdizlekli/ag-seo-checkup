@@ -1,3 +1,37 @@
+
+  const seoQuestionPool = [
+    "Bana içerik eksiklerimi söyle",
+    "Rakiplerimden neden gerideyim?",
+    "Bu sayfa için SSS (FAQ) hazırla",
+    "İçeriği daha ikna edici nasıl yaparım?",
+    "Hangi LSI kelimelerini kullanmalıyım?",
+    "Kullanıcı niyetine ne kadar uygun?",
+    "Okunabilirlik skorumu nasıl artırırım?",
+    "Sayfa başlığı (Title) yeterince iyi mi?",
+    "E-E-A-T sinyallerim eksik mi?",
+    "Hangi alt başlıkları (H2/H3) eklemeliyim?",
+    "Featured Snippet (Sıfırıncı sıra) için ne yapmalıyım?"
+  ];
+
+  window.renderDynamicQuickActions = function() {
+    const quickActionsContainer = document.getElementById("copilot-quick-actions");
+    if (!quickActionsContainer) return;
+
+    const shuffled = [...seoQuestionPool].sort(() => 0.5 - Math.random());
+    const selected = shuffled.slice(0, 4);
+
+    const infoIconBlue = '<svg class="info-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 6px; color: #3b82f6; opacity:0.8;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>';
+
+    let html = "";
+    selected.forEach(q => {
+      // FIX the button so it sets value to just the question string, without the SVG!
+      // 'this.textContent' will include the SVG text if not careful, but textContent ignores SVG tags, so it should be fine.
+      html += `<button class="quick-action-btn has-tooltip" data-tooltip="Hızlı aksiyon ile AI'a anında talimat gönderin." onclick="document.getElementById('copilot-text-input').value=this.textContent; document.getElementById('copilot-send-btn').click();">` + q + infoIconBlue + `</button>`;
+    });
+    
+    quickActionsContainer.innerHTML = html;
+  }
+
 document.addEventListener('DOMContentLoaded', () => {
   const copilotChat = document.getElementById('copilot-chat');
   const copilotResetBtn = document.getElementById('copilot-reset-btn');
@@ -436,7 +470,7 @@ function resetChat(loadFromHistory = null) {
 
   function renderAiSeoActions() {
     updateProgressUI(currentStep);
-    renderDynamicQuickActions();
+    window.renderDynamicQuickActions();
     let nextStep = 1;
     while(completedSteps.has(nextStep) && nextStep <= 5) { nextStep++; }
     
@@ -445,7 +479,7 @@ function resetChat(loadFromHistory = null) {
     if (nextStep <= 5) {
       currentStep = nextStep;
       updateProgressUI(currentStep);
-    renderDynamicQuickActions();
+    window.renderDynamicQuickActions();
       
       const analyzeText = completedSteps.size === 0 ? "⚡ Tüm Siteyi Analiz Et" : "⚡ Kalan Adımları Analiz Et";
       const fixText = fixedIssues.size === 0 ? "🔧 Tüm Eksikleri Gider" : "🔧 Kalan Eksikleri Gider";
@@ -921,7 +955,7 @@ Son olarak, önceki 4 adımda çıkardığın tüm analizleri (İş bağlamı, k
           if (!window.isAutoAnalyzing && !window.isAutoFixing && i <= 5) {
              currentStep = i;
              updateProgressUI(currentStep);
-    renderDynamicQuickActions();
+    window.renderDynamicQuickActions();
              await processAiSeoStep();
           }
         }
