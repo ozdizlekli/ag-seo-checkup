@@ -139,11 +139,8 @@ function renderIssuesUI() {
       btn.style.pointerEvents = (window.isAutoAnalyzing || window.isAutoFixing) ? 'none' : 'auto';
       btn.style.textDecoration = 'none';
       
-      // Remove existing listeners to avoid duplicates, then add
-      const newBtn = btn.cloneNode(true);
-      btn.parentNode.replaceChild(newBtn, btn);
-      
-      newBtn.addEventListener('click', (e) => {
+      // Use onclick to avoid duplicates and DOM replacement issues
+      btn.onclick = (e) => {
         const s = parseInt(e.currentTarget.getAttribute('data-step'));
         if (!fixedIssues.has(s)) {
           fixAiSeoIssue(s);
@@ -155,7 +152,7 @@ function renderIssuesUI() {
               copilotChat.scrollTo({ top: scrollOffset - 10, behavior: 'smooth' });
            }
         }
-      });
+      };
     } else {
       btn.style.display = 'none';
     }
@@ -865,24 +862,19 @@ function renderAiSeoActions() {
 
   // btn-ai-step removed
   if (document.getElementById('btn-auto-analyze')) {
-    // avoid multiple bindings by replacing the node or using a flag
     const btn = document.getElementById('btn-auto-analyze');
-    const newBtn = btn.cloneNode(true);
-    btn.parentNode.replaceChild(newBtn, btn);
-    newBtn.addEventListener('click', async () => {
+    btn.onclick = async () => {
       window.isAutoAnalyzing = true;
       await runAutoAnalysis();
-    });
+    };
   }
 
   if (document.getElementById('btn-auto-fix')) {
     const btn = document.getElementById('btn-auto-fix');
-    const newBtn = btn.cloneNode(true);
-    btn.parentNode.replaceChild(newBtn, btn);
-    newBtn.addEventListener('click', async () => {
+    btn.onclick = async () => {
       window.isAutoFixing = true;
       await runAutoFixes();
-    });
+    };
   }
   
   // PDF listener moved to topBtn
