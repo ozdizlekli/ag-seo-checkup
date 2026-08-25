@@ -233,21 +233,22 @@ document.addEventListener('DOMContentLoaded', () => {
       // JSON Extraction
       let cleanText = aiText;
       let chartData = null;
-      try {
-          const jsonMatch = aiText.match(/```json\s*(\{[\s\S]*?\})\s*```/);
-          if (jsonMatch) {
+      let rawJsonStr = '';
+      
+      const jsonMatch = aiText.match(/```(?:json)?\s*(\{[\s\S]*?\})\s*```/i);
+      if (jsonMatch) {
+          cleanText = aiText.replace(jsonMatch[0], '').trim();
+          rawJsonStr = jsonMatch[0];
+          try {
               chartData = JSON.parse(jsonMatch[1]);
-              cleanText = aiText.replace(jsonMatch[0], '').trim(); // Remove JSON from chat
-          } else {
-              // Try finding JSON block at the very end if no backticks
-              const fallbackMatch = aiText.match(/\{[\s\S]*"trust_score"[\s\S]*\}$/);
-              if (fallbackMatch) {
-                  chartData = JSON.parse(fallbackMatch[0]);
-                  cleanText = aiText.replace(fallbackMatch[0], '').trim();
-              }
+          } catch(e) { console.warn("JSON Parse Error:", e); }
+      } else {
+          const fallbackMatch = aiText.match(/\{[\s\S]*"trust_score"[\s\S]*\}$/);
+          if (fallbackMatch) {
+              cleanText = aiText.replace(fallbackMatch[0], '').trim();
+              rawJsonStr = fallbackMatch[0];
+              try { chartData = JSON.parse(fallbackMatch[0]); } catch(e){}
           }
-      } catch (e) {
-          console.warn("JSON Parse Error:", e);
       }
       
             if (chartData) {
@@ -257,7 +258,7 @@ document.addEventListener('DOMContentLoaded', () => {
           }
       }
 
-      let htmlText = (typeof marked !== 'undefined' ? marked.parse(cleanText) : cleanText) + (typeof jsonMatch !== 'undefined' && jsonMatch ? '<div class="ai-raw-json" style="display:none;">' + jsonMatch[0] + '</div>' : '');
+      let htmlText = (typeof marked !== 'undefined' ? marked.parse(cleanText) : cleanText) + (rawJsonStr ? '<div class="ai-raw-json" style="display:none;">' + rawJsonStr + '</div>' : '');
       addMessage(htmlText, 'ai', true);
 
       fixedIssues.add(step);
@@ -641,21 +642,22 @@ function resetChat(loadFromHistory = null) {
       // JSON Extraction
       let cleanText = aiText;
       let chartData = null;
-      try {
-          const jsonMatch = aiText.match(/```json\s*(\{[\s\S]*?\})\s*```/);
-          if (jsonMatch) {
+      let rawJsonStr = '';
+      
+      const jsonMatch = aiText.match(/```(?:json)?\s*(\{[\s\S]*?\})\s*```/i);
+      if (jsonMatch) {
+          cleanText = aiText.replace(jsonMatch[0], '').trim();
+          rawJsonStr = jsonMatch[0];
+          try {
               chartData = JSON.parse(jsonMatch[1]);
-              cleanText = aiText.replace(jsonMatch[0], '').trim(); // Remove JSON from chat
-          } else {
-              // Try finding JSON block at the very end if no backticks
-              const fallbackMatch = aiText.match(/\{[\s\S]*"trust_score"[\s\S]*\}$/);
-              if (fallbackMatch) {
-                  chartData = JSON.parse(fallbackMatch[0]);
-                  cleanText = aiText.replace(fallbackMatch[0], '').trim();
-              }
+          } catch(e) { console.warn("JSON Parse Error:", e); }
+      } else {
+          const fallbackMatch = aiText.match(/\{[\s\S]*"trust_score"[\s\S]*\}$/);
+          if (fallbackMatch) {
+              cleanText = aiText.replace(fallbackMatch[0], '').trim();
+              rawJsonStr = fallbackMatch[0];
+              try { chartData = JSON.parse(fallbackMatch[0]); } catch(e){}
           }
-      } catch (e) {
-          console.warn("JSON Parse Error:", e);
       }
       
             if (chartData) {
@@ -665,7 +667,7 @@ function resetChat(loadFromHistory = null) {
           }
       }
 
-      let htmlText = (typeof marked !== 'undefined' ? marked.parse(cleanText) : cleanText) + (typeof jsonMatch !== 'undefined' && jsonMatch ? '<div class="ai-raw-json" style="display:none;">' + jsonMatch[0] + '</div>' : '');
+      let htmlText = (typeof marked !== 'undefined' ? marked.parse(cleanText) : cleanText) + (rawJsonStr ? '<div class="ai-raw-json" style="display:none;">' + rawJsonStr + '</div>' : '');
         addMessage(htmlText, 'ai', true);
       } catch (err) {
         removeTypingIndicator();
@@ -935,21 +937,22 @@ Son olarak, önceki 4 adımda çıkardığın tüm analizleri (İş bağlamı, k
       // JSON Extraction
       let cleanText = aiText;
       let chartData = null;
-      try {
-          const jsonMatch = aiText.match(/```json\s*(\{[\s\S]*?\})\s*```/);
-          if (jsonMatch) {
+      let rawJsonStr = '';
+      
+      const jsonMatch = aiText.match(/```(?:json)?\s*(\{[\s\S]*?\})\s*```/i);
+      if (jsonMatch) {
+          cleanText = aiText.replace(jsonMatch[0], '').trim();
+          rawJsonStr = jsonMatch[0];
+          try {
               chartData = JSON.parse(jsonMatch[1]);
-              cleanText = aiText.replace(jsonMatch[0], '').trim(); // Remove JSON from chat
-          } else {
-              // Try finding JSON block at the very end if no backticks
-              const fallbackMatch = aiText.match(/\{[\s\S]*"trust_score"[\s\S]*\}$/);
-              if (fallbackMatch) {
-                  chartData = JSON.parse(fallbackMatch[0]);
-                  cleanText = aiText.replace(fallbackMatch[0], '').trim();
-              }
+          } catch(e) { console.warn("JSON Parse Error:", e); }
+      } else {
+          const fallbackMatch = aiText.match(/\{[\s\S]*"trust_score"[\s\S]*\}$/);
+          if (fallbackMatch) {
+              cleanText = aiText.replace(fallbackMatch[0], '').trim();
+              rawJsonStr = fallbackMatch[0];
+              try { chartData = JSON.parse(fallbackMatch[0]); } catch(e){}
           }
-      } catch (e) {
-          console.warn("JSON Parse Error:", e);
       }
       
             if (chartData) {
@@ -959,7 +962,7 @@ Son olarak, önceki 4 adımda çıkardığın tüm analizleri (İş bağlamı, k
           }
       }
 
-      let htmlText = (typeof marked !== 'undefined' ? marked.parse(cleanText) : cleanText) + (typeof jsonMatch !== 'undefined' && jsonMatch ? '<div class="ai-raw-json" style="display:none;">' + jsonMatch[0] + '</div>' : '');
+      let htmlText = (typeof marked !== 'undefined' ? marked.parse(cleanText) : cleanText) + (rawJsonStr ? '<div class="ai-raw-json" style="display:none;">' + rawJsonStr + '</div>' : '');
       addMessage(htmlText, 'ai', true);
       
       reportData[step - 1] = htmlText;
