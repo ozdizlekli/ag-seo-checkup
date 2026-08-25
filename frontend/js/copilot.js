@@ -198,7 +198,82 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  function resetChat(loadFromHistory = null) {
+    function renderDashboard() {
+      const history = window.agChatHistory || [];
+      const totalAnalyses = history.length;
+      
+      let battleCount = 0;
+      let totalEEAT = 0;
+      let eeatCount = 0;
+      
+      history.forEach(h => {
+         if (h.messages) {
+            const msgs = JSON.stringify(h.messages).toLowerCase();
+            if (msgs.includes('rakip') || msgs.includes('battle')) battleCount++;
+         }
+         // Pseudo-EEAT from steps (if step 4 is completed, we assume a score of 70-95 based on fixed issues)
+         if (h.completedSteps && h.completedSteps.includes("4") || h.completedSteps && h.completedSteps.includes(4)) {
+             const fixes = h.fixedIssues ? h.fixedIssues.length : 0;
+             totalEEAT += 70 + (fixes * 4);
+             eeatCount++;
+         }
+      });
+
+      const avgEEAT = eeatCount > 0 ? Math.round(totalEEAT / eeatCount) : 0;
+
+      let recentHtml = '';
+      history.slice(0, 5).forEach(h => {
+         const comp = h.completedSteps ? h.completedSteps.length : 0;
+         const fixes = h.fixedIssues ? h.fixedIssues.length : 0;
+         let health = "Orta";
+         let color = "#eab308";
+         if (comp >= 5 && fixes >= 3) { health = "Mükemmel"; color = "#22c55e"; }
+         else if (comp >= 3 && fixes < 2) { health = "Kritik"; color = "#ef4444"; }
+         
+         const dateStr = new Date(h.date).toLocaleDateString('tr-TR');
+         recentHtml += `
+            <div style="display:flex; justify-content:space-between; align-items:center; padding: 12px; border-bottom: 1px solid var(--border);">
+               <div style="font-weight: 500; font-size: 13px; color: var(--text);">${h.url} <span style="font-size:11px; color:var(--muted); margin-left:8px;">${dateStr}</span></div>
+               <div style="font-size: 12px; font-weight: 600; color: ${color}; background: ${color}20; padding: 4px 8px; border-radius: 6px;">${health}</div>
+            </div>
+         `;
+      });
+      if (recentHtml === '') recentHtml = '<div style="padding: 12px; color: var(--muted); font-size: 13px;">Henüz analiz bulunmuyor.</div>';
+
+      document.getElementById('copilot-messages').innerHTML = `
+        <div id="welcome-dashboard-flag" style="padding: 24px;">
+           <h2 style="margin-bottom: 24px; font-size: 20px; font-weight: 600; color: var(--text);">Agency OS Kontrol Paneli</h2>
+           
+           <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 32px;">
+              <div style="background: #fff; padding: 20px; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+                 <div style="font-size: 12px; color: var(--muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">Toplam Analiz</div>
+                 <div style="font-size: 32px; font-weight: 700; color: #2563eb;">${totalAnalyses}</div>
+              </div>
+              <div style="background: #fff; padding: 20px; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+                 <div style="font-size: 12px; color: var(--muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">Rakip Analizi (Battle)</div>
+                 <div style="font-size: 32px; font-weight: 700; color: #dc2626;">${battleCount}</div>
+              </div>
+              <div style="background: #fff; padding: 20px; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+                 <div style="font-size: 12px; color: var(--muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">Ortalama E-E-A-T</div>
+                 <div style="font-size: 32px; font-weight: 700; color: #16a34a;">${avgEEAT > 0 ? avgEEAT + '/100' : '-'}</div>
+              </div>
+           </div>
+
+           <div style="background: #fff; border-radius: 12px; border: 1px solid var(--border); overflow: hidden; margin-bottom: 32px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+              <div style="padding: 16px; background: #f8fafc; border-bottom: 1px solid var(--border); font-weight: 600; font-size: 14px; color: var(--text);">Son Taranan 5 Site</div>
+              ${recentHtml}
+           </div>
+
+           <div style="text-align: center;">
+              <button class="btn btn--primary" style="padding: 12px 24px; font-size: 14px; font-weight: 600;" onclick="document.getElementById('copilot-text-input').focus();">
+                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:8px; vertical-align:middle;"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                 Yeni Analiz Başlat
+              </button>
+           </div>
+        </div>
+      `;
+  }
+function resetChat(loadFromHistory = null) {
     if (loadFromHistory) {
       currentChatId = loadFromHistory.chatId;
       currentState = 'WAITING_FOR_TYPE';
@@ -361,6 +436,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function renderAiSeoActions() {
     updateProgressUI(currentStep);
+    renderDynamicQuickActions();
     let nextStep = 1;
     while(completedSteps.has(nextStep) && nextStep <= 5) { nextStep++; }
     
@@ -369,6 +445,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (nextStep <= 5) {
       currentStep = nextStep;
       updateProgressUI(currentStep);
+    renderDynamicQuickActions();
       
       const analyzeText = completedSteps.size === 0 ? "⚡ Tüm Siteyi Analiz Et" : "⚡ Kalan Adımları Analiz Et";
       const fixText = fixedIssues.size === 0 ? "🔧 Tüm Eksikleri Gider" : "🔧 Kalan Eksikleri Gider";
@@ -844,6 +921,7 @@ Son olarak, önceki 4 adımda çıkardığın tüm analizleri (İş bağlamı, k
           if (!window.isAutoAnalyzing && !window.isAutoFixing && i <= 5) {
              currentStep = i;
              updateProgressUI(currentStep);
+    renderDynamicQuickActions();
              await processAiSeoStep();
           }
         }

@@ -311,3 +311,32 @@ details.seo-details .details-content {
 }
 .has-tooltip { position: relative; cursor: help; }
 
+
+.quick-action-btn { display: inline-flex; align-items: center; justify-content: center; white-space: nowrap; flex-shrink: 0; }
+.logout-btn:hover { background-color: #fee2e2; color: #dc2626; }
+
+
+.copilot-step.has-tooltip { position: relative; }
+
+
+/* Client Presentation Mode */
+body.client-presentation-mode .sidebar { display: none !important; }
+body.client-presentation-mode .main-content { margin-left: 0 !important; max-width: 100% !important; }
+body.client-presentation-mode .copilot-input-area,
+body.client-presentation-mode .quick-actions,
+body.client-presentation-mode #btn-open-battle-mode,
+body.client-presentation-mode #btn-send-to-todos,
+body.client-presentation-mode #copilot-manual-save-btn,
+body.client-presentation-mode #copilot-reset-btn,
+body.client-presentation-mode .card__hint,
+body.client-presentation-mode .copilot-step-nav { display: none !important; }
+body.client-presentation-mode .copilot-container { height: auto; min-height: 100vh; }
+body.client-presentation-mode .copilot-messages { font-size: 1.1em; }
+
+
+.switch { position: relative; display: inline-block; width: 34px; height: 20px; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .4s; border-radius: 20px; }
+.slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 2px; bottom: 2px; background-color: white; transition: .4s; border-radius: 50%; }
+input:checked + .slider { background-color: #3b82f6; }
+input:checked + .slider:before { transform: translateX(14px); }
