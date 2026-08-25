@@ -90,7 +90,9 @@ function addTypingIndicator() {
 
 function removeTypingIndicator() {
   const indicator = document.getElementById('typing-indicator');
-  if (indicator) indicator.remove();
+  if (indicator) {
+      try { indicator.remove(); } catch(e) { console.warn(e); }
+  }
 }
 
 function updateProgressUI(step) {
@@ -361,7 +363,7 @@ async function fixAiSeoIssue(step) {
          </div>
 
          <div style="text-align: center;">
-            <button class="btn btn--primary" style="padding: 12px 24px; font-size: 14px; font-weight: 600;" onclick="startNewAnalysisFromDashboard()">
+            <button class="btn btn--primary" style="padding: 12px 24px; font-size: 14px; font-weight: 600;" onclick="startFreshAnalysis()">
                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:8px; vertical-align:middle;"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                Yeni Analiz Başlat
             </button>
@@ -583,10 +585,15 @@ function resetChat(loadFromHistory = null, forceActionView = false) {
   
 
 
-  if (msgContainer) { msgContainer.innerHTML = ''; addMessage('👋 Merhaba! Ben GEO SEO Asistanı. Analiz etmek istediğiniz sayfanın URL\'sini yapıştırarak başlayabilirsiniz.', 'ai'); }
+  if (msgContainer) { 
+      try { msgContainer.replaceChildren(); } catch(e) { msgContainer.innerHTML = ''; }
+      addMessage('👋 Merhaba! Ben GEO SEO Asistanı. Analiz etmek istediğiniz sayfanın URL\'sini yapıştırarak başlayabilirsiniz.', 'ai'); 
+  }
   if (typeof window.renderDashboard === 'function') { window.renderDashboard(); }
   
-  copilotActions.innerHTML = '';
+  if (copilotActions) {
+      try { copilotActions.replaceChildren(); } catch(e) { copilotActions.innerHTML = ''; }
+  }
   if (copilotInputArea) copilotInputArea.style.display = "block"; 
   
   // Explicitly ensure the input container itself is visible, just in case
@@ -1733,16 +1740,21 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
-window.startNewAnalysisFromDashboard = function() {
-  const dbView = document.getElementById('ai-seo-dashboard-view');
-  const actionView = document.getElementById('copilot-action-view');
-  if (dbView) dbView.style.display = 'none';
-  if (actionView) actionView.style.display = 'flex';
-  
-  // Directly force chat reset without warning
-  if (typeof window._forceResetChat === 'function') {
-      window._forceResetChat(null, true);
-  } else {
+window.startFreshAnalysis = function() {
+  try {
+      const dbView = document.getElementById('ai-seo-dashboard-view');
+      const actionView = document.getElementById('copilot-action-view');
+      if (dbView) dbView.style.display = 'none';
+      if (actionView) actionView.style.display = 'flex';
+      
+      if (typeof window._forceResetChat === 'function') {
+          window._forceResetChat(null, true);
+      } else {
+          location.reload();
+      }
+  } catch(e) {
+      console.error("startFreshAnalysis error:", e);
       location.reload();
   }
 };
+window.startNewAnalysisFromDashboard = window.startFreshAnalysis;
