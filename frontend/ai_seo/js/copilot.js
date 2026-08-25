@@ -45,7 +45,7 @@ const btnClearHistory = document.getElementById('btn-clear-history');
 
 if (!copilotChat) return;
 
-const aiSeoSteps = ["", "İş Bağlamı ve E-E-A-T", "Kullanıcı Soruları ve Etkililik", "Rakip Öngörüleri", "Yapay Zeka Güven Puanı", "Okunabilirlik ve Optimize İçerik", "Bütünsel Entegrasyon Zinciri"];
+const aiSeoSteps = ["", "Site Yapısı ve Taranabilirlik", "Kullanıcı Odaklı İçerik ve SSS", "Rakip Zafiyetleri ve İçerik Derinliği", "İçerik İçi Bağlantılar ve Kayıtlar", "Yapılandırılmış Veri Derinliği", "AI Bilgilendirme ve Entegrasyon"];
 
 let currentState = 'WAITING_FOR_URL';
 let currentStep = 1;
@@ -166,12 +166,12 @@ async function fixAiSeoIssue(step) {
   const kural = "ÖNEMLİ KURAL: Önerdiğin İSTİSNASIZ HER eylemi modül mantığıyla sun. Eğer eylem sadece yazılım/teknik ekibini ilgilendiriyorsa (Şema, kod, hız) başına tam olarak '🚨 [TEKNİK - Modül: Modül Adı]', sadece içerik ekibini ilgilendiriyorsa (metin yazımı) '✍️ [METİN - Modül: Modül Adı]', her ikisini de içeren bütünleşik bir eylemse (veya fotoğraf, strateji, çoklu lokasyon gibi genel bir kurguysa) '📌 [GENEL - Modül: Modül Adı]' yaz. (Örn: 📌 [GENEL - Modül: SSS] Bu soruları sayfaya ekle ve FAQ şemasını da yayımla). Bütün eksikleri atlamadan bu formata sok!";
   const fixPrompts = [
     "",
-    "Az önceki 1. Adım analizinde bulduğun eksikleri gidermek için siteme doğrudan ekleyebileceğim zenginleştirilmiş 'Hakkımızda / Kurumsal' metni ve E-E-A-T sinyallerini artıracak öneriler üret. " + kural,
-    "Az önceki 2. Adım analizine dayanarak, kullanıcıların ve yapay zekanın en çok aradığı soruları kapsayan, siteme kopyalayıp yapıştırabileceğim 5 adet 'Doğrudan Yanıt Odaklı SSS (FAQ)' metni ve bu soruların JSON-LD Schema kodunu hazırla. " + kural,
-    "Az önceki 3. Adım analizinde rakiplerimde olup bende olmayan içerik açıklarını kapatmak için, sitemde kullanabileceğim iddialı bir değer teklifi (Value Proposition) metni ve hizmetleri öne çıkaran 2 paragraflık ikna edici bir içerik yaz. " + kural,
-    "Az önceki 4. Adım analizindeki güven eksikliklerini gidermek için, siteme ekleyebileceğim güven veren istatistiksel ifadeler, sertifika/ödül bildirimleri ve yapay zekanın 'Otorite' puanımı artırmasını sağlayacak metin blokları oluştur. " + kural,
-    "Az önceki 5. Adım analizindeki teknik hataları ve Schema eksikliklerini tamamen gider. Sadece Schema değil, Hız, Karakter Kodlaması, Semantik HTML gibi AI'ın okumasını zorlaştıran ne varsa düzeltme kodu veya talimatı ver. Ayrıca Schema koduna 'knowsAbout' veya 'mentions' gibi bağlamsal etiketler ekle. " + kural,
-    "ÖNEMLİ: Sen bir Entegrasyon Şefisin. Önceki 5 adımda üretilen metinleri veya kodları SAKIN tekrar etme! Senin tek görevin 'Bağlantı Noktalarını (Zincirleri)' göstermek. Hangi metinle hangi teknik SEO hamlesinin (Hız, Şema, Semantik HTML vb.) aynı anda yapılması gerektiğini söyle. " + kural
+    "Az önceki 1. Adım analizinde bulduğun eksikleri gidermek için siteme doğrudan ekleyebileceğim E-E-A-T sinyallerini artıran metinler yaz ve Site Hiyerarşisini (Bilgi Mimarisini) düzeltmek için menü/kategori URL yapısı önerileri sun. " + kural,
+    "Az önceki 2. Adım analizine dayanarak, kullanıcıların en çok aradığı sorulara doğrudan yanıt veren 5 adet 'Kullanıcı Odaklı SSS (FAQ)' metni ve bu soruların hatasız JSON-LD Schema kodunu hazırla. " + kural,
+    "Az önceki 3. Adım analizinde bulduğun içerik açıklarını kapatmak için; hizmet kapsamını detaylandıran, teknik terimleri basitleştiren ve rakiplerden ayrışan ikna edici bir Değer Teklifi (Value Proposition) metni yaz. " + kural,
+    "Az önceki 4. Adım analizine göre; bu sayfanın otoritesini besleyecek 'Site İçi İçerik Bağlantıları (Internal Linking / Topic Clusters)' stratejisi oluştur. Hangi blog başlıkları yazılmalı ve bu sayfaya hangi Anchor Text (bağlantı metni) ile linklenmeli detaylıca yaz. " + kural,
+    "Az önceki 5. Adım analizine göre sayfadaki Yapılandırılmış Veri (Schema) derinliğini artır. Eğer sayfa ürünse Product, hizmetse Service (veya uygun olan) şemasını fiyat, yorum, açıklama gibi tüm detaylarıyla baştan yaz. Şema koduna yapay zeka (LLM) dostu 'knowsAbout' veya 'mentions' bağlamsal etiketlerini ekle. " + kural,
+    "" // 6. adımın fix butonu yok.
   ];
 
   setTimeout(() => { copilotChat.scrollTop = copilotChat.scrollHeight; }, 100);
@@ -928,40 +928,45 @@ async function processAiSeoStep() {
   let p = `Sen bir GEO uzmanısın. ÖNEMLİ: Kendini tanıtma, selamlama yapma, doğrudan istenilen formatta yanıt ver. Kullanıcının ${targetType} sektörü sitesini incele. \nSayfa Başlığı: ${fetchedData.title}\nMeta: ${fetchedData.description}\nBulunan JSON-LD Schema: ${fetchedData.schemas.join(', ')}\nSayfa Metni: ${fetchedData.text}\n\n`;
   
   if (step === 1) {
-    p += `Aşağıdaki başlıkları kullanarak sitenin İş Bağlamını Markdown formatında analiz et:
-**Alan Adı İş Bağlamı**
-* BU ALAN ADI NE HAKKINDADIR?
-* HEDEF KİTLE
-* SEKTÖR NİŞİ
-* ANAHTAR VARLIKLAR (ENTITIES): (Yapay zekanın Bilgi Grafiği / Knowledge Graph için bu sitenin temsil ettiği ve odaklanması gereken en önemli 3-4 kavram/varlık nedir?)
+    p += `Aşağıdaki başlıkları kullanarak sitenin İş Bağlamını ve Site Yapısını Markdown formatında analiz et:
+**Yapay Zekâ Uyumlu Site Yapısı (Bilgi Mimarisi)**
+* BU SAYFA NE HAKKINDADIR VE KİMİN İÇİNDİR?
+* HİYERARŞİ VE AYRIŞMA: Sayfadaki hizmet/ürün hiyerarşisi net mi? Karmaşıklık var mı?
+* ANAHTAR VARLIKLAR (ENTITIES): Yapay zekanın Knowledge Graph (Bilgi Grafiği) için bu sitenin odaklanması gereken en önemli 3-4 kavram.
+* TEKNİK SEO EKSİKLERİ: Sayfanın taranabilirliğini (Robots.txt, Sitemap, Canonical vb. standartları) göz önünde bulundurarak olası risklerini değerlendir.
 Buna ek olarak E-E-A-T (Deneyim, Uzmanlık, Otoriterlik, Güvenilirlik) kurallarına göre bir değerlendirme yaz.`;
   } 
   else if (step === 2) {
-    p += `Aşağıdaki başlıkları kullanarak Markdown formatında bir etkililik raporu oluştur:
-**Yapay Zeka İçerik Etkililik Raporu**
-* GENEL BAKIŞ
-* ÖNE ÇIKAN KULLANICI SORULARI (En az 5 soru listele. Her bir soru için sitenin ilgili soruyu yanıtlama gücünü (+/- yönleriyle) ve 10 üzerinden puanını (Skor) yaz.)
-* İÇERİK FIRSATLARI (Uygulanabilir aksiyon tavsiyelerini 5 maddelik liste yap.)`;
+    p += `Aşağıdaki başlıkları kullanarak Markdown formatında bir Kullanıcı Odaklı İçerik ve Etkililik raporu oluştur:
+**Kullanıcı Odaklı İçerik ve SSS Raporu**
+* KULLANICI NİYETİ: Kullanıcıların bu sayfada bulmayı beklediği asıl cevaplar neler?
+* ÖNE ÇIKAN KULLANICI SORULARI (En az 5 soru listele. Sitenin bu sorulara DOĞRUDAN cevap verip veremediğini (+/-) yönleriyle ve 10 üzerinden skorla yaz.)
+* İÇERİK FIRSATLARI: İçeriğin daha faydalı, güvenilir ve insan odaklı (helpful content) olması için 5 maddelik aksiyon planı.`;
   } 
   else if (step === 3) {
-    p += `Aşağıdaki başlıkları kullanarak rakipleri analiz et:
-**Rakip İçerik Öngörüleri**
-* GENEL BAKIŞ
-* Aynı sektördeki en iyi bilinen en az 3 rakibi (örn. Magna Dijital, Webtures, Zeo Agency vb. veya global alternatifler) ele al. 
-* Her rakip için tahmini İÇERİK GÜVEN PUANI (%), güçlü (✔) ve zayıf (▲) yönlerini listele.
-Sitenin bu rakiplere kıyasla hangi açıkları kapatması gerektiğini vurgula.`;
+    p += `Aşağıdaki başlıkları kullanarak Rakip ve İçerik Geliştirme analizi yap:
+**Rakip Zafiyetleri ve İçerik Düzenleme**
+* İÇERİK DERİNLİĞİ: Sitedeki metinler çok mu genel? Teknik terimler açıklanmış mı? Hizmet/ürün kapsamı net mi?
+* RAKİP KIYASLAMASI: Aynı sektördeki en bilinen 3 rakibe kıyasla tahmini İÇERİK GÜVEN PUANI (%).
+Sitenin rakiplere kıyasla hangi açıkları kapatması ve metinleri nasıl özgünleştirmesi gerektiğini vurgula.`;
   } 
   else if (step === 4) {
     p += `Aşağıdaki başlıkları kullanarak LLM içerik güven metriklerini yüzdelik (%) olarak belirle:
-Altına bu yüzdelikleri açıklayan bir Genel Değerlendirme Özeti ve "İÇERİK GÜVENİ İYİLEŞTİRMELERİ" yaz.`;
+Altına "İÇERİK İÇİ BAĞLANTILAR (INTERNAL LINKING) VE CANONICAL" başlığı aç.
+* İÇERİK BAĞ AĞI (TOPIC CLUSTERS): Bu sayfanın otoritesini artırmak için hangi konularda bilgilendirici blog yazıları yazılmalı ve bu sayfaya nasıl iç link (internal link) verilmeli?
+* ARAMA MOTORU KAYITLARI: GSC, Bing ve Yandex üzerinde takip edilmesi gereken indeks ve tarama durumları için genel stratejik tavsiyeler.`;
   } 
   else if (step === 5) {
-    p += `Okunabilirlik ve UX Analizi yap.
-Sitede pasif cümleler çok mu? LLM'ler rahat anlıyor mu? 
-Son olarak, önceki 4 adımda çıkardığın tüm analizleri (İş bağlamı, kullanıcı soruları, güven puanları, eksiklikler) harmanlayarak, LLM (SGE) dostu kusursuz hale getirilmiş YENİ BİR ÖRNEK METİN ve META AÇIKLAMASI sun. (Markdown formatında)`;
+    p += `Aşağıdaki başlıkları kullanarak Yapılandırılmış Veri ve Optimizasyon analizi yap:
+**Yapılandırılmış Veri (Schema.org) Derinliği**
+* Sitede tespit edilen JSON-LD şemaları yeterli mi? (Ürün sayfaları için detaylı Product, Hizmet sayfaları için Service, Breadcrumb, FAQ vs. var mı?)
+* Okunabilirlik ve UX Analizi: LLM'ler metni rahat anlıyor mu?
+Son olarak, LLM (SGE) dostu kusursuz hale getirilmiş YENİ BİR ÖRNEK METİN ve META AÇIKLAMASI sun.`;
   }
   else if (step === 6) {
-    p += `ÖNEMLİ: Sen bir Bütünsel Entegrasyon Şefisin. Önceki 5 adımdaki Metin ve Teknik yapıları birbirine nasıl bağlamamız gerektiğini analiz et. Hangi içeriğin, hangi şemayla veya hangi linkleme kurgusuyla birlikte canlıya alınması gerektiğini açıkla. Hiçbir içerik veya kod üretme, sadece bu organik bağı analiz et.`;
+    p += `ÖNEMLİ: Sen bir Bütünsel Entegrasyon Şefisin. Önceki 5 adımdaki Metin ve Teknik yapıları birbirine nasıl bağlamamız gerektiğini analiz et. 
+* AI TANITIM DOSYALARI (llms.txt): Bu sitenin kök dizininde bulunması gereken bir llms.txt dosyasının önemini ve yapay zeka botlarına siteyi nasıl özetlemesi gerektiğini anlat.
+* SENTEZ: Hangi içeriğin, hangi şemayla ve hangi linkleme (Topic Cluster) kurgusuyla BİRLİKTE canlıya alınması gerektiğini açıkla. Hiçbir kod üretme, sadece bu organik bağı analiz et.`;
   }
 
           p += `\n\nÖNEMLİ: Yanıtının SONUNA, analizine dayanan şu verileri içeren, aşağıdaki YAPIDA KESİN bir JSON bloğu ekle (\`\`\`json ... \`\`\` içinde olsun):
