@@ -488,17 +488,16 @@ function initOrUpdateCharts(data) {
 }
 // --- CHART.JS LOGIC END ---
 
-function resetChat(loadFromHistory = null) {
+function resetChat(loadFromHistory = null, forceActionView = false) {
   const dbView = document.getElementById('ai-seo-dashboard-view');
   const actionView = document.getElementById('copilot-action-view');
   if (dbView && actionView) {
-      if (loadFromHistory) {
-          // Loading a history item → show chat view
+      if (loadFromHistory || forceActionView) {
+          // Loading a history item OR explicitly forcing action view → show chat view
           dbView.style.display = 'none'; 
           actionView.style.display = 'flex';
       } else if (actionView.style.display === 'flex' || actionView.style.display === 'block') {
           // Already in action view (e.g. "Yeni Sohbet" clicked) → stay in action view
-          // Do nothing to view visibility
       } else {
           // Called at page load → show dashboard
           dbView.style.display = 'block'; 
@@ -584,13 +583,31 @@ function resetChat(loadFromHistory = null) {
 
 
   if (msgContainer) { msgContainer.innerHTML = ''; addMessage('👋 Merhaba! Ben GEO SEO Asistanı. Analiz etmek istediğiniz sayfanın URL\'sini yapıştırarak başlayabilirsiniz.', 'ai'); }
-  if (typeof renderDashboard === 'function') { if(typeof window.renderDashboard === 'function') window.renderDashboard(); }
+  if (typeof window.renderDashboard === 'function') { window.renderDashboard(); }
   
   copilotActions.innerHTML = '';
-  copilotInputArea.style.display = "block"; const cqa = document.getElementById("copilot-quick-actions"); if(cqa) cqa.style.display = "flex";
-  copilotTextInput.value = '';
-  copilotTextInput.placeholder = 'Örn: https://www.site.com/hizmet';
-  copilotTextInput.focus();
+  if (copilotInputArea) copilotInputArea.style.display = "block"; 
+  
+  // Explicitly ensure the input container itself is visible, just in case
+  const inputContainer = document.getElementById('copilot-input-area-container');
+  if (inputContainer) inputContainer.style.display = 'block';
+  
+  const cqa = document.getElementById("copilot-quick-actions"); 
+  if(cqa) cqa.style.display = "flex";
+  
+  // Explicitly show the text input and wrapper
+  const textInput = document.getElementById('copilot-text-input');
+  if (textInput) {
+      const wrapper = textInput.closest('.input-wrapper');
+      if (wrapper) wrapper.style.display = 'flex';
+      textInput.style.display = 'block';
+      textInput.value = '';
+      textInput.placeholder = 'Örn: https://www.site.com/hizmet';
+      setTimeout(() => textInput.focus(), 100);
+  }
+  
+  const secInput = document.getElementById('copilot-secondary-input');
+  if (secInput) secInput.style.display = 'none';
   
   if (copilotSaveBtn) {
     copilotSaveBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px;"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg> Kaydet`;
@@ -1225,7 +1242,7 @@ if (copilotResetBtn) {
     // Only warn if there's an ACTIVE (unsaved) new chat with messages
     const hasUnsavedMessages = chatMessages.length > 0 && currentState !== 'WAITING_FOR_URL' && !window._chatLoadedFromHistory;
     if (hasUnsavedMessages && !confirm('Mevcut sohbet kaydedilmedi. Yeni bir sohbet/URL başlatmak istediğinize emin misiniz?')) return;
-    resetChat(null);
+    resetChat(null, true);
   });
 }
 
@@ -1720,45 +1737,13 @@ window.startNewAnalysisFromDashboard = function() {
   if (dbView) dbView.style.display = 'none';
   if (actionView) actionView.style.display = 'flex';
   
-  // Reset state
-  window._chatLoadedFromHistory = false;
-  currentChatId = Date.now().toString();
-  currentState = 'WAITING_FOR_URL';
-  currentStep = 1;
-  completedSteps.clear();
-  fixedIssues.clear();
-  targetUrl = '';
-  targetType = '';
-  fetchedData = null;
-  chatMessages = [];
-  reportData = [];
-  
-  updateProgressUI(0);
-  
-  // Show welcome message
-  const msgContainer = document.getElementById('copilot-chat-messages-container');
-  if (msgContainer) {
-    msgContainer.innerHTML = '';
-    addMessage('👋 Merhaba! Ben GEO SEO Asistanı. Analiz etmek istediğiniz sayfanın URL\'sini yapıştırarak başlayabilirsiniz.', 'ai');
-  }
-  
-  // Show input area, hide action buttons
-  if (copilotInputArea) copilotInputArea.style.display = 'block';
-  const llmsC = document.getElementById('copilot-llms-container');
-  if (llmsC) llmsC.style.display = 'none';
-  const cqa = document.getElementById('copilot-quick-actions');
-  if (cqa) cqa.style.display = 'flex';
-  if (copilotActions) copilotActions.innerHTML = '';
-  if (copilotTextInput) {
-    copilotTextInput.value = '';
-    copilotTextInput.placeholder = 'Örn: https://www.site.com/hizmet';
-    copilotTextInput.focus();
-  }
-  
-  // Restore save button
-  if (copilotSaveBtn) {
-    copilotSaveBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px;"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg> Kaydet`;
-    copilotSaveBtn.style.opacity = '1';
-    copilotSaveBtn.style.pointerEvents = 'auto';
+  // Just trigger resetChat but since it's not global, trigger btn-clear-chat
+  // BUT we need btn-clear-chat to pass forceActionView!
+  // Wait, let's just make the button click work, because btn-clear-chat is already in actionView, so actionView is visible when it runs!
+  const btnClearChat = document.getElementById('btn-clear-chat');
+  if (btnClearChat) {
+      btnClearChat.click();
+  } else {
+      location.reload();
   }
 };
