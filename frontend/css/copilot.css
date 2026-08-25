@@ -340,3 +340,6 @@ body.client-presentation-mode .copilot-messages { font-size: 1.1em; }
 .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 2px; bottom: 2px; background-color: white; transition: .4s; border-radius: 50%; }
 input:checked + .slider { background-color: #3b82f6; }
 input:checked + .slider:before { transform: translateX(14px); }
+
+.quick-actions { overflow-x: auto; }
+
