@@ -20,7 +20,7 @@
     const shuffled = [...seoQuestionPool].sort(() => 0.5 - Math.random());
     const selected = shuffled.slice(0, 4);
 
-    const infoIconBlue = '<svg class="info-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 6px; color: #3b82f6; opacity:0.8;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>';
+    const infoIconBlue = '';
 
     let html = "";
     selected.forEach(q => {
@@ -302,7 +302,11 @@ document.addEventListener('DOMContentLoaded', () => {
            </div>
 
            <div style="text-align: center;">
-              <button class="btn btn--primary" style="padding: 12px 24px; font-size: 14px; font-weight: 600;" onclick="document.getElementById('ai-seo-dashboard-view').style.display='none'; document.getElementById('copilot-action-view').style.display='block'; document.getElementById('copilot-chat-messages-container').innerHTML = ''; addMessage('👋 Merhaba! Ben <strong>GEO SEO Asistanı</strong>.<br><br>Web siteni tarayıp yapay zeka (LLM) arama motorları için optimize edelim. Lütfen analiz etmemi istediğin sayfanın <strong>URL\'sini</strong> aşağıya yaz.', 'ai', true, false); document.getElementById('copilot-text-input').focus();">
+              <button class="btn btn--primary" style="padding: 12px 24px; font-size: 14px; font-weight: 600;" onclick="startNewAnalysisFromDashboard()">
+    <svg style="width: 100px; height: 100px; opacity: 0.05; margin-bottom: 24px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+    <h3 style="font-size: 18px; font-weight: 600; color: var(--text); margin-bottom: 8px;">Analiz etmek istediğiniz sayfanın URL\'sini aşağıdaki kutuya yapıştırın</h3>
+    <p style="color: var(--muted); font-size: 14px;">Yapay zeka (LLM) arama motorları için derinlemesine optimizasyon başlasın.</p>
+</div>`; document.getElementById('copilot-text-input').focus();">
                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:8px; vertical-align:middle;"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                  Yeni Analiz Başlat
               </button>
@@ -493,19 +497,19 @@ function resetChat(loadFromHistory = null) {
       const analyzeText = completedSteps.size === 0 ? "⚡ Tüm Siteyi Analiz Et" : "⚡ Kalan Adımları Analiz Et";
       const fixText = fixedIssues.size === 0 ? "🔧 Tüm Eksikleri Gider" : "🔧 Kalan Eksikleri Gider";
 
-      actionsHtml += `<div style="display: flex; width: 100%; gap: 8px; margin-bottom: 10px;">
-         <button class="btn btn--primary has-tooltip" id="btn-analyze-all" style="flex: 1; font-size: 11.5px; padding: 8px; font-weight: 600;" data-tooltip="Tüm adımları tek tıklamayla sırayla analiz etmeye başlar.">${analyzeText}<svg class="info-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 6px; color: currentColor; opacity:0.8;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg></button>
-         <button class="btn btn--secondary has-tooltip" id="btn-fix-all" style="flex: 1; font-size: 11.5px; padding: 8px; font-weight: 600;" data-tooltip="Analiz edilen sorunları otomatik olarak çözmeye başlar.">${fixText}<svg class="info-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 6px; color: currentColor; opacity:0.8;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg></button>
-      </div>`;
+      actionsHtml += `<div style="display: flex; flex-direction: row; width: 100%; gap: 16px; margin-bottom: 16px;">
+              <button class="btn btn--primary" id="btn-analyze-all" style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 12px; font-weight: 600; font-size: 14px;">⚡ ${analyzeText}</button>
+              <button class="btn btn--success" id="btn-fix-all" style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 12px; font-weight: 600; font-size: 14px; background-color: #10b981; border: none;">🔧 ${fixText}</button>
+            </div>`;
 
     } else if (completedSteps.size >= 5 && fixedIssues.size < 6) {
       const analyzeText = "⚡ Kalan Adımları Analiz Et";
       const fixText = fixedIssues.size === 0 ? "🔧 Tüm Eksikleri Gider" : "🔧 Kalan Eksikleri Gider";
 
-      actionsHtml += `<div style="display: flex; width: 100%; gap: 8px; margin-bottom: 10px;">
-         <button class="btn btn--secondary" style="flex: 1; font-size: 11.5px; padding: 8px; font-weight: 600; opacity: 0.5; cursor: not-allowed;" disabled>${analyzeText}</button>
-         <button class="btn btn--primary has-tooltip" id="btn-fix-all" style="flex: 1; font-size: 11.5px; padding: 8px; font-weight: 600; background: #2563eb; color: white; border: none;" data-tooltip="Analiz edilen sorunları otomatik olarak çözmeye başlar.">${fixText}<svg class="info-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 6px; color: currentColor; opacity:0.8;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg></button>
-      </div>`;
+      actionsHtml += `<div style="display: flex; flex-direction: row; width: 100%; gap: 16px; margin-bottom: 16px;">
+              <button class="btn btn--primary" id="btn-analyze-all" style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 12px; font-weight: 600; font-size: 14px;">⚡ ${analyzeText}</button>
+              <button class="btn btn--success" id="btn-fix-all" style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 12px; font-weight: 600; font-size: 14px; background-color: #10b981; border: none;">🔧 ${fixText}</button>
+            </div>`;
     }
 
     const isCompleted = completedSteps.size === 6 && fixedIssues.size === 6;
@@ -1404,3 +1408,14 @@ window.openLlmsGenerator = function() {
           });
       }
   });
+window.startNewAnalysisFromDashboard = function() {
+    document.getElementById('ai-seo-dashboard-view').style.display = 'none';
+    document.getElementById('copilot-action-view').style.display = 'block';
+    const emptyStateHtml = `<div id="copilot-empty-state" id="copilot-empty-state" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; min-height: 350px; padding: 40px 20px; text-align: center;">
+        <svg style="width: 100px; height: 100px; opacity: 0.05; margin-bottom: 24px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+        <h3 style="font-size: 18px; font-weight: 600; color: var(--text); margin-bottom: 8px;">Analiz etmek istediğiniz sayfanın URL'sini aşağıdaki kutuya yapıştırın</h3>
+        <p style="color: var(--muted); font-size: 14px;">Yapay zeka (LLM) arama motorları için derinlemesine optimizasyon başlasın.</p>
+    </div>`;
+    document.getElementById('copilot-chat-messages-container').innerHTML = emptyStateHtml;
+    document.getElementById('copilot-text-input').focus();
+};

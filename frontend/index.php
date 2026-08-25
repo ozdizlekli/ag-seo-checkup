@@ -472,17 +472,51 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
         <!-- GEO Content Copilot UI -->
         <div class="card" id="copilot-card" style="border-top: 4px solid var(--accent); padding:0;">
           <div style="padding: 24px 24px 0 24px;">
-            <div class="card__title has-tooltip" style="display:inline-flex; align-items:center;" data-tooltip="Yapay zeka asistanı ile URL bazlı SEO stratejinizi oluşturun.">GEO AI Bot (URL Tabanlı)<svg class="info-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 6px; color: #64748b; opacity:1;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg></div>
+            <div class="card__title has-tooltip" style="display:inline-flex; align-items:center;" data-tooltip="Yapay zeka asistanı ile URL bazlı SEO stratejinizi oluşturun.">GEO AI Bot (URL Tabanlı)</div>
             <div class="card__hint">Web sitenizin SEO ve Yapay Zeka (SGE) görünürlüğünü sohbet asistanı ile adım adım analiz edin.</div>
           </div>
           
           <div class="copilot-container" style="border:none; margin-top:0; border-radius:0;">
-            <div class="copilot-header" style="position:relative; z-index:50;">
-              <button id="btn-return-dashboard" class="btn btn--ghost btn--sm" style="margin-right: 16px; display:inline-flex; align-items:center; color: var(--muted); font-weight:600; padding:4px 8px; border-radius:6px; font-size:13px;">
-       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px;"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+            <div class="copilot-header" style="position:relative; z-index:50; display: flex; flex-direction: column; gap: 16px;">
+  <!-- Üst Satır: Geri Dönüş ve Sağ Aksiyonlar -->
+  <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+    <!-- Sol Üst -->
+    <button id="btn-return-dashboard" class="btn btn--ghost btn--sm" style="display:inline-flex; align-items:center; color: var(--muted); font-weight:600; padding:6px 12px; border-radius:8px; font-size:13px; background: #f1f5f9;">
+       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px;"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
        Kontrol Paneline Dön
     </button>
-    <div class="copilot-progress" id="copilot-progress" style="display:none;">
+    
+    <!-- Sağ Üst (Küçük İkonlu Butonlar) -->
+    <div style="display: flex; gap: 8px; align-items: center;">
+      <button class="btn btn--danger btn--sm has-tooltip" data-tooltip="Sitenizi en dişli rakiplerinizle kıyaslayın." id="btn-open-battle-mode" style="display:inline-flex; align-items:center; background:#dc2626; color:white; border:none; box-shadow:0 2px 8px rgba(220,38,38,0.4); border-radius:20px; padding: 6px 12px;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px;"><path d="M12 2L2 7l10 5 10-5-10-5z"></path><path d="M2 17l10 5 10-5"></path><path d="M2 12l10 5 10-5"></path></svg>
+          Savaş Modu
+      </button>
+      <button class="btn btn--secondary btn--sm has-tooltip" data-tooltip="Tüm analiz adımları tamamlandıktan sonra indirilebilir." id="btn-download-pdf" style="display:inline-flex; align-items:center; background:#ef4444; color:white; border:none; opacity:0.5; cursor:not-allowed; padding: 6px 12px;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          Rapor
+      </button>
+      <button class="btn btn--primary btn--sm has-tooltip" data-tooltip="Sohbeti geçmişe kaydeder." id="copilot-manual-save-btn" style="display:inline-flex; align-items:center; padding: 6px 12px;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px;"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+          Kaydet
+      </button>
+      
+      <div style="display: flex; align-items: center; gap: 6px; margin-left: 8px; border-left: 1px solid var(--border); padding-left: 12px;">
+          <label class="switch has-tooltip" data-tooltip="Müşteri sunumu için sade görünüm">
+              <input type="checkbox" id="client-view-toggle">
+              <span class="slider round"></span>
+          </label>
+          <span style="font-size: 12px; font-weight: 500; color: var(--muted); cursor: pointer;" onclick="document.getElementById('client-view-toggle').click()">Sunum</span>
+      </div>
+      
+      <button class="btn btn--ghost btn--sm has-tooltip" data-tooltip="Sohbeti temizle" id="copilot-reset-btn" style="padding: 6px; margin-left: 8px;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
+      </button>
+    </div>
+  </div>
+  
+  <!-- Alt Satır: Progress Bar -->
+  <div class="copilot-progress" id="copilot-progress" style="display:none; justify-content: center; width: 100%;">
                 
 <div class="copilot-step info-tooltip" data-step="1" id="cp-step-1" style="cursor: pointer;">
   <div class="copilot-step-circle"><span class="num">1</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
@@ -567,37 +601,7 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
   <button class="btn-fix-issue" data-step="6" id="btn-fix-6" style="position: absolute; top: 100%; left: 50%; transform: translateX(-50%); margin-top: 6px; display: none; background: transparent; color: #2563eb; border: none; padding: 2px; box-shadow: none; font-size: 16px; cursor: pointer; z-index: 10;" title="6. Adımı Çöz">🔧</button>
 </div>
               </div>
-              <button class="btn btn--danger btn--sm has-tooltip" data-tooltip="Sitenizi en dişli rakiplerinizle yapay zeka gözünden kıyaslayın." id="btn-open-battle-mode" style="margin-left:auto; display:inline-flex; align-items:center; background:#dc2626; color:white; border:none; box-shadow:0 2px 8px rgba(220,38,38,0.4); border-radius:20px;">
-        Rakip Karşılaştırma<svg class="info-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 6px; color: #fff; opacity:0.9;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-    </button>
-              <button class="btn btn--secondary btn--sm has-tooltip" data-tooltip="Tüm analiz adımları (6 adım) tamamlandıktan sonra, müşteriye sunulmaya hazır detaylı PDF raporunu indirebilirsiniz." id="btn-download-pdf" style="margin-left:4px; display:inline-flex; align-items:center; background:#ef4444; color:white; border:none; opacity:0.5; cursor:not-allowed;">
-        
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                
-        Rapor İndir<svg class="info-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 6px; color: #fff; opacity:0.9;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-    </button>
-              <button class="btn btn--primary btn--sm has-tooltip" data-tooltip="Analizde tespit edilen eksikleri 'Yapılacaklar' listesine aktarır." id="btn-send-to-todos" title="Önce tüm analiz ve çözümleri bitirin" style="margin-left:4px; display:inline-flex; align-items:center; opacity:0.5; cursor:not-allowed;">
-                📋 Gönder
-              </button>
-              <button class="btn btn--primary btn--sm has-tooltip" data-tooltip="Mevcut sohbeti geçmişe kaydeder." id="copilot-manual-save-btn" title="Sohbeti Kaydet" style="margin-left:4px; display:inline-flex; align-items:center;">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
-                Kaydet
-              </button>
-              
-<div style="display: flex; align-items: center; gap: 8px; margin-right: auto; margin-left: 16px;">
-    <label class="switch has-tooltip" data-tooltip="Müşteri sunumu için karmaşık panelleri gizler, sadece sonuçlara odaklanır.">
-        <input type="checkbox" id="client-view-toggle">
-        <span class="slider round"></span>
-    </label>
-    <span style="font-size: 13px; font-weight: 500; color: var(--muted); cursor: pointer;" onclick="document.getElementById('client-view-toggle').click()">Sunum Modu</span>
 </div>
-<button class="btn btn--ghost has-tooltip" data-tooltip="Sohbeti temizler ve yeni bir analize başlar." id="copilot-reset-btn" title="Baştan Başla" style="margin-left:4px; padding: 0.5rem;">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
-              </button>
-            </div>
-            
-            
-
             <div class="copilot-chat" id="copilot-chat" style="height: 40vh; min-height: 300px; max-height: 500px; overflow-y: auto;">
               <div id="copilot-chat-messages-container" style="display: flex; flex-direction: column; gap: 16px;"><div class="empty-state" id="copilot-empty-state"><svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg><p>Burada henüz bir analiz yok. Hemen yukarıya bir URL yapıştırarak sitenizin Google SGE (Yapay Zeka Aramaları) uyumluluğunu test etmeye başlayın!</p></div></div>
             </div>
@@ -605,16 +609,16 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
             <div class="copilot-actions" id="copilot-actions">
             </div>
 
-            <div class="quick-actions" id="copilot-quick-actions" style="display:none; flex-wrap:nowrap;"><button class="quick-action-btn has-tooltip" data-tooltip="Hızlı aksiyon ile AI'a anında talimat gönderin." onclick="document.getElementById('copilot-text-input').value=this.textContent; document.getElementById('copilot-send-btn').click();">Bana içerik eksiklerimi söyle<svg class="info-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 6px; color: #3b82f6; opacity:0.8;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg></button><button class="quick-action-btn has-tooltip" data-tooltip="Hızlı aksiyon ile AI'a anında talimat gönderin." onclick="document.getElementById('copilot-text-input').value=this.textContent; document.getElementById('copilot-send-btn').click();">Rakiplerimden neden gerideyim?<svg class="info-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 6px; color: #3b82f6; opacity:0.8;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg></button><button class="quick-action-btn has-tooltip" data-tooltip="Hızlı aksiyon ile AI'a anında talimat gönderin." onclick="document.getElementById('copilot-text-input').value=this.textContent; document.getElementById('copilot-send-btn').click();">Bu sayfa için SSS (FAQ) hazırla<svg class="info-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 6px; color: #3b82f6; opacity:0.8;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg></button></div><div class="copilot-input-area" id="copilot-input-area" style="padding: 16px; border-top: 1px solid var(--border); display: flex; gap: 8px; background: #fff;">
+            <div class="quick-actions" id="copilot-quick-actions" style="display:none; flex-wrap:nowrap;"><button class="quick-action-btn has-tooltip" data-tooltip="Hızlı aksiyon ile AI'a anında talimat gönderin." onclick="document.getElementById('copilot-text-input').value=this.textContent; document.getElementById('copilot-send-btn').click();">Bana içerik eksiklerimi söyle</button><button class="quick-action-btn has-tooltip" data-tooltip="Hızlı aksiyon ile AI'a anında talimat gönderin." onclick="document.getElementById('copilot-text-input').value=this.textContent; document.getElementById('copilot-send-btn').click();">Rakiplerimden neden gerideyim?</button><button class="quick-action-btn has-tooltip" data-tooltip="Hızlı aksiyon ile AI'a anında talimat gönderin." onclick="document.getElementById('copilot-text-input').value=this.textContent; document.getElementById('copilot-send-btn').click();">Bu sayfa için SSS (FAQ) hazırla</button></div><div class="copilot-input-area" id="copilot-input-area" style="padding: 16px; border-top: 1px solid var(--border); display: flex; gap: 8px; background: #fff;">
               <input type="text" id="copilot-text-input" class="input" style="flex:1; margin-bottom:0;" placeholder="Hedef URL (Örn: https://adresgezgini.com)">
-              <button class="btn btn--primary has-tooltip" data-tooltip="Yapay zeka asistanına analiz talimatını gönderin." id="copilot-send-btn" style="display:inline-flex; align-items:center;">Gönder<svg class="info-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 6px; color: #fff; opacity:0.9;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg></button>
+              <button class="btn btn--primary has-tooltip" data-tooltip="Yapay zeka asistanına analiz talimatını gönderin." id="copilot-send-btn" style="display:inline-flex; align-items:center;">Gönder</button>
             </div>
           </div>
         </div>
         <div class="card mt-20" id="copilot-history-card">
           <div class="card__head">
-            <div class="card__title has-tooltip" style="display:inline-flex; align-items:center;" data-tooltip="Daha önce yaptığınız analizleri buradan geri yükleyebilirsiniz.">Geçmiş Sohbetler<svg class="info-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 6px; color: #64748b; opacity:1;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg></div>
-            <button class="btn btn--ghost btn--sm has-tooltip" data-tooltip="Tüm sohbet geçmişini kalıcı olarak siler." id="btn-clear-history">Temizle<svg class="info-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 6px; color: #64748b; opacity:1;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg></button>
+            <div class="card__title has-tooltip" style="display:inline-flex; align-items:center;" data-tooltip="Daha önce yaptığınız analizleri buradan geri yükleyebilirsiniz.">Geçmiş Sohbetler</div>
+            <button class="btn btn--ghost btn--sm has-tooltip" data-tooltip="Tüm sohbet geçmişini kalıcı olarak siler." id="btn-clear-history">Temizle</button>
           </div>
           <div class="card__hint">Önceki URL analizleriniz burada listelenir. Tıklayarak sohbeti geri yükleyebilirsiniz.</div>
           <div id="copilot-history-list" class="mt-16" style="display:flex; flex-direction:column; gap:8px;">
@@ -628,8 +632,8 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
         <section class="tab-panel" id="tab-4">
           <div class="card" style="margin-bottom: 20px;">
             <div class="card__head">
-              <div class="card__title has-tooltip" style="display:inline-flex; align-items:center;" data-tooltip="AI tarafından tespit edilen tüm eksiklikleri tek bir listede takip edin.">Yapılacaklar & Eksiklikler<svg class="info-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 6px; color: #64748b; opacity:1;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg></div>
-              <button class="btn btn--ghost btn--sm has-tooltip" data-tooltip="Yapılacaklar listesini kalıcı olarak siler." id="btn-clear-todos">Listeyi Temizle<svg class="info-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 6px; color: #64748b; opacity:1;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg></button>
+              <div class="card__title has-tooltip" style="display:inline-flex; align-items:center;" data-tooltip="AI tarafından tespit edilen tüm eksiklikleri tek bir listede takip edin.">Yapılacaklar & Eksiklikler</div>
+              <button class="btn btn--ghost btn--sm has-tooltip" data-tooltip="Yapılacaklar listesini kalıcı olarak siler." id="btn-clear-todos">Listeyi Temizle</button>
             </div>
             <div class="card__hint">AI SEO Analizi (3. Sekme) sırasında sistemin tespit ettiği "Metin Bazlı SEO Gereksinimleri" ve "Teknik SEO Gereksinimleri" burada toplanır. Bir maddeye tıklayarak analiz edildiği noktaya (3. Sekmeye) geri dönebilirsiniz.</div>
             
@@ -686,6 +690,7 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
     </div>
     <div style="display:flex; gap:12px; margin-bottom:16px;">
       <input type="url" id="battle-target-url" class="input" placeholder="Sizin URL'niz (Örn: https://adresgezgini.com/)" style="flex:1; border:2px solid #e2e8f0; padding:12px; border-radius:8px;">
+      <div style="background: #dc2626; color: white; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 14px; box-shadow: 0 4px 10px rgba(220,38,38,0.3); flex-shrink: 0; margin-top: 2px;">VS</div>
       <input type="url" id="battle-comp-url" class="input" placeholder="Rakip URL (Örn: https://reklamvermek.com/)" style="flex:1; border:2px solid #e2e8f0; padding:12px; border-radius:8px;">
       <button id="battle-start-btn" class="btn btn--primary" style="background:#dc2626; color:white; border:none; padding:0 24px; font-weight:bold; border-radius:8px; font-size:15px;">Savaşı Başlat</button>
     </div>
