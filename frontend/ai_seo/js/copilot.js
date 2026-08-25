@@ -486,13 +486,8 @@ function resetChat(loadFromHistory = null) {
   const dbView = document.getElementById('ai-seo-dashboard-view');
   const actionView = document.getElementById('copilot-action-view');
   if (dbView && actionView) {
-      if (loadFromHistory) {
-          dbView.style.display = 'none'; 
-          actionView.style.display = 'flex';
-      } else {
-          dbView.style.display = 'block'; 
-          actionView.style.display = 'none';
-      }
+      dbView.style.display = 'none'; 
+      actionView.style.display = 'flex';
   }
   if (loadFromHistory) {
     currentChatId = loadFromHistory.chatId;
@@ -575,7 +570,7 @@ function resetChat(loadFromHistory = null) {
   if (typeof renderDashboard === 'function') { if(typeof window.renderDashboard === 'function') window.renderDashboard(); }
   
   copilotActions.innerHTML = '';
-  copilotInputArea.style.display = "flex"; const cqa = document.getElementById("copilot-quick-actions"); if(cqa) cqa.style.display = "flex";
+  copilotInputArea.style.display = "block"; const cqa = document.getElementById("copilot-quick-actions"); if(cqa) cqa.style.display = "flex";
   copilotTextInput.value = '';
   copilotTextInput.placeholder = 'Örn: https://www.site.com/hizmet';
   copilotTextInput.focus();
@@ -829,7 +824,7 @@ function renderAiSeoActions() {
   // PDF listener moved to topBtn
 
   currentState = 'CHAT_MODE';
-  copilotInputArea.style.display = "flex"; const cqa = document.getElementById("copilot-quick-actions"); if(cqa) cqa.style.display = "flex";
+  copilotInputArea.style.display = "block"; const cqa = document.getElementById("copilot-quick-actions"); if(cqa) cqa.style.display = "flex";
   copilotTextInput.placeholder = "Başka sormak istediğiniz bir şey var mı?";
 }
 

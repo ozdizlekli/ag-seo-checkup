@@ -159,6 +159,13 @@
 .chat-msg { word-wrap: break-word; word-break: break-word; overflow-wrap: break-word; } .chat-msg pre { white-space: pre-wrap; overflow-x: auto; max-width: 100%; }
 
 
+/* Geçmiş Sohbetler kartındaki boş durum yazısının üst/alt boşluğunu daralt
+   (global .empty-note diğer yerlerde 18px padding ile kalsın diye scoped) */
+#copilot-history-list.empty-note,
+#copilot-history-list .empty-note {
+  padding: 4px 0;
+}
+
 /* 1. Tooltip & Interactive Steps */
 .step-label-wrapper {
   display: flex;
