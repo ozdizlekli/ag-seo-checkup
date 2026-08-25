@@ -1137,7 +1137,7 @@ Son olarak, önceki 4 adımda çıkardığın tüm analizleri (İş bağlamı, k
     if (!targetUrl || chatMessages.length === 0) return;
     try {
       if (copilotSaveBtn) copilotSaveBtn.innerHTML = 'Kaydediliyor...';
-      await fetch('save_chat.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ chatId: currentChatId, url: targetUrl, type: targetType, messages: chatMessages, completedSteps: Array.from(completedSteps), reportData: reportData, fixedIssues: Array.from(fixedIssues) }) });
+      await fetch('ai_seo/api/save_chat.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ chatId: currentChatId, url: targetUrl, type: targetType, messages: chatMessages, completedSteps: Array.from(completedSteps), reportData: reportData, fixedIssues: Array.from(fixedIssues) }) });
       loadHistory();
       if (copilotSaveBtn) copilotSaveBtn.innerHTML = '✅ Kaydedildi';
       setTimeout(() => {
@@ -1149,7 +1149,7 @@ Son olarak, önceki 4 adımda çıkardığın tüm analizleri (İş bağlamı, k
   async function loadHistory() {
     if (!historyList) return;
     try {
-      const res = await fetch('save_chat.php?t=' + Date.now());
+      const res = await fetch('ai_seo/api/save_chat.php?t=' + Date.now());
       const data = await res.json();
       window.agChatHistory = data.history || [];
       if(typeof window.renderDashboard === 'function') window.renderDashboard();

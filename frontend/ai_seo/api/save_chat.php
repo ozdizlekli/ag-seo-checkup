@@ -4,7 +4,7 @@ ini_set("display_errors", 0);
 session_start();
 header("Content-Type: application/json");
 header("Cache-Control: no-cache, must-revalidate");
-require_once __DIR__ . '/db.php';
+require_once __DIR__ . '/../../db.php';
 
 $username = $_SESSION["username"] ?? "anonymous";
 $data = json_decode(file_get_contents("php://input"), true);
