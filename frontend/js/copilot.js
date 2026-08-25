@@ -232,7 +232,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-    function renderDashboard() {
+    window.renderDashboard = function() {
       const history = window.agChatHistory || [];
       const totalAnalyses = history.length;
       
@@ -274,7 +274,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
       if (recentHtml === '') recentHtml = '<div style="padding: 12px; color: var(--muted); font-size: 13px;">Henüz analiz bulunmuyor.</div>';
 
-      document.getElementById('copilot-messages').innerHTML = `
+      const container = document.getElementById('copilot-chat-messages-container'); if(container) container.innerHTML = `
         <div id="welcome-dashboard-flag" style="padding: 24px;">
            <h2 style="margin-bottom: 24px; font-size: 20px; font-weight: 600; color: var(--text);">Agency OS Kontrol Paneli</h2>
            
@@ -299,7 +299,7 @@ document.addEventListener('DOMContentLoaded', () => {
            </div>
 
            <div style="text-align: center;">
-              <button class="btn btn--primary" style="padding: 12px 24px; font-size: 14px; font-weight: 600;" onclick="document.getElementById('copilot-text-input').focus();">
+              <button class="btn btn--primary" style="padding: 12px 24px; font-size: 14px; font-weight: 600;" onclick="document.getElementById('copilot-chat-messages-container').innerHTML = ''; addMessage('👋 Merhaba! Ben <strong>GEO SEO Asistanı</strong>.<br><br>Web siteni tarayıp yapay zeka (LLM) arama motorları için optimize edelim. Lütfen analiz etmemi istediğin sayfanın <strong>URL\'sini</strong> aşağıya yaz.', 'ai', true, false); document.getElementById('copilot-text-input').focus();">
                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:8px; vertical-align:middle;"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                  Yeni Analiz Başlat
               </button>
@@ -383,7 +383,7 @@ function resetChat(loadFromHistory = null) {
 
 
     if (msgContainer) msgContainer.innerHTML = '';
-    addMessage(`👋 Merhaba! Ben <strong>GEO SEO Asistanı</strong>.<br><br>Web siteni tarayıp yapay zeka (LLM) arama motorları için optimize edelim. Lütfen analiz etmemi istediğin sayfanın <strong>URL'sini</strong> aşağıya yaz.`, 'ai', true, false);
+    if (typeof renderDashboard === 'function') { if(typeof window.renderDashboard === 'function') window.renderDashboard(); }
     
     copilotActions.innerHTML = '';
     copilotInputArea.style.display = "flex"; const cqa = document.getElementById("copilot-quick-actions"); if(cqa) cqa.style.display = "flex";

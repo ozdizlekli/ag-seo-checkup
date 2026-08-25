@@ -1,6 +1,5 @@
 <?php
 session_start();
-require_once __DIR__ . '/dashboard_data.php';
 if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
     header('Location: login.php');
     exit;
@@ -52,49 +51,54 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
 
 <!-- KARŞILAMA EKRANI (Welcome Overlay) -->
 <div id="welcome-overlay">
-  <div class="welcome-container" style="max-width: 900px; padding: 40px;">
+  <div class="welcome-container">
     <div class="welcome-header">
-      <h1>Agency OS Kontrol Paneli</h1>
-      <p>Yapay zeka destekli SEO ve İçerik Yönetim Platformu. Başlamak için verilerinizi inceleyin veya yeni analiz başlatın.</p>
+      <h1>AG_seo_check_up'a Hoş Geldiniz</h1>
+      <p>Yapay zeka destekli SEO ve İçerik Yönetim Platformu. Bugün neye odaklanmak istersiniz?</p>
     </div>
     
-    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 32px;">
-      <div style="background: #fff; padding: 20px; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
-         <div style="font-size: 12px; color: var(--muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">Toplam Analiz</div>
-         <div style="font-size: 32px; font-weight: 700; color: #2563eb;"><?= $dashboardData['totalAnalyses'] ?></div>
+    <div class="welcome-grid">
+      <!-- KART 1: Hızlı AI Bot -->
+      <div class="wc-card" style="border-color: rgba(59,130,246,0.3);">
+        <div class="wc-card-icon icon-ai">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        </div>
+        <h3>Hızlı AI SEO (GEO Bot)</h3>
+        <p>URL'nizi girin, yapay zeka sitenizi tarayıp dönüşüm, SGE ve içerik boşluklarını hemen analiz etsin.</p>
+        <div class="wc-url-box">
+          <input type="text" id="wc-url-input" placeholder="https://www.site.com/hizmet">
+          <button id="wc-bot-start">Başla</button>
+        </div>
       </div>
-      <div style="background: #fff; padding: 20px; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
-         <div style="font-size: 12px; color: var(--muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">Rakip Analizi (Battle)</div>
-         <div style="font-size: 32px; font-weight: 700; color: #dc2626;"><?= $dashboardData['battleCount'] ?></div>
-      </div>
-      <div style="background: #fff; padding: 20px; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
-         <div style="font-size: 12px; color: var(--muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">Ortalama E-E-A-T</div>
-         <div style="font-size: 32px; font-weight: 700; color: #16a34a;"><?= $dashboardData['avgEEAT'] > 0 ? $dashboardData['avgEEAT'] . '/100' : '-' ?></div>
-      </div>
-    </div>
 
-    <div style="background: #fff; border-radius: 12px; border: 1px solid var(--border); overflow: hidden; margin-bottom: 32px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
-      <div style="padding: 16px; background: #f8fafc; border-bottom: 1px solid var(--border); font-weight: 600; font-size: 14px; color: var(--text);">Geçmişte Taranan Son 5 Site</div>
-      <?php if(empty($dashboardData['recent'])): ?>
-         <div style="padding: 16px; color: var(--muted); font-size: 13px;">Henüz analiz bulunmuyor.</div>
-      <?php else: ?>
-         <?php foreach($dashboardData['recent'] as $r): ?>
-         <div style="display:flex; justify-content:space-between; align-items:center; padding: 12px 16px; border-bottom: 1px solid var(--border);">
-            <div style="font-weight: 500; font-size: 13px; color: var(--text);"><?= htmlspecialchars($r['url']) ?> <span style="font-size:11px; color:var(--muted); margin-left:8px;"><?= htmlspecialchars($r['date']) ?></span></div>
-            <div style="font-size: 12px; font-weight: 600; color: <?= $r['color'] ?>; background: <?= $r['color'] ?>20; padding: 4px 8px; border-radius: 6px;"><?= $r['health'] ?></div>
-         </div>
-         <?php endforeach; ?>
-      <?php endif; ?>
-    </div>
+      <!-- KART 2: İçerik İyileştirme -->
+      <div class="wc-card" id="wc-card-content">
+        <div class="wc-card-icon icon-content">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </div>
+        <h3>Metin ve İçerik Optimizasyonu</h3>
+        <p>Elinizdeki bir metni yapay zeka ile SEO uyumlu hale getirin, başlık ve meta açıklamalarınızı düzenleyin.</p>
+      </div>
 
-    <div style="text-align: center;">
-      <button class="btn btn--primary" id="btn-dashboard-start" style="padding: 14px 28px; font-size: 16px; font-weight: 600; border-radius: 12px;">
-         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:8px; vertical-align:middle;"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-         Yeni Analiz Başlat
-      </button>
+      <!-- KART 3: Teknik Analiz -->
+      <div class="wc-card" id="wc-card-tech">
+        <div class="wc-card-icon icon-tech">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </div>
+        <h3>Teknik SEO & Schema</h3>
+        <p>Web sitenizin teknik performansını ölçün, JSON-LD schema üretin veya var olan yapısal verileri onarın.</p>
+      </div>
+
+      <!-- KART 4: Gelişmiş Çalışma Yüzeyi -->
+      <div class="wc-card" id="wc-card-dashboard">
+        <div class="wc-card-icon icon-dash">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+        </div>
+        <h3>Gelişmiş Panele Git</h3>
+        <p>Beni doğrudan tüm sekmelerin ve ayarların bulunduğu ana çalışma paneline (dashboard) yönlendir.</p>
+      </div>
     </div>
   </div>
-</div>
 </div><div class="app">
   <!-- ============================================================
        SIDEBAR
@@ -182,10 +186,10 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
 
     <div class="sidebar__footer">
       
-      <a href="logout.php" onclick="sessionStorage.removeItem('ag_welcome_seen');" class="btn btn--sidebar btn--sm" style="text-decoration:none; text-align:center; display:block;">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
-        Çıkış Yap
-      </a>
+      <a href="logout.php" onclick="sessionStorage.removeItem('ag_welcome_seen');" class="btn btn--sidebar btn--sm logout-btn" style="text-decoration:none; display:flex; align-items:center; justify-content:center; gap:8px; padding:12px 16px; border-radius:8px; transition:all 0.2s;">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+        <span style="font-weight: 500;">Çıkış Yap</span>
+    </a>
 <!-- 
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20Z"/><line x1="2" y1="12" x2="22" y2="12"/></svg>
         -->
@@ -512,12 +516,14 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
                 </div>
               </div>
               <button class="btn btn--danger btn--sm has-tooltip" data-tooltip="Sitenizi en dişli rakiplerinizle yapay zeka gözünden kıyaslayın." id="btn-open-battle-mode" style="margin-left:auto; display:inline-flex; align-items:center; background:#dc2626; color:white; border:none; box-shadow:0 2px 8px rgba(220,38,38,0.4); border-radius:20px;">
-                 Rakip Karşılaştırma
-              </button>
-              <button class="btn btn--secondary btn--sm" id="btn-download-pdf" title="Önce tüm analiz ve çözümleri bitirin" style="margin-left:4px; display:inline-flex; align-items:center; background:#ef4444; color:white; border:none; opacity:0.5; cursor:not-allowed;">
+        Rakip Karşılaştırma<svg class="info-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 6px; color: #fff; opacity:0.9;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+    </button>
+              <button class="btn btn--secondary btn--sm has-tooltip" data-tooltip="Tüm analiz adımları (6 adım) tamamlandıktan sonra, müşteriye sunulmaya hazır detaylı PDF raporunu indirebilirsiniz." id="btn-download-pdf" style="margin-left:4px; display:inline-flex; align-items:center; background:#ef4444; color:white; border:none; opacity:0.5; cursor:not-allowed;">
+        
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                Rapor İndir
-              </button>
+                
+        Rapor İndir<svg class="info-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 6px; color: #fff; opacity:0.9;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+    </button>
               <button class="btn btn--primary btn--sm has-tooltip" data-tooltip="Analizde tespit edilen eksikleri 'Yapılacaklar' listesine aktarır." id="btn-send-to-todos" title="Önce tüm analiz ve çözümleri bitirin" style="margin-left:4px; display:inline-flex; align-items:center; opacity:0.5; cursor:not-allowed;">
                 📋 Gönder
               </button>
@@ -549,7 +555,7 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
 
             <div class="quick-actions" id="copilot-quick-actions" style="display:none; flex-wrap:nowrap;"><button class="quick-action-btn has-tooltip" data-tooltip="Hızlı aksiyon ile AI'a anında talimat gönderin." onclick="document.getElementById('copilot-text-input').value=this.textContent; document.getElementById('copilot-send-btn').click();">Bana içerik eksiklerimi söyle<svg class="info-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 6px; color: #3b82f6; opacity:0.8;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg></button><button class="quick-action-btn has-tooltip" data-tooltip="Hızlı aksiyon ile AI'a anında talimat gönderin." onclick="document.getElementById('copilot-text-input').value=this.textContent; document.getElementById('copilot-send-btn').click();">Rakiplerimden neden gerideyim?<svg class="info-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 6px; color: #3b82f6; opacity:0.8;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg></button><button class="quick-action-btn has-tooltip" data-tooltip="Hızlı aksiyon ile AI'a anında talimat gönderin." onclick="document.getElementById('copilot-text-input').value=this.textContent; document.getElementById('copilot-send-btn').click();">Bu sayfa için SSS (FAQ) hazırla<svg class="info-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 6px; color: #3b82f6; opacity:0.8;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg></button></div><div class="copilot-input-area" id="copilot-input-area" style="padding: 16px; border-top: 1px solid var(--border); display: flex; gap: 8px; background: #fff;">
               <input type="text" id="copilot-text-input" class="input" style="flex:1; margin-bottom:0;" placeholder="Hedef URL (Örn: https://adresgezgini.com)">
-              <button class="btn btn--primary" id="copilot-send-btn">Gönder</button>
+              <button class="btn btn--primary has-tooltip" data-tooltip="Yapay zeka asistanına analiz talimatını gönderin." id="copilot-send-btn" style="display:inline-flex; align-items:center;">Gönder<svg class="info-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 6px; color: #fff; opacity:0.9;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg></button>
             </div>
           </div>
         </div>
