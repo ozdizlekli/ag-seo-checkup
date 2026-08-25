@@ -488,6 +488,7 @@ function initOrUpdateCharts(data) {
 }
 // --- CHART.JS LOGIC END ---
 
+window._forceResetChat = resetChat;
 function resetChat(loadFromHistory = null, forceActionView = false) {
   const dbView = document.getElementById('ai-seo-dashboard-view');
   const actionView = document.getElementById('copilot-action-view');
@@ -1239,8 +1240,9 @@ if (btnClearHistory) {
 
 if (copilotResetBtn) {
   copilotResetBtn.addEventListener('click', () => {
-    // Only warn if there's an ACTIVE (unsaved) new chat with messages
-    const hasUnsavedMessages = chatMessages.length > 0 && currentState !== 'WAITING_FOR_URL' && !window._chatLoadedFromHistory;
+    // Only warn if there's an ACTIVE (unsaved) new chat with user messages
+    const hasUserMessages = chatMessages.some(m => m.sender === 'user');
+    const hasUnsavedMessages = hasUserMessages && currentState !== 'WAITING_FOR_URL' && !window._chatLoadedFromHistory;
     if (hasUnsavedMessages && !confirm('Mevcut sohbet kaydedilmedi. Yeni bir sohbet/URL başlatmak istediğinize emin misiniz?')) return;
     resetChat(null, true);
   });
@@ -1737,12 +1739,9 @@ window.startNewAnalysisFromDashboard = function() {
   if (dbView) dbView.style.display = 'none';
   if (actionView) actionView.style.display = 'flex';
   
-  // Just trigger resetChat but since it's not global, trigger btn-clear-chat
-  // BUT we need btn-clear-chat to pass forceActionView!
-  // Wait, let's just make the button click work, because btn-clear-chat is already in actionView, so actionView is visible when it runs!
-  const btnClearChat = document.getElementById('btn-clear-chat');
-  if (btnClearChat) {
-      btnClearChat.click();
+  // Directly force chat reset without warning
+  if (typeof window._forceResetChat === 'function') {
+      window._forceResetChat(null, true);
   } else {
       location.reload();
   }
