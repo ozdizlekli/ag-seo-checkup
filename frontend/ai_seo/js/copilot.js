@@ -363,13 +363,21 @@ async function fixAiSeoIssue(step) {
          </div>
 
          <div style="text-align: center;">
-            <button class="btn btn--primary" style="padding: 12px 24px; font-size: 14px; font-weight: 600;" onclick="startFreshAnalysis()">
+            <button id="btn-dashboard-start-fresh" class="btn btn--primary" style="padding: 12px 24px; font-size: 14px; font-weight: 600; cursor: pointer; position: relative; z-index: 9999;">
                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:8px; vertical-align:middle;"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                Yeni Analiz Başlat
             </button>
          </div>
       </div>
     `;
+    const btnFresh = document.getElementById('btn-dashboard-start-fresh');
+    if (btnFresh) {
+        btnFresh.addEventListener('click', () => {
+            if (typeof window.startFreshAnalysis === 'function') {
+                window.startFreshAnalysis();
+            }
+        });
+    }
         dbView.style.display = 'block';
     }
     if(actionView) actionView.style.display = 'none';
