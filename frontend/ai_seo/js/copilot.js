@@ -378,10 +378,8 @@ async function fixAiSeoIssue(step) {
             }
         });
     }
-        dbView.style.display = 'block';
-    }
-    if(actionView) actionView.style.display = 'none';
-}
+} // close if(dbView)
+}; // close window.renderDashboard = function()
 
 // --- CHART.JS LOGIC START ---
 let overallHealthChart = null;
