@@ -274,7 +274,10 @@ document.addEventListener('DOMContentLoaded', () => {
       });
       if (recentHtml === '') recentHtml = '<div style="padding: 12px; color: var(--muted); font-size: 13px;">Henüz analiz bulunmuyor.</div>';
 
-      const container = document.getElementById('copilot-chat-messages-container'); if(container) container.innerHTML = `
+      const dbView = document.getElementById('ai-seo-dashboard-view');
+      const actionView = document.getElementById('copilot-action-view');
+      if(dbView) {
+          dbView.innerHTML = `
         <div id="welcome-dashboard-flag" style="padding: 24px;">
            <h2 style="margin-bottom: 24px; font-size: 20px; font-weight: 600; color: var(--text);">Agency OS Kontrol Paneli</h2>
            
@@ -299,15 +302,21 @@ document.addEventListener('DOMContentLoaded', () => {
            </div>
 
            <div style="text-align: center;">
-              <button class="btn btn--primary" style="padding: 12px 24px; font-size: 14px; font-weight: 600;" onclick="document.getElementById('copilot-chat-messages-container').innerHTML = ''; addMessage('👋 Merhaba! Ben <strong>GEO SEO Asistanı</strong>.<br><br>Web siteni tarayıp yapay zeka (LLM) arama motorları için optimize edelim. Lütfen analiz etmemi istediğin sayfanın <strong>URL\'sini</strong> aşağıya yaz.', 'ai', true, false); document.getElementById('copilot-text-input').focus();">
+              <button class="btn btn--primary" style="padding: 12px 24px; font-size: 14px; font-weight: 600;" onclick="document.getElementById('ai-seo-dashboard-view').style.display='none'; document.getElementById('copilot-action-view').style.display='block'; document.getElementById('copilot-chat-messages-container').innerHTML = ''; addMessage('👋 Merhaba! Ben <strong>GEO SEO Asistanı</strong>.<br><br>Web siteni tarayıp yapay zeka (LLM) arama motorları için optimize edelim. Lütfen analiz etmemi istediğin sayfanın <strong>URL\'sini</strong> aşağıya yaz.', 'ai', true, false); document.getElementById('copilot-text-input').focus();">
                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:8px; vertical-align:middle;"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                  Yeni Analiz Başlat
               </button>
            </div>
         </div>
       `;
+          dbView.style.display = 'block';
+      }
+      if(actionView) actionView.style.display = 'none';
   }
 function resetChat(loadFromHistory = null) {
+    const dbView = document.getElementById('ai-seo-dashboard-view');
+    const actionView = document.getElementById('copilot-action-view');
+    if (loadFromHistory && dbView && actionView) { dbView.style.display = 'none'; actionView.style.display = 'block'; }
     if (loadFromHistory) {
       currentChatId = loadFromHistory.chatId;
       currentState = 'WAITING_FOR_TYPE';
@@ -1381,3 +1390,17 @@ window.openLlmsGenerator = function() {
         alert('Master llms.txt oluşturmak için paneldeki ilgili sekmeyi kullanın.');
     }
 };
+
+  document.addEventListener('DOMContentLoaded', () => {
+      const btnReturn = document.getElementById('btn-return-dashboard');
+      if (btnReturn) {
+          btnReturn.addEventListener('click', () => {
+              const dbView = document.getElementById('ai-seo-dashboard-view');
+              const actionView = document.getElementById('copilot-action-view');
+              if(dbView && actionView) {
+                  actionView.style.display = 'none';
+                  dbView.style.display = 'block';
+              }
+          });
+      }
+  });
