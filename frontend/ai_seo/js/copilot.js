@@ -553,7 +553,7 @@ function resetChat(loadFromHistory = null, forceActionView = false) {
     if (llmsC) llmsC.style.display = 'none';
     const msgContainer = document.getElementById('copilot-chat-messages-container');
     if (msgContainer) msgContainer.style.display = 'block';
-    if (msgContainer) { msgContainer.innerHTML = ''; addMessage('👋 Merhaba! Ben GEO SEO Asistanı. Analiz etmek istediğiniz sayfanın URL\'sini yapıştırarak başlayabilirsiniz.', 'ai'); }
+    if (msgContainer) { try { msgContainer.replaceChildren(); } catch(e) { msgContainer.innerHTML = ''; } }
     chatMessages.forEach(msg => { addMessage(msg.text, msg.sender, msg.isHtml, false); if (msg.sender === 'ai') { try { const jsonMatch = msg.text.match(/<div class="ai-raw-json" style="display:none;">```json\s*(\{[\s\S]*?\})\s*```<\/div>/); if (jsonMatch) { const chartData = JSON.parse(jsonMatch[1]); initOrUpdateCharts(chartData); } } catch(e){} } });
     
     copilotInputArea.style.display = "none"; const cqa = document.getElementById("copilot-quick-actions"); if(cqa) cqa.style.display = "none";
@@ -566,6 +566,7 @@ function resetChat(loadFromHistory = null, forceActionView = false) {
     }
     renderAiSeoActions();
   if (typeof updateActiveHistoryItem === 'function') updateActiveHistoryItem();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
     return;
   }
 
@@ -587,7 +588,7 @@ function resetChat(loadFromHistory = null, forceActionView = false) {
   const llmsC = document.getElementById('copilot-llms-container');
   if (llmsC) llmsC.style.display = 'none';
   const msgContainer = document.getElementById('copilot-chat-messages-container');
-  if (msgContainer) msgContainer.style.display = 'block';
+  if (msgContainer) { msgContainer.style.display = 'block'; msgContainer.style.flex = '0'; msgContainer.style.minHeight = '100px'; }
   
 
 
@@ -607,7 +608,7 @@ function resetChat(loadFromHistory = null, forceActionView = false) {
   if (inputContainer) inputContainer.style.display = 'block';
   
   const cqa = document.getElementById("copilot-quick-actions"); 
-  if(cqa) cqa.style.display = "flex";
+  if(cqa) cqa.style.display = "none";
   
   // Explicitly show the text input and wrapper
   const textInput = document.getElementById('copilot-text-input');
@@ -645,6 +646,8 @@ async function handleSend() {
     
     targetUrl = val;
     currentState = 'WAITING_FOR_TYPE';
+    const msgContainer = document.getElementById('copilot-chat-messages-container');
+    if (msgContainer) { msgContainer.style.flex = '1'; msgContainer.style.minHeight = '200px'; }
     copilotInputArea.style.display = "none"; const cqa = document.getElementById("copilot-quick-actions"); if(cqa) cqa.style.display = "none";
     addMessage("Harika! Bu sayfa hangi kategoride yer alıyor? (Hizmet mi, yoksa ürün sattığınız bir E-Ticaret sayfası mı?)", 'ai');
     
@@ -1566,8 +1569,8 @@ window.updateActiveHistoryItem = function() {
    if (typeof currentChatId !== 'undefined' && currentChatId) {
        const activeEl = document.querySelector(`.history-item[data-chat-id="${currentChatId}"]`);
        if (activeEl) {
-           activeEl.style.background = '#eef2ff';
-           activeEl.style.borderColor = '#6366f1';
+           activeEl.style.background = '#e2e8f0';
+           activeEl.style.borderColor = '#475569';
        }
    }
 };
