@@ -585,6 +585,13 @@ function resetChat(loadFromHistory = null, forceActionView = false) {
   reportData = [];
   
   updateProgressUI(0);
+  
+  if (typeof overallHealthChart !== 'undefined' && overallHealthChart) { overallHealthChart.destroy(); overallHealthChart = null; }
+  if (typeof eeatChart !== 'undefined' && eeatChart) { eeatChart.destroy(); eeatChart = null; }
+  if (typeof battleChart !== 'undefined' && battleChart) { battleChart.destroy(); battleChart = null; }
+  const tableC = document.getElementById('action-plan-table-container');
+  if (tableC) tableC.innerHTML = '<div style="color:var(--muted); font-size:13px; text-align:center; margin-top:20px;">Henüz veri yok.</div>';
+
   const llmsC = document.getElementById('copilot-llms-container');
   if (llmsC) llmsC.style.display = 'none';
   const msgContainer = document.getElementById('copilot-chat-messages-container');
@@ -1024,10 +1031,11 @@ Son olarak, LLM (SGE) dostu kusursuz hale getirilmiş YENİ BİR ÖRNEK METİN v
         }
     }
 
-    let htmlText = (typeof marked !== 'undefined' ? marked.parse(cleanText) : cleanText) + (rawJsonStr ? '<div class="ai-raw-json" style="display:none;">' + rawJsonStr + '</div>' : '');
+    let parsedHtml = (typeof marked !== 'undefined' ? marked.parse(cleanText) : cleanText);
+    let htmlText = parsedHtml + (rawJsonStr ? '<div class="ai-raw-json" style="display:none;">' + rawJsonStr + '</div>' : '');
     addMessage(htmlText, 'ai', true);
     
-    reportData[step - 1] = htmlText;
+    reportData[step - 1] = parsedHtml; // Clean parsed text without hidden raw JSON
 
     completedSteps.add(step); if(step === 5) completedSteps.add(6);
     if (completedSteps.size >= 6) {
@@ -1648,7 +1656,19 @@ ${(dataT.text || '').substring(0, 10000)}
 Site B (Rakip):
 ${(dataC.text || '').substring(0, 10000)}
 
-Site A'nın rakibine göre içerik derinliği, SEO kalitesi ve E-E-A-T sinyalleri açısından eksiklerini JSON olarak analiz et. Ayrıca JSON içine "site_a_skorlari": {"icerik": 60, "seo": 65, "eeat": 50} ve "site_b_skorlari": {"icerik": 85, "seo": 90, "eeat": 88} şeklinde iki sitenin 100 üzerinden tahmini skorlarını da ekle.`;
+Site A'nın rakibine göre eksiklerini analiz et ve YALNIZCA aşağıdaki JSON formatında yanıt ver:
+{
+  "rakip_ustunluk_nedenleri": "Rakip neden daha iyi...",
+  "charts_data": {
+    "site_a_skorlari": {"icerik": 60, "seo": 65, "eeat": 50},
+    "site_b_skorlari": {"icerik": 85, "seo": 90, "eeat": 88}
+  },
+  "action_plan_table": {
+    "icerik_derinligi": ["Eksik 1", "Eksik 2"],
+    "seo_kalitesi": ["Eksik 1", "Eksik 2"],
+    "eeat_sinyalleri": ["Eksik 1", "Eksik 2"]
+  }
+}`;
 
           const aiRes = await fetch('form_submit.php', { 
               method: 'POST', 
@@ -1680,8 +1700,8 @@ Site A'nın rakibine göre içerik derinliği, SEO kalitesi ve E-E-A-T sinyaller
                               data: {
                                   labels: ['İçerik Derinliği', 'SEO Kalitesi', 'E-E-A-T'],
                                   datasets: [
-                                      { label: 'Senin Siten', data: [analysis.site_a_skorlari?.icerik || 60, analysis.site_a_skorlari?.seo || 65, analysis.site_a_skorlari?.eeat || 50], backgroundColor: '#3b82f6' },
-                                      { label: 'Rakip', data: [analysis.site_b_skorlari?.icerik || 85, analysis.site_b_skorlari?.seo || 90, analysis.site_b_skorlari?.eeat || 88], backgroundColor: '#ef4444' }
+                                      { label: 'Senin Siten', data: [analysis.charts_data?.site_a_skorlari?.icerik || 60, analysis.charts_data?.site_a_skorlari?.seo || 65, analysis.charts_data?.site_a_skorlari?.eeat || 50], backgroundColor: '#3b82f6' },
+                                      { label: 'Rakip', data: [analysis.charts_data?.site_b_skorlari?.icerik || 85, analysis.charts_data?.site_b_skorlari?.seo || 90, analysis.charts_data?.site_b_skorlari?.eeat || 88], backgroundColor: '#ef4444' }
                                   ]
                               }
                           });
@@ -1691,20 +1711,20 @@ Site A'nın rakibine göre içerik derinliği, SEO kalitesi ve E-E-A-T sinyaller
                   const formatArray = (arr) => arr && arr.length ? `<ul>${arr.map(item => `<li>${item}</li>`).join('')}</ul>` : 'Veri yok.';
                   
                   let eksiklerHtml = '';
-                  if (analysis.site_a_eksikleri) {
+                  if (analysis.action_plan_table) {
                       eksiklerHtml = `
                           <div class="compare-cols" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; margin-top:20px;">
                               <div class="col-box" style="background:#fff; border:1px solid #e2e8f0; border-radius:8px; padding:16px;">
                                   <h4 style="color:#2563eb; font-size:14px; margin-bottom:12px; border-bottom:1px solid #e2e8f0; padding-bottom:8px;">📚 İçerik Derinliği</h4>
-                                  <div style="font-size:13px; color:#475569; line-height:1.6;">${typeof marked !== 'undefined' ? marked.parse(analysis.site_a_eksikleri.icerik_derinligi.join('\n\n')) : formatArray(analysis.site_a_eksikleri.icerik_derinligi)}</div>
+                                  <div style="font-size:13px; color:#475569; line-height:1.6;">${typeof marked !== 'undefined' ? marked.parse((analysis.action_plan_table.icerik_derinligi || []).join('\n\n')) : formatArray(analysis.action_plan_table.icerik_derinligi)}</div>
                               </div>
                               <div class="col-box" style="background:#fff; border:1px solid #e2e8f0; border-radius:8px; padding:16px;">
                                   <h4 style="color:#10b981; font-size:14px; margin-bottom:12px; border-bottom:1px solid #e2e8f0; padding-bottom:8px;">🎯 SEO Kalitesi</h4>
-                                  <div style="font-size:13px; color:#475569; line-height:1.6;">${typeof marked !== 'undefined' ? marked.parse(analysis.site_a_eksikleri.seo_kalitesi.join('\n\n')) : formatArray(analysis.site_a_eksikleri.seo_kalitesi)}</div>
+                                  <div style="font-size:13px; color:#475569; line-height:1.6;">${typeof marked !== 'undefined' ? marked.parse((analysis.action_plan_table.seo_kalitesi || []).join('\n\n')) : formatArray(analysis.action_plan_table.seo_kalitesi)}</div>
                               </div>
                               <div class="col-box" style="background:#fff; border:1px solid #e2e8f0; border-radius:8px; padding:16px;">
                                   <h4 style="color:#f59e0b; font-size:14px; margin-bottom:12px; border-bottom:1px solid #e2e8f0; padding-bottom:8px;">🛡️ E-E-A-T Sinyalleri</h4>
-                                  <div style="font-size:13px; color:#475569; line-height:1.6;">${typeof marked !== 'undefined' ? marked.parse(analysis.site_a_eksikleri.eeat_sinyalleri.join('\n\n')) : formatArray(analysis.site_a_eksikleri.eeat_sinyalleri)}</div>
+                                  <div style="font-size:13px; color:#475569; line-height:1.6;">${typeof marked !== 'undefined' ? marked.parse((analysis.action_plan_table.eeat_sinyalleri || []).join('\n\n')) : formatArray(analysis.action_plan_table.eeat_sinyalleri)}</div>
                               </div>
                           </div>
                       `;
