@@ -52,37 +52,37 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderHistory() {
         const history = getHistory();
         if (history.length === 0) {
-            historySection.classList.add('hidden');
+            historySection.classList.add('txtseo-hidden');
             return;
         }
 
-        historySection.classList.remove('hidden');
+        historySection.classList.remove('txtseo-hidden');
         historyList.innerHTML = '';
 
         history.forEach(item => {
-            let badgeClass = 'text-success';
-            if (item.healthScore < 80) badgeClass = 'text-warning';
-            if (item.healthScore < 50) badgeClass = 'text-danger';
+            let badgeClass = 'txtseo-text-success';
+            if (item.healthScore < 80) badgeClass = 'txtseo-text-warning';
+            if (item.healthScore < 50) badgeClass = 'txtseo-text-danger';
 
             const card = document.createElement('div');
-            card.className = 'bg-white p-4 rounded-xl shadow-sm border border-gray-100 cursor-pointer hover:shadow-md transition flex justify-between items-center group';
+            card.className = 'txtseo-bg-white txtseo-p-4 txtseo-rounded-xl txtseo-shadow-sm txtseo-border txtseo-border-gray-100 txtseo-cursor-pointer txtseo-hover-shadow-md txtseo-transition txtseo-flex txtseo-justify-between txtseo-items-center txtseo-group';
             card.innerHTML = `
-                <div class="flex flex-col gap-1 w-full">
-                    <div class="flex justify-between items-start">
+                <div class="txtseo-flex txtseo-flex-col txtseo-gap-1 txtseo-w-full">
+                    <div class="txtseo-flex txtseo-justify-between txtseo-items-start">
                         <div>
-                            <span class="text-xs font-semibold text-gray-500 block mb-1">${item.date}</span>
-                            <span class="font-bold text-gray-800">${item.targetKeyword}</span>
+                            <span class="txtseo-text-xs txtseo-font-semibold txtseo-text-gray-500 txtseo-block txtseo-mb-1">${item.date}</span>
+                            <span class="txtseo-font-bold txtseo-text-gray-800">${item.targetKeyword}</span>
                         </div>
-                        <div class="flex flex-col items-end gap-2">
-                            <span class="text-xs font-bold px-2 py-1 rounded bg-gray-50 border border-gray-200 ${badgeClass}">
+                        <div class="txtseo-flex txtseo-flex-col txtseo-items-end txtseo-gap-2">
+                            <span class="txtseo-text-xs txtseo-font-bold txtseo-px-2 txtseo-py-1 txtseo-rounded txtseo-bg-gray-50 txtseo-border txtseo-border-gray-200 ${badgeClass}">
                                 Skor: ${item.healthScore}
                             </span>
                         </div>
                     </div>
-                    <div class="flex justify-between items-center mt-2">
-                        <span class="text-xs text-gray-500"><i class="ph ph-text-aa"></i> ${item.wordCount} Kelime</span>
-                        <button class="delete-item-btn text-gray-400 hover:text-danger transition p-1" data-id="${item.id}" title="Sil">
-                            <i class="ph ph-trash text-lg"></i>
+                    <div class="txtseo-flex txtseo-justify-between txtseo-items-center txtseo-mt-2">
+                        <span class="txtseo-text-xs txtseo-text-gray-500"><i class="ph ph-text-aa"></i> ${item.wordCount} Kelime</span>
+                        <button class="delete-item-btn txtseo-text-gray-400 txtseo-hover-text-danger txtseo-transition txtseo-p-1" data-id="${item.id}" title="Sil">
+                            <i class="ph ph-trash txtseo-text-lg"></i>
                         </button>
                     </div>
                 </div>
@@ -94,9 +94,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 rawText.dispatchEvent(new Event('input'));
                 apiData = item.apiData;
                 populateResults(apiData);
-                inputSection.classList.add('hidden');
-                historySection.classList.add('hidden');
-                resultsSection.classList.remove('hidden');
+                inputSection.classList.add('txtseo-hidden');
+                historySection.classList.add('txtseo-hidden');
+                resultsSection.classList.remove('txtseo-hidden');
                 // Scroll to top
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             });
@@ -105,7 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         // Attach delete events
-        document.querySelectorAll('.delete-item-btn').forEach(btn => {
+        document.querySelectorAll('.txtseo-delete-item-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 deleteHistoryItem(Number(btn.dataset.id));
@@ -129,8 +129,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (backToInputBtn) {
         backToInputBtn.addEventListener('click', () => {
-            resultsSection.classList.add('hidden');
-            inputSection.classList.remove('hidden');
+            resultsSection.classList.add('txtseo-hidden');
+            inputSection.classList.remove('txtseo-hidden');
             renderHistory();
         });
     }
@@ -156,10 +156,10 @@ document.addEventListener('DOMContentLoaded', () => {
             navigator.clipboard.writeText(text).then(() => {
                 const originalHTML = copyInputBtn.innerHTML;
                 copyInputBtn.innerHTML = '<i class="ph-fill ph-check"></i> Kopyalandı';
-                copyInputBtn.classList.replace('text-gray-700', 'text-success');
+                copyInputBtn.classList.replace('txtseo-text-gray-700', 'txtseo-text-success');
                 setTimeout(() => {
                     copyInputBtn.innerHTML = originalHTML;
-                    copyInputBtn.classList.replace('text-success', 'text-gray-700');
+                    copyInputBtn.classList.replace('txtseo-text-success', 'txtseo-text-gray-700');
                 }, 2000);
             });
         });
@@ -175,33 +175,33 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Accordion ---
     optionsToggle.addEventListener('click', () => {
-        optionsPanel.classList.toggle('hidden');
-        optionsIcon.classList.toggle('rotate-180');
+        optionsPanel.classList.toggle('txtseo-hidden');
+        optionsIcon.classList.toggle('txtseo-rotate-180');
     });
 
     // --- Tabs ---
-    const tabBtns = document.querySelectorAll('.tab-btn');
-    const tabPanes = document.querySelectorAll('.tab-pane');
+    const tabBtns = document.querySelectorAll('.txtseo-tab-btn');
+    const tabPanes = document.querySelectorAll('.txtseo-tab-pane');
 
     tabBtns.forEach(btn => {
         btn.addEventListener('click', () => {
-            // Remove active from all
+            // Remove txtseo-active from all
             tabBtns.forEach(b => {
-                b.classList.remove('active', 'border-primary', 'text-primary');
-                b.classList.add('border-transparent', 'text-gray-500');
+                b.classList.remove('txtseo-active', 'txtseo-border-primary', 'txtseo-text-primary');
+                b.classList.add('txtseo-border-transparent', 'txtseo-text-gray-500');
             });
-            tabPanes.forEach(p => p.classList.remove('active', 'hidden'));
+            tabPanes.forEach(p => p.classList.remove('txtseo-active', 'txtseo-hidden'));
             
-            // Add active to clicked
-            btn.classList.add('active', 'border-primary', 'text-primary');
-            btn.classList.remove('border-transparent', 'text-gray-500');
+            // Add txtseo-active to clicked
+            btn.classList.add('txtseo-active', 'txtseo-border-primary', 'txtseo-text-primary');
+            btn.classList.remove('txtseo-border-transparent', 'txtseo-text-gray-500');
             
             // Show target
             tabPanes.forEach(p => {
                 if(p.id === btn.dataset.target) {
-                    p.classList.add('active');
+                    p.classList.add('txtseo-active');
                 } else {
-                    p.classList.add('hidden');
+                    p.classList.add('txtseo-hidden');
                 }
             });
         });
@@ -279,8 +279,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const loadingStepsItems = document.querySelectorAll('#loadingSteps li');
 
     function startLoading() {
-        loadingOverlay.classList.remove('hidden');
-        loadingOverlay.classList.add('flex');
+        loadingOverlay.classList.remove('txtseo-hidden');
+        loadingOverlay.classList.add('txtseo-flex');
         updateLoadingStep(0, "Bağlantı kuruluyor...");
     }
 
@@ -293,14 +293,14 @@ document.addEventListener('DOMContentLoaded', () => {
         loadingStepsItems.forEach((li, idx) => {
             const icon = li.querySelector('i');
             if (idx < stepIndex) {
-                icon.className = 'ph-fill ph-check-circle text-success';
-                li.classList.add('text-gray-900', '');
+                icon.className = 'ph-fill ph-check-circle txtseo-text-success';
+                li.classList.add('txtseo-text-gray-900', '');
             } else if (idx === stepIndex) {
-                icon.className = 'ph-fill ph-spinner-gap animate-spin text-primary';
-                li.classList.add('text-primary');
+                icon.className = 'ph-fill ph-spinner-gap txtseo-animate-spin txtseo-text-primary';
+                li.classList.add('txtseo-text-primary');
             } else {
                 icon.className = 'ph ph-circle';
-                li.classList.remove('text-gray-900', '', 'text-primary');
+                li.classList.remove('txtseo-text-gray-900', '', 'txtseo-text-primary');
             }
         });
     }
@@ -309,17 +309,17 @@ document.addEventListener('DOMContentLoaded', () => {
         loadingProgress.style.width = '100%';
         loadingPercent.textContent = '100%';
         setTimeout(() => {
-            loadingOverlay.classList.add('hidden');
-            loadingOverlay.classList.remove('flex');
-            inputSection.classList.add('hidden');
-            historySection.classList.add('hidden');
-            resultsSection.classList.remove('hidden');
+            loadingOverlay.classList.add('txtseo-hidden');
+            loadingOverlay.classList.remove('txtseo-flex');
+            inputSection.classList.add('txtseo-hidden');
+            historySection.classList.add('txtseo-hidden');
+            resultsSection.classList.remove('txtseo-hidden');
         }, 300);
     }
 
     function stopLoading() {
-        loadingOverlay.classList.add('hidden');
-        loadingOverlay.classList.remove('flex');
+        loadingOverlay.classList.add('txtseo-hidden');
+        loadingOverlay.classList.remove('txtseo-flex');
     }
 
     // --- Populate Results ---
@@ -338,10 +338,10 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('healthScoreText').textContent = healthScore;
         const circle = document.getElementById('healthScoreCircle');
         circle.setAttribute('stroke-dasharray', `${healthScore}, 100`);
-        circle.classList.remove('text-success', 'text-warning', 'text-danger');
-        if (healthScore >= 80) circle.classList.add('text-success');
-        else if (healthScore >= 50) circle.classList.add('text-warning');
-        else circle.classList.add('text-danger');
+        circle.classList.remove('txtseo-text-success', 'txtseo-text-warning', 'txtseo-text-danger');
+        if (healthScore >= 80) circle.classList.add('txtseo-text-success');
+        else if (healthScore >= 50) circle.classList.add('txtseo-text-warning');
+        else circle.classList.add('txtseo-text-danger');
 
         console.log("[UI LOG] 4.1. Sağlık skoru ve başlık verileri yazıldı.");
 
@@ -352,9 +352,9 @@ document.addEventListener('DOMContentLoaded', () => {
         renderEnhancedAnatomy(telemetry);
 
         const getBadgeClass = (status) => {
-            if (status === 'success') return 'bg-green-100 text-green-700 border border-green-200';
-            if (status === 'warning') return 'bg-yellow-100 text-yellow-700 border border-yellow-200';
-            return 'bg-red-100 text-red-700 border border-red-200';
+            if (status === 'success') return 'txtseo-bg-green-100 txtseo-text-green-700 txtseo-border txtseo-border-green-200';
+            if (status === 'warning') return 'txtseo-bg-yellow-100 txtseo-text-yellow-700 txtseo-border txtseo-border-yellow-200';
+            return 'txtseo-bg-red-100 txtseo-text-red-700 txtseo-border txtseo-border-red-200';
         };
         
         const getBadgeLabel = (status) => {
@@ -371,36 +371,36 @@ document.addEventListener('DOMContentLoaded', () => {
         const readabilityStatsEl = document.getElementById('readabilityStats');
         // Kapsayıcı sınıflarını (grid yapısını) bozmamak için className ezilmez.
         readabilityStatsEl.innerHTML = `
-            <div class="bg-gray-50 p-3 rounded-lg border border-gray-100">
-                <div class="flex justify-between items-start">
-                    <h4 class="text-sm font-bold text-slate-700">Okunabilirlik Puanı: <span class="text-primary">${readability.atesman_index || '-'}</span></h4>
-                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${getBadgeClass(atesmanFb.status)}">${atesmanFb.label || getBadgeLabel(atesmanFb.status)}</span>
+            <div class="txtseo-bg-gray-50 txtseo-p-3 txtseo-rounded-lg txtseo-border txtseo-border-gray-100">
+                <div class="txtseo-flex txtseo-justify-between txtseo-items-start">
+                    <h4 class="txtseo-text-sm txtseo-font-bold txtseo-text-slate-700">Okunabilirlik Puanı: <span class="txtseo-text-primary">${readability.atesman_index || '-'}</span></h4>
+                    <span class="txtseo-text-[10px] txtseo-font-bold txtseo-px-2 txtseo-py-0.5 txtseo-rounded-full txtseo-uppercase txtseo-tracking-wider ${getBadgeClass(atesmanFb.status)}">${atesmanFb.label || getBadgeLabel(atesmanFb.status)}</span>
                 </div>
-                <p class="text-xs leading-relaxed text-gray-600 mt-2 bg-gray-50 p-2.5 rounded-lg border border-gray-100">${atesmanFb.advice || '-'}</p>
+                <p class="txtseo-text-xs txtseo-leading-relaxed txtseo-text-gray-600 txtseo-mt-2 txtseo-bg-gray-50 txtseo-p-2.5 txtseo-rounded-lg txtseo-border txtseo-border-gray-100">${atesmanFb.advice || '-'}</p>
             </div>
             
-            <div class="bg-gray-50 p-3 rounded-lg border border-gray-100">
-                <div class="flex justify-between items-start">
-                    <h4 class="text-sm font-bold text-slate-700">Karmaşık Kelime: <span class="text-primary">%${readability.complex_words_percentage || '-'}</span> <span class="text-[10px] font-normal text-slate-500 block sm:inline mt-1 sm:mt-0">(Toplam ${readability.complex_polysyllabic_words_count || 0} adet 3+ heceli kelime)</span></h4>
-                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${getBadgeClass(complexFb.status)}">${getBadgeLabel(complexFb.status)}</span>
+            <div class="txtseo-bg-gray-50 txtseo-p-3 txtseo-rounded-lg txtseo-border txtseo-border-gray-100">
+                <div class="txtseo-flex txtseo-justify-between txtseo-items-start">
+                    <h4 class="txtseo-text-sm txtseo-font-bold txtseo-text-slate-700">Karmaşık Kelime: <span class="txtseo-text-primary">%${readability.complex_words_percentage || '-'}</span> <span class="txtseo-text-[10px] txtseo-font-normal txtseo-text-slate-500 txtseo-block txtseo-sm-inline txtseo-mt-1 txtseo-sm-mt-0">(Toplam ${readability.complex_polysyllabic_words_count || 0} adet 3+ heceli kelime)</span></h4>
+                    <span class="txtseo-text-[10px] txtseo-font-bold txtseo-px-2 txtseo-py-0.5 txtseo-rounded-full txtseo-uppercase txtseo-tracking-wider ${getBadgeClass(complexFb.status)}">${getBadgeLabel(complexFb.status)}</span>
                 </div>
-                <p class="text-xs leading-relaxed text-gray-600 mt-2 bg-gray-50 p-2.5 rounded-lg border border-gray-100">${complexFb.advice || '-'}</p>
+                <p class="txtseo-text-xs txtseo-leading-relaxed txtseo-text-gray-600 txtseo-mt-2 txtseo-bg-gray-50 txtseo-p-2.5 txtseo-rounded-lg txtseo-border txtseo-border-gray-100">${complexFb.advice || '-'}</p>
             </div>
             
-            <div class="bg-gray-50 p-3 rounded-lg border border-gray-100">
-                <div class="flex justify-between items-start">
-                    <h4 class="text-sm font-bold text-slate-700">Geçiş Kelimeleri: <span class="text-primary">%${readability.transition_words?.transition_sentence_ratio_percentage || '-'}</span> <span class="text-[10px] font-normal text-slate-500 block sm:inline mt-1 sm:mt-0">(Toplam ${readability.transition_words?.matched_count || 0} adet bağlaç kullanılmış)</span></h4>
-                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${getBadgeClass(transitionFb.status)}">${getBadgeLabel(transitionFb.status)}</span>
+            <div class="txtseo-bg-gray-50 txtseo-p-3 txtseo-rounded-lg txtseo-border txtseo-border-gray-100">
+                <div class="txtseo-flex txtseo-justify-between txtseo-items-start">
+                    <h4 class="txtseo-text-sm txtseo-font-bold txtseo-text-slate-700">Geçiş Kelimeleri: <span class="txtseo-text-primary">%${readability.transition_words?.transition_sentence_ratio_percentage || '-'}</span> <span class="txtseo-text-[10px] txtseo-font-normal txtseo-text-slate-500 txtseo-block txtseo-sm-inline txtseo-mt-1 txtseo-sm-mt-0">(Toplam ${readability.transition_words?.matched_count || 0} adet bağlaç kullanılmış)</span></h4>
+                    <span class="txtseo-text-[10px] txtseo-font-bold txtseo-px-2 txtseo-py-0.5 txtseo-rounded-full txtseo-uppercase txtseo-tracking-wider ${getBadgeClass(transitionFb.status)}">${getBadgeLabel(transitionFb.status)}</span>
                 </div>
-                <p class="text-xs leading-relaxed text-gray-600 mt-2 bg-gray-50 p-2.5 rounded-lg border border-gray-100">${transitionFb.advice || '-'}</p>
+                <p class="txtseo-text-xs txtseo-leading-relaxed txtseo-text-gray-600 txtseo-mt-2 txtseo-bg-gray-50 txtseo-p-2.5 txtseo-rounded-lg txtseo-border txtseo-border-gray-100">${transitionFb.advice || '-'}</p>
             </div>
             
-            <div class="bg-gray-50 p-3 rounded-lg border border-gray-100">
-                <div class="flex justify-between items-start">
-                    <h4 class="text-sm font-bold text-slate-700">Pasif Cümle: <span class="text-primary">%${readability.passive_voice?.passive_voice_percentage || '-'}</span> <span class="text-[10px] font-normal text-slate-500 block sm:inline mt-1 sm:mt-0">(Toplam ${readability.passive_voice?.passive_sentences_count || 0} adet edilgen cümle)</span></h4>
-                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${getBadgeClass(passiveFb.status)}">${getBadgeLabel(passiveFb.status)}</span>
+            <div class="txtseo-bg-gray-50 txtseo-p-3 txtseo-rounded-lg txtseo-border txtseo-border-gray-100">
+                <div class="txtseo-flex txtseo-justify-between txtseo-items-start">
+                    <h4 class="txtseo-text-sm txtseo-font-bold txtseo-text-slate-700">Pasif Cümle: <span class="txtseo-text-primary">%${readability.passive_voice?.passive_voice_percentage || '-'}</span> <span class="txtseo-text-[10px] txtseo-font-normal txtseo-text-slate-500 txtseo-block txtseo-sm-inline txtseo-mt-1 txtseo-sm-mt-0">(Toplam ${readability.passive_voice?.passive_sentences_count || 0} adet edilgen cümle)</span></h4>
+                    <span class="txtseo-text-[10px] txtseo-font-bold txtseo-px-2 txtseo-py-0.5 txtseo-rounded-full txtseo-uppercase txtseo-tracking-wider ${getBadgeClass(passiveFb.status)}">${getBadgeLabel(passiveFb.status)}</span>
                 </div>
-                <p class="text-xs leading-relaxed text-gray-600 mt-2 bg-gray-50 p-2.5 rounded-lg border border-gray-100">${passiveFb.advice || '-'}</p>
+                <p class="txtseo-text-xs txtseo-leading-relaxed txtseo-text-gray-600 txtseo-mt-2 txtseo-bg-gray-50 txtseo-p-2.5 txtseo-rounded-lg txtseo-border txtseo-border-gray-100">${passiveFb.advice || '-'}</p>
             </div>
         `;
 
@@ -409,7 +409,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (headingTreeContainer) {
             const structureTree = telemetry.anatomy?.headings?.structure_tree || [];
             if (structureTree.length === 0) {
-                headingTreeContainer.innerHTML = '<span class="text-xs text-slate-500 italic">Başlık hiyerarşisi bulunamadı.</span>';
+                headingTreeContainer.innerHTML = '<span class="txtseo-text-xs txtseo-text-slate-500 txtseo-italic">Başlık hiyerarşisi bulunamadı.</span>';
             } else {
                 let treeHtml = '';
                 structureTree.forEach(heading => {
@@ -418,17 +418,17 @@ document.addEventListener('DOMContentLoaded', () => {
                     const wordsBeforeNext = heading.word_count_before_next || 0;
                     
                     // Determine indent based on level
-                    const indentClass = level === 1 ? 'ml-0' : (level === 2 ? 'ml-6' : (level === 3 ? 'ml-12' : 'ml-16'));
-                    const iconColor = level === 1 ? 'text-indigo-600' : (level === 2 ? 'text-blue-500' : 'text-slate-400');
-                    const badgeClass = level === 1 ? 'bg-indigo-100 text-indigo-700' : (level === 2 ? 'bg-blue-100 text-blue-700' : 'bg-slate-200 text-slate-700');
-                    const lineClass = level > 1 ? 'border-l-2 border-slate-200 pl-4 relative before:content-[\'\'] before:absolute before:left-[-2px] before:top-4 before:w-4 before:h-[2px] before:bg-slate-200' : '';
+                    const indentClass = level === 1 ? 'txtseo-ml-0' : (level === 2 ? 'txtseo-ml-6' : (level === 3 ? 'txtseo-ml-12' : 'txtseo-ml-16'));
+                    const iconColor = level === 1 ? 'txtseo-text-indigo-600' : (level === 2 ? 'txtseo-text-blue-500' : 'txtseo-text-slate-400');
+                    const badgeClass = level === 1 ? 'txtseo-bg-indigo-100 txtseo-text-indigo-700' : (level === 2 ? 'txtseo-bg-blue-100 txtseo-text-blue-700' : 'txtseo-bg-slate-200 txtseo-text-slate-700');
+                    const lineClass = level > 1 ? 'txtseo-border-l-2 txtseo-border-slate-200 txtseo-pl-4 txtseo-relative before:content-[\'\'] before:txtseo-absolute before:txtseo-left-[-2px] before:txtseo-top-4 before:txtseo-w-4 before:txtseo-h-[2px] before:txtseo-bg-slate-200' : '';
 
                     treeHtml += `
-                        <div class="flex items-start gap-2 py-1.5 ${indentClass} ${lineClass}">
-                            <span class="text-[9px] font-bold px-1.5 py-0.5 rounded ${badgeClass} mt-0.5 shrink-0">H${level}</span>
-                            <div class="flex flex-col">
-                                <span class="font-semibold text-slate-800 text-sm leading-tight">${text}</span>
-                                <span class="text-[10px] text-slate-500 font-medium flex items-center gap-1 mt-0.5">
+                        <div class="txtseo-flex txtseo-items-start txtseo-gap-2 txtseo-py-1.5 ${indentClass} ${lineClass}">
+                            <span class="txtseo-text-[9px] txtseo-font-bold txtseo-px-1.5 txtseo-py-0.5 txtseo-rounded ${badgeClass} txtseo-mt-0.5 txtseo-shrink-0">H${level}</span>
+                            <div class="txtseo-flex txtseo-flex-col">
+                                <span class="txtseo-font-semibold txtseo-text-slate-800 txtseo-text-sm txtseo-leading-tight">${text}</span>
+                                <span class="txtseo-text-[10px] txtseo-text-slate-500 txtseo-font-medium txtseo-flex txtseo-items-center txtseo-gap-1 txtseo-mt-0.5">
                                     <i class="ph ph-text-align-left"></i> ${wordsBeforeNext} kelime içerik
                                 </span>
                             </div>
@@ -475,9 +475,9 @@ document.addEventListener('DOMContentLoaded', () => {
             for (const [kw, count] of Object.entries(adetler)) {
                 quotasTable.innerHTML += `
                     <tr>
-                        <td class="px-4 py-3 font-medium text-gray-900">${kw}</td>
-                        <td class="px-4 py-3 text-center">
-                            <span class="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded-full">+${count}</span>
+                        <td class="txtseo-px-4 txtseo-py-3 txtseo-font-medium txtseo-text-gray-900">${kw}</td>
+                        <td class="txtseo-px-4 txtseo-py-3 txtseo-text-center">
+                            <span class="txtseo-bg-blue-100 txtseo-text-blue-800 txtseo-text-xs txtseo-font-semibold txtseo-px-2.5 txtseo-py-0.5 txtseo-rounded-full">+${count}</span>
                         </td>
                     </tr>
                 `;
@@ -489,7 +489,7 @@ document.addEventListener('DOMContentLoaded', () => {
         gapsContainer.innerHTML = '';
         const gaps = ai.strateji?.semantik_bosluklar || [];
         gaps.forEach(gap => {
-            gapsContainer.innerHTML += `<span class="bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-1 rounded border border-yellow-200">${gap}</span>`;
+            gapsContainer.innerHTML += `<span class="txtseo-bg-yellow-100 txtseo-text-yellow-800 txtseo-text-xs txtseo-font-medium txtseo-px-2.5 txtseo-py-1 txtseo-rounded txtseo-border txtseo-border-yellow-200">${gap}</span>`;
         });
 
         // Tab 2: PAA
@@ -498,9 +498,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const paas = ai.strateji?.paa_hedefleri || [];
         paas.forEach(paa => {
             paaList.innerHTML += `
-                <li class="flex gap-3 bg-gray-50 p-3 rounded-lg border border-gray-100">
-                    <i class="ph-fill ph-check-circle text-purple-500 mt-0.5"></i>
-                    <span class="text-sm font-medium">${paa}</span>
+                <li class="txtseo-flex txtseo-gap-3 txtseo-bg-gray-50 txtseo-p-3 txtseo-rounded-lg txtseo-border txtseo-border-gray-100">
+                    <i class="ph-fill ph-check-circle txtseo-text-purple-500 txtseo-mt-0.5"></i>
+                    <span class="txtseo-text-sm txtseo-font-medium">${paa}</span>
                 </li>`;
         });
         
@@ -511,12 +511,13 @@ document.addEventListener('DOMContentLoaded', () => {
         roadmapList.innerHTML = '';
         const steps = ai.entegrasyon?.adim_adim_rehber || [];
         steps.forEach((step, idx) => {
+            const cleanStep = step.replace(/^Adım\s*\d+[\s\:\-\.]*/i, '');
             roadmapList.innerHTML += `
-                <div class="relative">
-                    <span class="absolute -left-[35px] top-1 h-5 w-5 rounded-full bg-primary flex items-center justify-center text-white text-[10px] font-bold ring-4 ring-white pulse-circle">
+                <div class="txtseo-relative">
+                    <span class="txtseo-absolute txtseo--left-[35px] txtseo-top-1 txtseo-h-5 txtseo-w-5 txtseo-rounded-full txtseo-bg-primary txtseo-flex txtseo-items-center txtseo-justify-center txtseo-text-white txtseo-text-[10px] txtseo-font-bold txtseo-ring-4 txtseo-ring-white txtseo-pulse-circle">
                         ${idx + 1}
                     </span>
-                    <p class="text-sm text-gray-700 leading-relaxed font-medium bg-gray-50 p-3 rounded-lg border border-gray-100">${step}</p>
+                    <p class="txtseo-text-sm txtseo-text-gray-700 txtseo-leading-relaxed txtseo-font-medium txtseo-bg-gray-50 txtseo-p-3 txtseo-rounded-lg txtseo-border txtseo-border-gray-100">${cleanStep}</p>
                 </div>
             `;
         });
@@ -539,8 +540,8 @@ document.addEventListener('DOMContentLoaded', () => {
         generateDiff(origText, optText);
         console.log("[UI LOG] 4.6. Tab 4 (AI Düzeltme & Diff) render edildi.");
 
-        // Ensure history section is hidden when results are populated
-        historySection.classList.add('hidden');
+        // Ensure history section is txtseo-hidden when results are populated
+        historySection.classList.add('txtseo-hidden');
     }
 
     // --- Chart.js ---
@@ -621,19 +622,19 @@ document.addEventListener('DOMContentLoaded', () => {
     let diffMode = false;
     toggleDiffBtn.addEventListener('click', () => {
         diffMode = !diffMode;
-        const textAreas = document.querySelector('#tab4 .grid');
+        const textAreas = document.querySelector('#tab4 .txtseo-grid');
         const diffCont = document.getElementById('diffContainer');
         
         if (diffMode) {
-            textAreas.classList.add('hidden');
-            diffCont.classList.remove('hidden');
+            textAreas.classList.add('txtseo-hidden');
+            diffCont.classList.remove('txtseo-hidden');
             toggleDiffBtn.textContent = 'Yan Yana Görünüm';
-            toggleDiffBtn.classList.add('bg-primary', 'text-white');
+            
         } else {
-            textAreas.classList.remove('hidden');
-            diffCont.classList.add('hidden');
+            textAreas.classList.remove('txtseo-hidden');
+            diffCont.classList.add('txtseo-hidden');
             toggleDiffBtn.textContent = 'Değişiklikleri Karşılaştır';
-            toggleDiffBtn.classList.remove('bg-primary', 'text-white');
+            
         }
     });
 
@@ -644,10 +645,10 @@ document.addEventListener('DOMContentLoaded', () => {
         navigator.clipboard.writeText(text).then(() => {
             const originalHTML = copyBtn.innerHTML;
             copyBtn.innerHTML = '<i class="ph-fill ph-check"></i> Kopyalandı';
-            copyBtn.classList.replace('bg-primary', 'bg-success');
+            copyBtn.classList.replace('txtseo-bg-primary', 'bg-success');
             setTimeout(() => {
                 copyBtn.innerHTML = originalHTML;
-                copyBtn.classList.replace('bg-success', 'bg-primary');
+                copyBtn.classList.replace('bg-success', 'txtseo-bg-primary');
             }, 2000);
         });
     });
@@ -668,24 +669,24 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (hasDownloadedPdf) {
-            pdfModalIcon.className = 'w-10 h-10 rounded-full flex items-center justify-center text-xl bg-yellow-100 text-warning';
+            pdfModalIcon.className = 'w-10 h-10 txtseo-rounded-full txtseo-flex txtseo-items-center txtseo-justify-center txtseo-text-xl txtseo-bg-yellow-100 txtseo-text-warning';
             pdfModalMessage.innerHTML = '⚠️ Bu analizin PDF raporunu daha önce indirdiniz. Güncel raporu yeniden indirmek istiyor musunuz?';
             confirmBtnText.textContent = 'Tekrar İndir';
         } else {
-            pdfModalIcon.className = 'w-10 h-10 rounded-full flex items-center justify-center text-xl bg-blue-100 text-primary';
+            pdfModalIcon.className = 'w-10 h-10 txtseo-rounded-full txtseo-flex txtseo-items-center txtseo-justify-center txtseo-text-xl txtseo-bg-blue-100 txtseo-text-primary';
             pdfModalMessage.innerHTML = 'Tüm analizler, grafikler, strateji tablosu ve optimize edilmiş metin PDF olarak hazırlanacaktır. İndirmeyi onaylıyor musunuz?';
             confirmBtnText.textContent = 'PDF Raporunu İndir';
         }
         
-        pdfModal.classList.remove('hidden');
+        pdfModal.classList.remove('txtseo-hidden');
     });
 
     closePdfModalBtn.addEventListener('click', () => {
-        pdfModal.classList.add('hidden');
+        pdfModal.classList.add('txtseo-hidden');
     });
 
     confirmPdfDownloadBtn.addEventListener('click', () => {
-        pdfModal.classList.add('hidden');
+        pdfModal.classList.add('txtseo-hidden');
         if (typeof generatePDF === 'function') {
             hasDownloadedPdf = true;
             const chartCanvas = document.getElementById('ngramChart');
@@ -702,17 +703,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (scoreInfoBtn && scoreInfoModal && closeScoreInfoModalBtn) {
         scoreInfoBtn.addEventListener('click', () => {
-            scoreInfoModal.classList.remove('hidden');
+            scoreInfoModal.classList.remove('txtseo-hidden');
         });
 
         closeScoreInfoModalBtn.addEventListener('click', () => {
-            scoreInfoModal.classList.add('hidden');
+            scoreInfoModal.classList.add('txtseo-hidden');
         });
 
         // Close when clicking outside modal content
         scoreInfoModal.addEventListener('click', (e) => {
             if (e.target === scoreInfoModal) {
-                scoreInfoModal.classList.add('hidden');
+                scoreInfoModal.classList.add('txtseo-hidden');
             }
         });
     }
@@ -738,51 +739,51 @@ document.addEventListener('DOMContentLoaded', () => {
         if (heroCardsContainer) {
             heroCardsContainer.innerHTML = `
                 <!-- Kelime Hacmi -->
-                <div class="bg-slate-50/80 p-3.5 rounded-xl border border-slate-100 flex flex-col justify-between hover:border-blue-200 transition">
-                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider flex items-center justify-between">
+                <div class="txtseo-bg-gray-50 txtseo-p-3.5 txtseo-rounded-xl txtseo-border txtseo-border-slate-100 txtseo-flex txtseo-flex-col txtseo-justify-between txtseo-items-center txtseo-text-center txtseo-hover-border-blue-200 txtseo-transition">
+                    <span class="txtseo-text-[10px] txtseo-font-bold txtseo-text-gray-400 txtseo-uppercase txtseo-tracking-wider txtseo-flex txtseo-items-center txtseo-justify-center txtseo-gap-1.5">
                         Kelime Hacmi
-                        <i class="ph ph-text-aa text-slate-400"></i>
+                        <i class="ph ph-text-aa txtseo-text-slate-400"></i>
                     </span>
-                    <span class="text-2xl font-extrabold text-slate-800 mt-1">${wordCount.toLocaleString()}</span>
-                    <span class="text-[11px] text-slate-500 mt-0.5 flex items-center gap-1 font-medium">
+                    <span class="txtseo-text-2xl txtseo-font-extrabold txtseo-text-slate-800 txtseo-mt-1">${wordCount.toLocaleString()}</span>
+                    <span class="txtseo-text-[11px] txtseo-text-slate-500 txtseo-mt-0.5 txtseo-flex txtseo-items-center txtseo-gap-1 txtseo-font-medium">
                         <i class="ph ph-clock"></i> ~${readingTimeMin} dk okuma
                     </span>
                 </div>
 
                 <!-- Cümle & Ritim -->
-                <div class="bg-slate-50/80 p-3.5 rounded-xl border border-slate-100 flex flex-col justify-between hover:border-blue-200 transition">
-                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider flex items-center justify-between">
+                <div class="txtseo-bg-gray-50 txtseo-p-3.5 txtseo-rounded-xl txtseo-border txtseo-border-slate-100 txtseo-flex txtseo-flex-col txtseo-justify-between txtseo-items-center txtseo-text-center txtseo-hover-border-blue-200 txtseo-transition">
+                    <span class="txtseo-text-[10px] txtseo-font-bold txtseo-text-gray-400 txtseo-uppercase txtseo-tracking-wider txtseo-flex txtseo-items-center txtseo-justify-center txtseo-gap-1.5">
                         Cümle & Akış
-                        <i class="ph ph-rows text-slate-400"></i>
+                        <i class="ph ph-rows txtseo-text-slate-400"></i>
                     </span>
-                    <span class="text-2xl font-extrabold text-slate-800 mt-1">${anatomy.sentence_count || 0}</span>
-                    <span class="text-[11px] text-slate-500 mt-0.5 font-medium">
+                    <span class="txtseo-text-2xl txtseo-font-extrabold txtseo-text-slate-800 txtseo-mt-1">${anatomy.sentence_count || 0}</span>
+                    <span class="txtseo-text-[11px] txtseo-text-slate-500 txtseo-mt-0.5 txtseo-font-medium">
                         Ort. ${sentenceMetrics.avg_sentence_length_words || 0} kelime/cümle
                     </span>
                 </div>
 
                 <!-- Başlık İskeleti -->
-                <div class="bg-slate-50/80 p-3.5 rounded-xl border border-slate-100 flex flex-col justify-between hover:border-blue-200 transition">
-                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider flex items-center justify-between">
+                <div class="txtseo-bg-gray-50 txtseo-p-3.5 txtseo-rounded-xl txtseo-border txtseo-border-slate-100 txtseo-flex txtseo-flex-col txtseo-justify-between txtseo-items-center txtseo-text-center txtseo-hover-border-blue-200 txtseo-transition">
+                    <span class="txtseo-text-[10px] txtseo-font-bold txtseo-text-gray-400 txtseo-uppercase txtseo-tracking-wider txtseo-flex txtseo-items-center txtseo-justify-center txtseo-gap-1.5">
                         Başlık İskeleti
-                        <i class="ph ph-tree-structure text-slate-400"></i>
+                        <i class="ph ph-tree-structure txtseo-text-slate-400"></i>
                     </span>
-                    <span class="text-2xl font-extrabold mt-1 ${h1Count === 1 ? 'text-emerald-600' : 'text-rose-600'}">
+                    <span class="txtseo-text-2xl txtseo-font-extrabold txtseo-mt-1 ${h1Count === 1 ? 'txtseo-text-emerald-600' : 'txtseo-text-rose-600'}">
                         ${h1Count === 1 ? '1x H1' : `${h1Count}x H1`}
                     </span>
-                    <span class="text-[11px] text-slate-500 mt-0.5 font-medium">
+                    <span class="txtseo-text-[11px] txtseo-text-slate-500 txtseo-mt-0.5 txtseo-font-medium">
                         ${h2Count} H2 • ${h3Count} H3 başlık
                     </span>
                 </div>
 
                 <!-- Paragraf & Mobil Blok -->
-                <div class="bg-slate-50/80 p-3.5 rounded-xl border border-slate-100 flex flex-col justify-between hover:border-blue-200 transition">
-                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider flex items-center justify-between">
+                <div class="txtseo-bg-gray-50 txtseo-p-3.5 txtseo-rounded-xl txtseo-border txtseo-border-slate-100 txtseo-flex txtseo-flex-col txtseo-justify-between txtseo-items-center txtseo-text-center txtseo-hover-border-blue-200 txtseo-transition">
+                    <span class="txtseo-text-[10px] txtseo-font-bold txtseo-text-gray-400 txtseo-uppercase txtseo-tracking-wider txtseo-flex txtseo-items-center txtseo-justify-center txtseo-gap-1.5">
                         Okumayı Zorlaştıran Uzun Paragraflar
-                        <i class="ph ph-paragraphs text-slate-400"></i>
+                        <i class="ph ph-paragraphs txtseo-text-slate-400"></i>
                     </span>
-                    <span class="text-2xl font-extrabold text-slate-800 mt-1">${anatomy.paragraph_count || 0}</span>
-                    <span class="text-[11px] font-semibold mt-0.5 flex items-center gap-1 ${monolithicCount === 0 ? 'text-emerald-600' : 'text-rose-600'}">
+                    <span class="txtseo-text-2xl txtseo-font-extrabold txtseo-text-slate-800 txtseo-mt-1">${anatomy.paragraph_count || 0}</span>
+                    <span class="txtseo-text-[11px] txtseo-font-semibold txtseo-mt-0.5 txtseo-flex txtseo-items-center txtseo-gap-1 ${monolithicCount === 0 ? 'txtseo-text-emerald-600' : 'txtseo-text-rose-600'}">
                         <i class="ph-fill ${monolithicCount === 0 ? 'ph-check-circle' : 'ph-warning-circle'}"></i>
                         ${monolithicCount === 0 ? 'Kusursuz Paragraf Düzeni' : `${monolithicCount} Uzun ve Yorucu Paragraf!`}
                     </span>
@@ -816,105 +817,105 @@ document.addEventListener('DOMContentLoaded', () => {
 
             xrayGrid.innerHTML = `
                 <!-- SÜTUN 1: RİTİM & AKIŞ DİNAMİĞİ -->
-                <div class="bg-gradient-to-br from-slate-50 to-white p-4 rounded-xl border border-slate-200/80 shadow-xs space-y-3">
-                    <div class="flex items-center justify-between border-b border-slate-100 pb-2">
-                        <span class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-                            <i class="ph ph-wave-sine text-indigo-500 text-sm"></i> Cümle Akıcılık ve Dalgalanma Ritmi
+                <div class="txtseo-bg-gradient-to-br txtseo-from-slate-50 txtseo-to-white txtseo-p-4 txtseo-rounded-xl txtseo-border txtseo-border-slate-200/80 txtseo-shadow-xs txtseo-space-y-3">
+                    <div class="txtseo-flex txtseo-items-center txtseo-justify-between txtseo-border-b txtseo-border-slate-100 txtseo-pb-2">
+                        <span class="txtseo-text-xs txtseo-font-bold txtseo-text-slate-700 txtseo-flex txtseo-items-center txtseo-gap-1.5">
+                            <i class="ph ph-wave-sine txtseo-text-indigo-500 txtseo-text-sm"></i> Cümle Akıcılık ve Dalgalanma Ritmi
                         </span>
-                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${!isMonotonous ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' : 'bg-amber-100 text-amber-700 border border-amber-200'}">
+                        <span class="txtseo-text-[10px] txtseo-font-bold txtseo-px-2 txtseo-py-0.5 txtseo-rounded-full ${!isMonotonous ? 'txtseo-bg-emerald-100 txtseo-text-emerald-700 txtseo-border txtseo-border-emerald-200' : 'txtseo-bg-amber-100 txtseo-text-amber-700 txtseo-border txtseo-border-amber-200'}">
                             ${!isMonotonous ? 'Doğal İnsan Ritmi' : 'Monoton Akış'}
                         </span>
                     </div>
-                    <div class="space-y-2 text-xs">
-                        <div class="flex justify-between items-center text-slate-600">
+                    <div class="txtseo-space-y-2 txtseo-text-xs">
+                        <div class="txtseo-flex txtseo-justify-between txtseo-items-center txtseo-text-slate-600">
                             <span>Cümle Akıcılık Ritmi (Varyans):</span>
-                            <span class="font-bold text-slate-800">${burstiness} <span class="text-[10px] text-slate-400">(Değişkenlik: ${stdDev})</span></span>
+                            <span class="txtseo-font-bold txtseo-text-slate-800">${burstiness} <span class="txtseo-text-[10px] txtseo-text-slate-400">(Değişkenlik: ${stdDev})</span></span>
                         </div>
-                        <div class="flex justify-between items-center text-slate-600">
+                        <div class="txtseo-flex txtseo-justify-between txtseo-items-center txtseo-text-slate-600">
                             <span>25+ Kelimelik Ağır Cümleler:</span>
-                            <span class="font-bold ${longSentences > 0 ? 'text-amber-600' : 'text-emerald-600'}">${longSentences} adet</span>
+                            <span class="txtseo-font-bold ${longSentences > 0 ? 'txtseo-text-amber-600' : 'txtseo-text-emerald-600'}">${longSentences} adet</span>
                         </div>
-                        <div class="flex justify-between items-center text-slate-600">
+                        <div class="txtseo-flex txtseo-justify-between txtseo-items-center txtseo-text-slate-600">
                             <span>Okuması Zor Uzun Paragraf (>100 kelime):</span>
-                            <span class="font-bold ${monolithicCount > 0 ? 'text-rose-600' : 'text-emerald-600'}">${monolithicCount} blok</span>
+                            <span class="txtseo-font-bold ${monolithicCount > 0 ? 'txtseo-text-rose-600' : 'txtseo-text-emerald-600'}">${monolithicCount} blok</span>
                         </div>
                     </div>
                 </div>
 
                 <!-- SÜTUN 2: İSKELET & TARANABİLİRLİK -->
-                <div class="bg-gradient-to-br from-slate-50 to-white p-4 rounded-xl border border-slate-200/80 shadow-xs space-y-3">
-                    <div class="flex items-center justify-between border-b border-slate-100 pb-2">
-                        <span class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-                            <i class="ph ph-list-dashes text-blue-500 text-sm"></i> İçerik Düzeni ve Okunabilirlik
+                <div class="txtseo-bg-gradient-to-br txtseo-from-slate-50 txtseo-to-white txtseo-p-4 txtseo-rounded-xl txtseo-border txtseo-border-slate-200/80 txtseo-shadow-xs txtseo-space-y-3">
+                    <div class="txtseo-flex txtseo-items-center txtseo-justify-between txtseo-border-b txtseo-border-slate-100 txtseo-pb-2">
+                        <span class="txtseo-text-xs txtseo-font-bold txtseo-text-slate-700 txtseo-flex txtseo-items-center txtseo-gap-1.5">
+                            <i class="ph ph-list-dashes txtseo-text-blue-500 txtseo-text-sm"></i> İçerik Düzeni ve Okunabilirlik
                         </span>
-                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${isHierarchyValid ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' : 'bg-rose-100 text-rose-700 border border-rose-200'}">
+                        <span class="txtseo-text-[10px] txtseo-font-bold txtseo-px-2 txtseo-py-0.5 txtseo-rounded-full ${isHierarchyValid ? 'txtseo-bg-emerald-100 txtseo-text-emerald-700 txtseo-border txtseo-border-emerald-200' : 'txtseo-bg-rose-100 txtseo-text-rose-700 txtseo-border txtseo-border-rose-200'}">
                             ${isHierarchyValid ? 'Başlıklar Düzenli' : 'Başlık Sıralaması Hatalı'}
                         </span>
                     </div>
-                    <div class="space-y-2 text-xs">
-                        <div class="flex justify-between items-center text-slate-600">
+                    <div class="txtseo-space-y-2 txtseo-text-xs">
+                        <div class="txtseo-flex txtseo-justify-between txtseo-items-center txtseo-text-slate-600">
                             <span>Kullanılan Başlık Türleri:</span>
-                            <span class="font-bold text-slate-800">${h1Count} H1 • ${h2Count} H2 • ${h3Count} H3</span>
+                            <span class="txtseo-font-bold txtseo-text-slate-800">${h1Count} H1 • ${h2Count} H2 • ${h3Count} H3</span>
                         </div>
-                        <div class="flex justify-between items-center text-slate-600">
+                        <div class="txtseo-flex txtseo-justify-between txtseo-items-center txtseo-text-slate-600">
                             <span>Madde İmleri & Tablolar:</span>
-                            <span class="font-bold ${listCount > 0 ? 'text-emerald-600' : 'text-slate-500'}">${listCount} madde ${formatting.tables_count > 0 ? '+ Tablo' : ''}</span>
+                            <span class="txtseo-font-bold ${listCount > 0 ? 'txtseo-text-emerald-600' : 'txtseo-text-slate-500'}">${listCount} madde ${formatting.tables_count > 0 ? '+ Tablo' : ''}</span>
                         </div>
-                        <div class="flex justify-between items-center text-slate-600">
+                        <div class="txtseo-flex txtseo-justify-between txtseo-items-center txtseo-text-slate-600">
                             <span>Kalın (Bold) Yazılan Kelimeler:</span>
-                            <span class="font-bold ${boldRatio <= 3.5 ? 'text-emerald-600' : 'text-amber-600'}">%${boldRatio} <span class="text-[10px] text-slate-400">(İdeal: %1-%3)</span></span>
+                            <span class="txtseo-font-bold ${boldRatio <= 3.5 ? 'txtseo-text-emerald-600' : 'txtseo-text-amber-600'}">%${boldRatio} <span class="txtseo-text-[10px] txtseo-text-slate-400">(İdeal: %1-%3)</span></span>
                         </div>
                     </div>
                 </div>
 
                 <!-- SÜTUN 3: BİLGİ YOĞUNLUĞU & SÖZCÜK -->
-                <div class="bg-gradient-to-br from-slate-50 to-white p-4 rounded-xl border border-slate-200/80 shadow-xs space-y-3">
-                    <div class="flex items-center justify-between border-b border-slate-100 pb-2">
-                        <span class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-                            <i class="ph ph-brain text-purple-500 text-sm"></i> Net ve Faydalı Bilgi Yoğunluğu
+                <div class="txtseo-bg-gradient-to-br txtseo-from-slate-50 txtseo-to-white txtseo-p-4 txtseo-rounded-xl txtseo-border txtseo-border-slate-200/80 txtseo-shadow-xs txtseo-space-y-3">
+                    <div class="txtseo-flex txtseo-items-center txtseo-justify-between txtseo-border-b txtseo-border-slate-100 txtseo-pb-2">
+                        <span class="txtseo-text-xs txtseo-font-bold txtseo-text-slate-700 txtseo-flex txtseo-items-center txtseo-gap-1.5">
+                            <i class="ph ph-brain txtseo-text-purple-500 txtseo-text-sm"></i> Net ve Faydalı Bilgi Yoğunluğu
                         </span>
-                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${infoDensity >= 55 ? 'bg-purple-100 text-purple-700 border border-purple-200' : 'bg-amber-100 text-amber-700 border border-amber-200'}">
+                        <span class="txtseo-text-[10px] txtseo-font-bold txtseo-px-2 txtseo-py-0.5 txtseo-rounded-full ${infoDensity >= 55 ? 'txtseo-bg-purple-100 txtseo-text-purple-700 txtseo-border txtseo-border-purple-200' : 'txtseo-bg-amber-100 txtseo-text-amber-700 txtseo-border txtseo-border-amber-200'}">
                             %${infoDensity} Faydalı Bilgi
                         </span>
                     </div>
-                    <div class="space-y-2 text-xs">
-                        <div class="flex justify-between items-center text-slate-600">
+                    <div class="txtseo-space-y-2 txtseo-text-xs">
+                        <div class="txtseo-flex txtseo-justify-between txtseo-items-center txtseo-text-slate-600">
                             <span>Dolgu Kelime Kullanımı:</span>
-                            <span class="font-bold text-slate-800">%${stopwordRatio}</span>
+                            <span class="txtseo-font-bold txtseo-text-slate-800">%${stopwordRatio}</span>
                         </div>
-                        <div class="flex justify-between items-center text-slate-600">
+                        <div class="txtseo-flex txtseo-justify-between txtseo-items-center txtseo-text-slate-600">
                             <span>Kelime Zenginliği ve Çeşitliliği:</span>
-                            <span class="font-bold ${ttr >= 0.4 ? 'text-emerald-600' : 'text-amber-600'}">${ttr} <span class="text-[10px] text-slate-400">(${ttr >= 0.4 ? 'Zengin' : 'Tekrarlı'})</span></span>
+                            <span class="txtseo-font-bold ${ttr >= 0.4 ? 'txtseo-text-emerald-600' : 'txtseo-text-amber-600'}">${ttr} <span class="txtseo-text-[10px] txtseo-text-slate-400">(${ttr >= 0.4 ? 'Zengin' : 'Tekrarlı'})</span></span>
                         </div>
-                        <div class="flex justify-between items-center text-slate-600">
+                        <div class="txtseo-flex txtseo-justify-between txtseo-items-center txtseo-text-slate-600">
                             <span>Karakter / Hece Hacmi:</span>
-                            <span class="font-bold text-slate-800">${charCountWithSpaces.toLocaleString()} kr / ${syllableCount.toLocaleString()} hece</span>
+                            <span class="txtseo-font-bold txtseo-text-slate-800">${charCountWithSpaces.toLocaleString()} kr / ${syllableCount.toLocaleString()} hece</span>
                         </div>
                     </div>
                 </div>
 
                 <!-- SÜTUN 4: NİYET, TON & EYLEME ÇAĞRI -->
-                <div class="bg-gradient-to-br from-slate-50 to-white p-4 rounded-xl border border-slate-200/80 shadow-xs space-y-3">
-                    <div class="flex items-center justify-between border-b border-slate-100 pb-2">
-                        <span class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-                            <i class="ph ph-target text-amber-500 text-sm"></i> Uzman ve Güven Veren Anlatım Dili
+                <div class="txtseo-bg-gradient-to-br txtseo-from-slate-50 txtseo-to-white txtseo-p-4 txtseo-rounded-xl txtseo-border txtseo-border-slate-200/80 txtseo-shadow-xs txtseo-space-y-3">
+                    <div class="txtseo-flex txtseo-items-center txtseo-justify-between txtseo-border-b txtseo-border-slate-100 txtseo-pb-2">
+                        <span class="txtseo-text-xs txtseo-font-bold txtseo-text-slate-700 txtseo-flex txtseo-items-center txtseo-gap-1.5">
+                            <i class="ph ph-target txtseo-text-amber-500 txtseo-text-sm"></i> Uzman ve Güven Veren Anlatım Dili
                         </span>
-                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${tone === 'AUTHORITATIVE' ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' : (tone === 'HESITANT' ? 'bg-amber-100 text-amber-700 border border-amber-200' : 'bg-blue-100 text-blue-700 border border-blue-200')}">
+                        <span class="txtseo-text-[10px] txtseo-font-bold txtseo-px-2 txtseo-py-0.5 txtseo-rounded-full ${tone === 'AUTHORITATIVE' ? 'txtseo-bg-emerald-100 txtseo-text-emerald-700 txtseo-border txtseo-border-emerald-200' : (tone === 'HESITANT' ? 'txtseo-bg-amber-100 txtseo-text-amber-700 txtseo-border txtseo-border-amber-200' : 'txtseo-bg-blue-100 txtseo-text-blue-700 txtseo-border txtseo-border-blue-200')}">
                             ${tone === 'AUTHORITATIVE' ? 'Uzman ve Güvenilir' : (tone === 'HESITANT' ? 'Güvensiz İfadeler' : 'Dengeli ve Profesyonel')}
                         </span>
                     </div>
-                    <div class="space-y-2 text-xs">
-                        <div class="flex justify-between items-center text-slate-600">
+                    <div class="txtseo-space-y-2 txtseo-text-xs">
+                        <div class="txtseo-flex txtseo-justify-between txtseo-items-center txtseo-text-slate-600">
                             <span>Google'da En Çok Sorulan Sorular:</span>
-                            <span class="font-bold ${questionRatio > 0 ? 'text-emerald-600' : 'text-slate-500'}">%${questionRatio} Soru Cümlesi</span>
+                            <span class="txtseo-font-bold ${questionRatio > 0 ? 'txtseo-text-emerald-600' : 'txtseo-text-slate-500'}">%${questionRatio} Soru Cümlesi</span>
                         </div>
-                        <div class="flex justify-between items-center text-slate-600">
+                        <div class="txtseo-flex txtseo-justify-between txtseo-items-center txtseo-text-slate-600">
                             <span>Müşteriyi Harekete Geçiren Mesaj:</span>
-                            <span class="font-bold ${hasClosingCta ? 'text-emerald-600' : 'text-amber-600'}">${hasClosingCta ? 'Var (Son Bölümde)' : 'Bulunamadı'}</span>
+                            <span class="txtseo-font-bold ${hasClosingCta ? 'txtseo-text-emerald-600' : 'txtseo-text-amber-600'}">${hasClosingCta ? 'Var (Son Bölümde)' : 'Bulunamadı'}</span>
                         </div>
-                        <div class="flex justify-between items-center text-slate-600">
+                        <div class="txtseo-flex txtseo-justify-between txtseo-items-center txtseo-text-slate-600">
                             <span>İkna Edici ve Etkili Kelimeler:</span>
-                            <span class="font-bold text-slate-800">${powerWordsCount} adet tespit edildi</span>
+                            <span class="txtseo-font-bold txtseo-text-slate-800">${powerWordsCount} adet tespit edildi</span>
                         </div>
                     </div>
                 </div>
@@ -930,8 +931,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const newToggleBtn = toggleBtn.cloneNode(true);
             toggleBtn.parentNode.replaceChild(newToggleBtn, toggleBtn);
             newToggleBtn.addEventListener('click', () => {
-                const isHidden = xrayPanel.classList.toggle('hidden');
-                document.getElementById('xrayChevron').classList.toggle('rotate-180', !isHidden);
+                const isHidden = xrayPanel.classList.toggle('txtseo-hidden');
+                document.getElementById('xrayChevron').classList.toggle('txtseo-rotate-180', !isHidden);
             });
         }
     }

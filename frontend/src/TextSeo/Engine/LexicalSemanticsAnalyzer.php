@@ -10,7 +10,7 @@ class LexicalSemanticsAnalyzer {
     }
 
     public function analyze(): array {
-        $words = array_map(fn($w) => TextCleaner::trToLower($w), $this->cleaner->getWords());
+        $words = array_map(fn($w) => mb_strtolower($w, 'UTF-8'), $this->cleaner->getWords());
         $sentences = $this->cleaner->getSentences();
         
         $wordCount = count($words);
@@ -59,7 +59,7 @@ class LexicalSemanticsAnalyzer {
                 preg_match_all($w1hRegex, $s, $m);
                 if (!empty($m[0])) {
                     foreach ($m[0] as $match) {
-                        $w1hPatternsMatches[] = TextCleaner::trToLower($match);
+                        $w1hPatternsMatches[] = mb_strtolower($match, 'UTF-8');
                     }
                 }
             }

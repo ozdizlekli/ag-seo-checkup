@@ -35,7 +35,7 @@ class IntentEngagementAnalyzer {
         $powerWordsList = ["kanıtlanmış", "eksiksiz", "devrim niteliğinde", "adım adım", "kesin", "garanti", "profesyonel", "kritik", "gizli", "ücretsiz", "kapsamlı", "başarılı", "ipuçları", "önemlidir"];
         $powerWordsCount = 0;
         $powerWordsSample = [];
-        $cleanTextLower = TextCleaner::trToLower($this->cleaner->getCleanText());
+        $cleanTextLower = mb_strtolower($this->cleaner->getCleanText(), 'UTF-8');
         
         foreach ($powerWordsList as $pw) {
             $count = mb_substr_count($cleanTextLower, $pw);

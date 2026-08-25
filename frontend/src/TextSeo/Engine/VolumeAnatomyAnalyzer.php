@@ -8,7 +8,7 @@ class VolumeAnatomyAnalyzer {
 
     public function __construct(TextCleaner $cleaner, ?string $targetKeyword = null) {
         $this->cleaner = $cleaner;
-        $this->targetKeyword = $targetKeyword ? TextCleaner::trToLower($targetKeyword) : null;
+        $this->targetKeyword = $targetKeyword ? mb_strtolower($targetKeyword, 'UTF-8') : null;
     }
 
     public function analyze(): array {
@@ -185,13 +185,13 @@ class VolumeAnatomyAnalyzer {
             $hasTarget = false;
             $earlyPositioned = false;
             if ($this->targetKeyword) {
-                $hTextLower = TextCleaner::trToLower($h['text']);
+                $hTextLower = mb_strtolower($h['text'], 'UTF-8');
                 if (mb_strpos($hTextLower, $this->targetKeyword) !== false) {
                     $hasTarget = true;
                     $kwParts = explode(' ', $this->targetKeyword);
                     preg_match_all('/\p{L}+[\p{L}\p{Mn}\p{Pd}\'\’\p{N}]*/u', $h['text'], $hw);
                     $first3Words = implode(' ', array_slice($hw[0] ?? [], 0, 3));
-                    if (mb_strpos(TextCleaner::trToLower($first3Words), $kwParts[0]) !== false) {
+                    if (mb_strpos(mb_strtolower($first3Words, 'UTF-8'), $kwParts[0]) !== false) {
                         $earlyPositioned = true;
                     }
                 }

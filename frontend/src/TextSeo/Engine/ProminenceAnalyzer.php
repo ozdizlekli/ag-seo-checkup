@@ -11,8 +11,8 @@ class ProminenceAnalyzer {
     public function __construct(TextCleaner $cleaner, array $headingsData, ?string $targetKeyword = null, array $secondaryKeywords = []) {
         $this->cleaner = $cleaner;
         $this->headingsData = $headingsData;
-        $this->targetKeyword = $targetKeyword ? TextCleaner::trToLower($targetKeyword) : null;
-        $this->secondaryKeywords = array_map(fn($k) => TextCleaner::trToLower($k), $secondaryKeywords);
+        $this->targetKeyword = $targetKeyword ? mb_strtolower($targetKeyword, 'UTF-8') : null;
+        $this->secondaryKeywords = array_map(fn($k) => mb_strtolower($k, 'UTF-8'), $secondaryKeywords);
     }
 
     public function analyze(): array {
@@ -21,7 +21,7 @@ class ProminenceAnalyzer {
         $sentences = $this->cleaner->getSentences();
 
         $first100Words = array_slice($words, 0, 100);
-        $first100Text = TextCleaner::trToLower(implode(' ', $first100Words));
+        $first100Text = mb_strtolower(implode(' ', $first100Words), 'UTF-8');
         
         $containsTarget100 = false;
         $firstOccurenceIndex = -1;
@@ -32,7 +32,7 @@ class ProminenceAnalyzer {
             if ($containsTarget100) {
                 $kwParts = explode(' ', $this->targetKeyword);
                 foreach ($first100Words as $idx => $w) {
-                    if (TextCleaner::trToLower($w) === $kwParts[0]) {
+                    if (mb_strtolower($w, 'UTF-8') === $kwParts[0]) {
                         $firstOccurenceIndex = $idx;
                         break;
                     }
@@ -44,7 +44,7 @@ class ProminenceAnalyzer {
         $lastParagraphText = '';
         if (!empty($paragraphs)) {
             $lastParagraph = end($paragraphs);
-            $lastParagraphText = TextCleaner::trToLower($lastParagraph['clean']);
+            $lastParagraphText = mb_strtolower($lastParagraph['clean'], 'UTF-8');
         }
 
         $lastParagraphContainsTarget = $this->targetKeyword && mb_strpos($lastParagraphText, $this->targetKeyword) !== false;
@@ -73,7 +73,7 @@ class ProminenceAnalyzer {
                 if ($h['has_target_keyword']) {
                     $h1HasKeyword = true;
                     $kwParts = explode(' ', $this->targetKeyword);
-                    $hWords = explode(' ', TextCleaner::trToLower($h['text']));
+                    $hWords = explode(' ', mb_strtolower($h['text'], 'UTF-8'));
                     foreach ($hWords as $idx => $w) {
                         if ($w === $kwParts[0]) {
                             $h1Index = $idx;
@@ -86,7 +86,7 @@ class ProminenceAnalyzer {
                 if ($h['has_target_keyword']) {
                     $h2WithKeywordCount++;
                 } else {
-                    $h2Lower = TextCleaner::trToLower($h['text']);
+                    $h2Lower = mb_strtolower($h['text'], 'UTF-8');
                     foreach ($this->secondaryKeywords as $sk) {
                         if (mb_strpos($h2Lower, $sk) !== false) {
                             $h2WithKeywordCount++;
@@ -104,7 +104,7 @@ class ProminenceAnalyzer {
 
         if ($this->targetKeyword) {
             foreach ($sentences as $sentence) {
-                $sLower = TextCleaner::trToLower($sentence);
+                $sLower = mb_strtolower($sentence, 'UTF-8');
                 $pos = mb_strpos($sLower, $this->targetKeyword);
                 if ($pos !== false) {
                     $totalOccurrences++;

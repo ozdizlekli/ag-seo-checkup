@@ -9,13 +9,13 @@ class KeywordFrequencyAnalyzer {
 
     public function __construct(TextCleaner $cleaner, ?string $targetKeyword = null, array $secondaryKeywords = []) {
         $this->cleaner = $cleaner;
-        $this->targetKeyword = $targetKeyword ? TextCleaner::trToLower($targetKeyword) : null;
-        $this->secondaryKeywords = array_map(fn($k) => TextCleaner::trToLower($k), $secondaryKeywords);
+        $this->targetKeyword = $targetKeyword ? mb_strtolower($targetKeyword, 'UTF-8') : null;
+        $this->secondaryKeywords = array_map(fn($k) => mb_strtolower($k, 'UTF-8'), $secondaryKeywords);
     }
 
     public function analyze(): array {
-        $words = array_map(fn($w) => TextCleaner::trToLower($w), $this->cleaner->getWords());
-        $cleanText = TextCleaner::trToLower($this->cleaner->getCleanText());
+        $words = array_map(fn($w) => mb_strtolower($w, 'UTF-8'), $this->cleaner->getWords());
+        $cleanText = mb_strtolower($this->cleaner->getCleanText(), 'UTF-8');
         $wordCount = count($words);
 
         $stopwords = ["ve", "veya", "ama", "fakat", "lakin", "ancak", "için", "ile", "de", "da", "ki", "bir", "bu", "şu", "o", "mı", "mi", "mu", "mü", "çok", "daha", "en", "kadar", "gibi", "göre", "dolayı", "rağmen", "karşın", "yerine", "hakkında", "dair", "ait"];

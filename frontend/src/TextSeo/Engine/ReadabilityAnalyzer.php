@@ -57,13 +57,12 @@ class ReadabilityAnalyzer {
         $transitionFeedback = $this->getTransitionWordsFeedback($transitionRatio);
 
         // Passive Voice
-        $passiveRegexDoc = '/\b\p{L}+(ıl|il|ul|ül|ın|in|un|ün|n)(dı|mıştır|maktadır|mektedir)\b/u';
+        $passiveRegexDoc = '/\b\p{L}+(ıl|il|ul|ül|ın|in|un|ün|n)(dı|di|du|dü|tı|ti|tu|tü)|\b\p{L}+(ıl|il|ul|ül|ın|in|un|ün|n)(mış|miş|muş|müş)(tır|tir|tur|tür)?/ui';
         $passiveSentencesCount = 0;
         $passiveSentenceIndexes = [];
         
         foreach ($sentences as $index => $sentence) {
-            $lowerSentence = TextCleaner::trToLower($sentence);
-            if (preg_match($passiveRegexDoc, $lowerSentence)) {
+            if (preg_match($passiveRegexDoc, $sentence)) {
                 $passiveSentencesCount++;
                 $passiveSentenceIndexes[] = $index;
             }

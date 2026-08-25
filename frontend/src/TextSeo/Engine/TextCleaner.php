@@ -114,10 +114,6 @@ class TextCleaner {
         }
     }
 
-    public static function trToLower(string $text): string {
-        return mb_strtolower(str_replace(['I', 'İ'], ['ı', 'i'], $text), 'UTF-8');
-    }
-
     public function countSyllables(string $word): int {
         preg_match_all('/[aeıioöuüâîûAEIİOÖUÜÂÎÛ]/u', $word, $matches);
         $count = count($matches[0] ?? []);
