@@ -387,6 +387,8 @@ function initOrUpdateCharts(data) {
   // 1. Genel Sağlık (Doughnut)
   const ctxOverall = document.getElementById('chart-overall-health');
   if (ctxOverall) {
+      const placeholder = document.getElementById('chart-overall-health-placeholder');
+      if (placeholder) placeholder.style.display = 'none';
       if (overallHealthChart) overallHealthChart.destroy();
       overallHealthChart = new Chart(ctxOverall, {
           type: 'doughnut',
@@ -394,7 +396,7 @@ function initOrUpdateCharts(data) {
               labels: ['Güven Skoru', 'Eksik'],
               datasets: [{
                   data: [trustScore, 100 - trustScore],
-                  backgroundColor: ['#10b981', '#e2e8f0'],
+                  backgroundColor: ['#475569', '#e2e8f0'],
                   borderWidth: 0
               }]
           },
@@ -409,6 +411,8 @@ function initOrUpdateCharts(data) {
   // 2. E-E-A-T Radar
   const ctxEeat = document.getElementById('chart-eeat');
   if (ctxEeat && chartsData.eeat_radar) {
+      const eeatPlaceholder = document.getElementById('chart-eeat-placeholder');
+      if (eeatPlaceholder) eeatPlaceholder.style.display = 'none';
       if (eeatChart) eeatChart.destroy();
       
       let eeat = chartsData.eeat_radar;
@@ -465,6 +469,8 @@ function initOrUpdateCharts(data) {
       const comp = chartsData.competitor_comparison;
       document.getElementById('battle-chart-container').style.display = 'block';
       const ctxB = document.getElementById('chart-battle');
+      const battlePlaceholder = document.getElementById('chart-battle-placeholder');
+      if (battlePlaceholder) battlePlaceholder.style.display = 'none';
       if (ctxB) {
           if (battleChart) battleChart.destroy();
           battleChart = new Chart(ctxB, {
@@ -486,8 +492,18 @@ function resetChat(loadFromHistory = null) {
   const dbView = document.getElementById('ai-seo-dashboard-view');
   const actionView = document.getElementById('copilot-action-view');
   if (dbView && actionView) {
-      dbView.style.display = 'none'; 
-      actionView.style.display = 'flex';
+      if (loadFromHistory) {
+          // Loading a history item → show chat view
+          dbView.style.display = 'none'; 
+          actionView.style.display = 'flex';
+      } else if (actionView.style.display === 'flex' || actionView.style.display === 'block') {
+          // Already in action view (e.g. "Yeni Sohbet" clicked) → stay in action view
+          // Do nothing to view visibility
+      } else {
+          // Called at page load → show dashboard
+          dbView.style.display = 'block'; 
+          actionView.style.display = 'none';
+      }
   }
   if (loadFromHistory) {
     currentChatId = loadFromHistory.chatId;
@@ -537,8 +553,7 @@ function resetChat(loadFromHistory = null) {
     if (copilotSaveBtn) {
       copilotSaveBtn.innerHTML = `✓ Kayıtlı`;
       copilotSaveBtn.style.opacity = '0.5';
-      copilotSaveBtn.style.cursor = 'not-allowed';
-      copilotSaveBtn.onclick = function(e){ e.preventDefault(); return false; };
+      copilotSaveBtn.style.pointerEvents = 'none';
     }
     renderAiSeoActions();
   if (typeof updateActiveHistoryItem === 'function') updateActiveHistoryItem();
@@ -576,13 +591,11 @@ function resetChat(loadFromHistory = null) {
   copilotTextInput.focus();
   
   if (copilotSaveBtn) {
-    copilotSaveBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg> Kaydet`;
+    copilotSaveBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px;"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg> Kaydet`;
     copilotSaveBtn.style.opacity = '1';
     copilotSaveBtn.style.cursor = 'pointer';
-    copilotSaveBtn.onclick = window.saveChatHistory; // Restore normal click if we overwrote it. Wait, the original just uses addEventListener.
-    // If it uses addEventListener, overriding onclick in the other block might not prevent addEventListener from firing.
-    // Let's just use pointer-events: none;
     copilotSaveBtn.style.pointerEvents = 'auto';
+    copilotSaveBtn.onclick = null;
   }
   renderAiSeoActions();
   if (typeof updateActiveHistoryItem === 'function') updateActiveHistoryItem();
