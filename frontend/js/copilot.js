@@ -240,7 +240,7 @@ document.addEventListener('DOMContentLoaded', () => {
               cleanText = aiText.replace(jsonMatch[0], '').trim(); // Remove JSON from chat
           } else {
               // Try finding JSON block at the very end if no backticks
-              const fallbackMatch = aiText.match(/\{[\s\S]*"genel_skor"[\s\S]*\}$/);
+              const fallbackMatch = aiText.match(/\{[\s\S]*"trust_score"[\s\S]*\}$/);
               if (fallbackMatch) {
                   chartData = JSON.parse(fallbackMatch[0]);
                   cleanText = aiText.replace(fallbackMatch[0], '').trim();
@@ -276,7 +276,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-    window.renderDashboard = function() {
+        window.renderDashboard = function() {
       const history = window.agChatHistory || [];
       const totalAnalyses = history.length;
       
@@ -287,13 +287,31 @@ document.addEventListener('DOMContentLoaded', () => {
       history.forEach(h => {
          if (h.messages) {
             const msgs = JSON.stringify(h.messages).toLowerCase();
-            if (msgs.includes('rakip') || msgs.includes('battle')) battleCount++;
-         }
-         // Pseudo-EEAT from steps (if step 4 is completed, we assume a score of 70-95 based on fixed issues)
-         if (h.completedSteps && h.completedSteps.includes("4") || h.completedSteps && h.completedSteps.includes(4)) {
-             const fixes = h.fixedIssues ? h.fixedIssues.length : 0;
-             totalEEAT += 70 + (fixes * 4);
-             eeatCount++;
+            if (msgs.includes('rakip') || msgs.includes('battle') || msgs.includes('competitor_comparison')) battleCount++;
+            
+            // Try to extract real EEAT score from JSON blocks in history
+            h.messages.forEach(msg => {
+                if (msg.sender === 'ai' && msg.text) {
+                    try {
+                        const jsonMatch = msg.text.match(/<div class="ai-raw-json" style="display:none;">```json\s*(\{[\s\S]*?\})\s*```<\/div>/);
+                        if (jsonMatch) {
+                            const data = JSON.parse(jsonMatch[1]);
+                            let charts = data.charts_data || data;
+                            if (charts.eeat_radar) {
+                                let exp = charts.eeat_radar.experience || 0;
+                                let expt = charts.eeat_radar.expertise || 0;
+                                let auth = charts.eeat_radar.authoritativeness || 0;
+                                let trust = charts.eeat_radar.trustworthiness || 0;
+                                let avg = (exp + expt + auth + trust) / 4;
+                                if (avg > 0) {
+                                    totalEEAT += avg;
+                                    eeatCount++;
+                                }
+                            }
+                        }
+                    } catch(e) {}
+                }
+            });
          }
       });
 
@@ -518,7 +536,7 @@ function resetChat(loadFromHistory = null) {
       if (llmsC) llmsC.style.display = 'none';
       const msgContainer = document.getElementById('copilot-chat-messages-container');
       if (msgContainer) msgContainer.style.display = 'block';
-      if (msgContainer) msgContainer.innerHTML = '';
+      if (msgContainer) { msgContainer.innerHTML = ''; addMessage('👋 Merhaba! Ben GEO SEO Asistanı. Analiz etmek istediğiniz sayfanın URL\'sini yapıştırarak başlayabilirsiniz.', 'ai'); }
       chatMessages.forEach(msg => { addMessage(msg.text, msg.sender, msg.isHtml, false); if (msg.sender === 'ai') { try { const jsonMatch = msg.text.match(/<div class="ai-raw-json" style="display:none;">```json\s*(\{[\s\S]*?\})\s*```<\/div>/); if (jsonMatch) { const chartData = JSON.parse(jsonMatch[1]); initOrUpdateCharts(chartData); } } catch(e){} } });
       
       copilotInputArea.style.display = "none"; const cqa = document.getElementById("copilot-quick-actions"); if(cqa) cqa.style.display = "none";
@@ -553,7 +571,7 @@ function resetChat(loadFromHistory = null) {
     
 
 
-    if (msgContainer) msgContainer.innerHTML = '';
+    if (msgContainer) { msgContainer.innerHTML = ''; addMessage('👋 Merhaba! Ben GEO SEO Asistanı. Analiz etmek istediğiniz sayfanın URL\'sini yapıştırarak başlayabilirsiniz.', 'ai'); }
     if (typeof renderDashboard === 'function') { if(typeof window.renderDashboard === 'function') window.renderDashboard(); }
     
     copilotActions.innerHTML = '';
@@ -630,7 +648,7 @@ function resetChat(loadFromHistory = null) {
               cleanText = aiText.replace(jsonMatch[0], '').trim(); // Remove JSON from chat
           } else {
               // Try finding JSON block at the very end if no backticks
-              const fallbackMatch = aiText.match(/\{[\s\S]*"genel_skor"[\s\S]*\}$/);
+              const fallbackMatch = aiText.match(/\{[\s\S]*"trust_score"[\s\S]*\}$/);
               if (fallbackMatch) {
                   chartData = JSON.parse(fallbackMatch[0]);
                   cleanText = aiText.replace(fallbackMatch[0], '').trim();
@@ -924,7 +942,7 @@ Son olarak, önceki 4 adımda çıkardığın tüm analizleri (İş bağlamı, k
               cleanText = aiText.replace(jsonMatch[0], '').trim(); // Remove JSON from chat
           } else {
               // Try finding JSON block at the very end if no backticks
-              const fallbackMatch = aiText.match(/\{[\s\S]*"genel_skor"[\s\S]*\}$/);
+              const fallbackMatch = aiText.match(/\{[\s\S]*"trust_score"[\s\S]*\}$/);
               if (fallbackMatch) {
                   chartData = JSON.parse(fallbackMatch[0]);
                   cleanText = aiText.replace(fallbackMatch[0], '').trim();
@@ -1130,6 +1148,8 @@ Son olarak, önceki 4 adımda çıkardığın tüm analizleri (İş bağlamı, k
     try {
       const res = await fetch('save_chat.php?t=' + Date.now());
       const data = await res.json();
+      window.agChatHistory = data.history || [];
+      if(typeof window.renderDashboard === 'function') window.renderDashboard();
       historyList.innerHTML = '';
       if (!data.history || data.history.length === 0) {
         historyList.innerHTML = '<p class="empty-note">Henüz geçmiş sohbet yok.</p>';
@@ -1674,8 +1694,8 @@ window.openLlmsGenerator = function() {
   });
 window.startNewAnalysisFromDashboard = function() {
     document.getElementById('ai-seo-dashboard-view').style.display = 'none';
-    document.getElementById('copilot-action-view').style.display = 'block';
+    document.getElementById('copilot-action-view').style.display = 'flex';
     
-    document.getElementById('copilot-chat-messages-container').innerHTML = emptyStateHtml;
+    resetChat(null);
     document.getElementById('copilot-text-input').focus();
 };
