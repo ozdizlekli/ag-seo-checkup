@@ -309,7 +309,7 @@ details.seo-details .details-content {
   background: #eff6ff;
   border-color: #bfdbfe;
 }
-.has-tooltip { position: relative; cursor: help; }
+.has-tooltip { position: relative; cursor: pointer; }
 
 
 .quick-action-btn { display: inline-flex; align-items: center; justify-content: center; white-space: nowrap; flex-shrink: 0; }
@@ -341,7 +341,7 @@ body.client-presentation-mode .copilot-messages { font-size: 1.1em; }
 input:checked + .slider { background-color: #3b82f6; }
 input:checked + .slider:before { transform: translateX(14px); }
 
-.quick-actions { overflow-x: auto; }
+.quick-actions { overflow-x: auto; padding-top: 45px; margin-top: -45px; }
 
 
 /* Info Tooltip */
