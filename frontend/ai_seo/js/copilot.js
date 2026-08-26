@@ -549,11 +549,17 @@ function resetChat(loadFromHistory = null, forceActionView = false) {
     const llmsC = document.getElementById('copilot-llms-container');
     if (llmsC) llmsC.style.display = 'none';
     const msgContainer = document.getElementById('copilot-chat-messages-container');
-    if (msgContainer) msgContainer.style.display = 'block';
+    if (msgContainer) { 
+        msgContainer.style.display = 'flex'; 
+        msgContainer.style.flexDirection = 'column'; 
+        msgContainer.style.flex = '1'; 
+        msgContainer.style.overflowY = 'auto'; 
+        msgContainer.style.paddingTop = '16px'; 
+    }
     if (msgContainer) { try { msgContainer.replaceChildren(); } catch(e) { msgContainer.innerHTML = ''; } }
     chatMessages.forEach(msg => { addMessage(msg.text, msg.sender, msg.isHtml, false); if (msg.sender === 'ai') { try { const jsonMatch = msg.text.match(/<div class="ai-raw-json" style="display:none;">```json\s*(\{[\s\S]*?\})\s*```<\/div>/); if (jsonMatch) { const chartData = JSON.parse(jsonMatch[1]); initOrUpdateCharts(chartData); } } catch(e){} } });
     
-    copilotInputArea.style.display = "none"; const cqa = document.getElementById("copilot-quick-actions"); if(cqa) cqa.style.display = "none";
+    copilotInputArea.style.display = "none"; const cqa = document.getElementById("copilot-quick-actions"); if(cqa) cqa.style.display = "flex";
     renderAiSeoActions();
     
     if (copilotSaveBtn) {
@@ -592,13 +598,25 @@ function resetChat(loadFromHistory = null, forceActionView = false) {
   const llmsC = document.getElementById('copilot-llms-container');
   if (llmsC) llmsC.style.display = 'none';
   const msgContainer = document.getElementById('copilot-chat-messages-container');
-  if (msgContainer) { msgContainer.style.display = 'block'; msgContainer.style.flex = '0'; msgContainer.style.minHeight = '100px'; }
-  
+  if (msgContainer) { 
+      msgContainer.style.display = 'flex'; 
+      msgContainer.style.flexDirection = 'column';
+      msgContainer.style.flex = '1'; 
+      msgContainer.style.overflowY = 'auto';
+      msgContainer.style.paddingTop = '16px';
+  }
 
 
   if (msgContainer) { 
-      try { msgContainer.replaceChildren(); } catch(e) { msgContainer.innerHTML = ''; }
-      addMessage('👋 Merhaba! Ben GEO SEO Asistanı. Analiz etmek istediğiniz sayfanın URL\'sini yapıştırarak başlayabilirsiniz.', 'ai'); 
+    try { msgContainer.replaceChildren(); } catch(e) { msgContainer.innerHTML = ''; }
+    msgContainer.innerHTML = `
+    <div class="copilot-empty-state" style="display: flex; align-items: center; justify-content: flex-start; padding: 20px; text-align: left; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; margin-top: 20px; width: 100%;">
+        <span style="font-size: 24px; margin-right: 12px;">👋</span>
+        <div>
+           <h3 style="font-size: 15px; font-weight: 600; color: #0f172a; margin: 0 0 4px 0;">Merhaba! Ben GEO SEO Asistanı.</h3>
+           <p style="color: #64748b; font-size: 13px; margin: 0;">Analiz etmek istediğiniz sayfanın URL'sini aşağıdaki kutuya yapıştırarak başlayabilirsiniz.</p>
+        </div>
+    </div>`;
   }
   if (typeof window.renderDashboard === 'function') { window.renderDashboard(); }
   
@@ -651,8 +669,14 @@ async function handleSend() {
     targetUrl = val;
     currentState = 'WAITING_FOR_TYPE';
     const msgContainer = document.getElementById('copilot-chat-messages-container');
-    if (msgContainer) { msgContainer.style.flex = '1'; msgContainer.style.minHeight = '200px'; }
-    copilotInputArea.style.display = "none"; const cqa = document.getElementById("copilot-quick-actions"); if(cqa) cqa.style.display = "none";
+    if (msgContainer) { 
+    msgContainer.style.display = 'flex'; 
+    msgContainer.style.flexDirection = 'column'; 
+    msgContainer.style.flex = '1'; 
+    msgContainer.style.overflowY = 'auto'; 
+    msgContainer.style.paddingTop = '16px'; 
+    }
+    copilotInputArea.style.display = "none"; const cqa = document.getElementById("copilot-quick-actions"); if(cqa) cqa.style.display = "flex";
     addMessage("Harika! Bu sayfa hangi kategoride yer alıyor? (Hizmet mi, yoksa ürün sattığınız bir E-Ticaret sayfası mı?)", 'ai');
     
     copilotActions.innerHTML = `
@@ -748,6 +772,8 @@ async function startUrlFetch() {
 
 
     addMessage(`Şimdi ${targetType} sitenize özel 5 adımlı analiz sürecini başlatabiliriz.`, 'ai', true);
+    const cqa = document.getElementById('copilot-quick-actions'); 
+    if(cqa) cqa.style.display = 'flex';
     renderAiSeoActions();
   } catch (e) {
     removeTypingIndicator();
@@ -759,6 +785,12 @@ async function startUrlFetch() {
 function renderAiSeoActions() {
   updateProgressUI(currentStep);
   window.renderDynamicQuickActions();
+
+  // Yeşil butonların konteynerini sadece URL varsa göster
+  const llmsContainer = document.getElementById('copilot-llms-container');
+  if (llmsContainer && targetUrl !== '') {
+      llmsContainer.style.display = 'flex';
+  }
   let nextStep = 1;
   while(completedSteps.has(nextStep) && nextStep <= 5) { nextStep++; }
   
