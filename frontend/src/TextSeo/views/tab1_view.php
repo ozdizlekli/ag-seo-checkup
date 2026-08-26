@@ -81,7 +81,7 @@
             </div>
             <div class="txtseo-flex txtseo-items-center txtseo-gap-4">
                 <!-- Gauge -->
-                <div class="txtseo-flex txtseo-items-center txtseo-gap-3 txtseo-bg-white txtseo-px-4 txtseo-py-2 txtseo-rounded-lg txtseo-shadow-sm txtseo-border txtseo-border-gray-100">
+                <div id="healthScoreCard" class="txtseo-flex txtseo-items-center txtseo-gap-3 txtseo-bg-white txtseo-px-4 txtseo-py-2 txtseo-rounded-lg txtseo-shadow-sm txtseo-border txtseo-border-gray-100 txtseo-cursor-pointer txtseo-hover-shadow-md txtseo-transition txtseo-group" title="Puan detayları ve dağılımını görmek için tıklayın">
                     <div class="txtseo-relative txtseo-w-12 txtseo-h-12">
                         <svg class="txtseo-w-full txtseo-h-full" viewBox="0 0 36 36">
                             <path class="txtseo-text-gray-200" stroke-width="3" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
@@ -91,11 +91,8 @@
                             <span id="healthScoreText" class="txtseo-font-bold txtseo-text-sm">75</span>
                         </div>
                     </div>
-                    <div class="txtseo-flex txtseo-items-center txtseo-gap-1">
-                        <div class="txtseo-text-sm txtseo-font-semibold">SEO Skoru</div>
-                        <button type="button" id="scoreInfoBtn" class="txtseo-text-gray-400 txtseo-hover-text-primary txtseo-transition txtseo-p-2 txtseo-rounded-full txtseo-hover-bg-gray-100" title="Bu skor nasıl hesaplanıyor?">
-                            <i class="ph ph-info txtseo-text-base"></i>
-                        </button>
+                    <div class="txtseo-flex txtseo-items-center txtseo-gap-2">
+                        <div class="txtseo-text-sm txtseo-font-semibold txtseo-text-gray-800 txtseo-group-hover-text-primary txtseo-transition">SEO Skoru</div>
                     </div>
                 </div>
                 <button id="downloadPdfBtn" class="txtseo-bg-white txtseo-hover-bg-gray-50 txtseo-text-gray-700 txtseo-border txtseo-border-gray-200 txtseo-px-4 txtseo-py-2_5 txtseo-rounded-lg txtseo-shadow-sm txtseo-transition txtseo-flex txtseo-items-center txtseo-gap-2 txtseo-font-medium txtseo-text-sm">
@@ -341,55 +338,103 @@
                 <div class="txtseo-w-8 txtseo-h-8 txtseo-rounded-full txtseo-bg-blue-100 txtseo-flex txtseo-items-center txtseo-justify-center txtseo-text-primary">
                     <i class="ph ph-chart-donut txtseo-text-lg"></i>
                 </div>
-                <h3 class="txtseo-text-base txtseo-font-bold txtseo-text-gray-900">SEO Skoru Nasıl Hesaplanıyor?</h3>
+                <h3 class="txtseo-text-base txtseo-font-bold txtseo-text-gray-900">SEO Skoru Karnesi</h3>
             </div>
             <button id="closeScoreInfoModalBtn" class="txtseo-text-gray-400 txtseo-hover-text-gray-600 txtseo-p-2 txtseo-rounded-lg txtseo-hover-bg-gray-100 txtseo-text-lg">
                 <i class="ph ph-x"></i>
             </button>
         </div>
         
-        <p class="txtseo-text-xs txtseo-text-gray-500 txtseo-mb-4">Metninizin SEO uyumu 5 temel kritere göre 100 üzerinden değerlendirilir:</p>
+        <div id="modalScoreSummary" class="txtseo-hidden txtseo-mb-4 txtseo-p-3 txtseo-rounded-xl txtseo-border txtseo-flex txtseo-justify-between txtseo-items-center">
+            <div>
+                <div class="txtseo-text-xs txtseo-text-gray-500 txtseo-font-medium">Genel Değerlendirme</div>
+                <div class="txtseo-text-lg txtseo-font-bold txtseo-text-gray-900" id="modalTotalScoreText">Toplam Skor: 0 / 100</div>
+            </div>
+            <div id="modalScoreStatusBadge" class="txtseo-text-xs txtseo-font-bold txtseo-px-3 txtseo-py-1_5 txtseo-rounded-lg"></div>
+        </div>
+
+        <p class="txtseo-text-xs txtseo-text-gray-500 txtseo-mb-4" id="scoreModalDesc">Metninizin SEO uyumu 5 temel kritere göre 100 üzerinden değerlendirilir:</p>
 
         <!-- 5 Puanlama Sütunu -->
-        <div class="txtseo-space-y-2_5 txtseo-mb-5">
-            <div class="txtseo-p-2_5 txtseo-bg-gray-50 txtseo-rounded-xl txtseo-border txtseo-border-gray-100 txtseo-flex txtseo-justify-between txtseo-items-center">
-                <div>
+        <div class="txtseo-space-y-2_5 txtseo-mb-5" id="scoreBreakdownContainer">
+            <div class="txtseo-p-2_5 txtseo-bg-gray-50 txtseo-rounded-xl txtseo-border txtseo-border-gray-100 txtseo-flex txtseo-justify-between txtseo-items-center" id="scoreCat1">
+                <div class="txtseo-w-2/3">
                     <div class="txtseo-text-xs txtseo-font-bold txtseo-text-gray-800">1. Anahtar Kelime Uyumu</div>
                     <div class="txtseo-text-[11px] txtseo-text-gray-500">Kelime yoğunluğu ve başlık kullanımları değerlendirilir.</div>
                 </div>
-                <span class="txtseo-text-xs txtseo-font-bold txtseo-text-primary txtseo-bg-blue-50 txtseo-px-2 txtseo-py-1 txtseo-rounded-lg">25 Puan</span>
+                <div class="txtseo-flex txtseo-flex-col txtseo-items-end txtseo-gap-1 txtseo-w-1/3">
+                    <div class="txtseo-flex txtseo-items-center txtseo-gap-1_5">
+                        <span class="txtseo-text-[10px] txtseo-font-bold txtseo-text-red-500 txtseo-missing-score txtseo-hidden"></span>
+                        <span class="txtseo-text-xs txtseo-font-bold txtseo-px-2 txtseo-py-1 txtseo-rounded-lg txtseo-badge-score">Maks. 25 Puan</span>
+                    </div>
+                    <div class="txtseo-w-full txtseo-bg-gray-200 txtseo-rounded-full txtseo-h-1.5 txtseo-mt-1 txtseo-hidden txtseo-progress-bar-container">
+                        <div class="txtseo-h-1.5 txtseo-rounded-full txtseo-progress-bar" style="width: 0%"></div>
+                    </div>
+                </div>
             </div>
 
-            <div class="txtseo-p-2_5 txtseo-bg-gray-50 txtseo-rounded-xl txtseo-border txtseo-border-gray-100 txtseo-flex txtseo-justify-between txtseo-items-center">
-                <div>
+            <div class="txtseo-p-2_5 txtseo-bg-gray-50 txtseo-rounded-xl txtseo-border txtseo-border-gray-100 txtseo-flex txtseo-justify-between txtseo-items-center" id="scoreCat2">
+                <div class="txtseo-w-2/3">
                     <div class="txtseo-text-xs txtseo-font-bold txtseo-text-gray-800">2. Okunabilirlik</div>
                     <div class="txtseo-text-[11px] txtseo-text-gray-500">Cümle yapısı, karmaşık kelimeler ve metnin akıcılığı ölçülür.</div>
                 </div>
-                <span class="txtseo-text-xs txtseo-font-bold txtseo-text-primary txtseo-bg-blue-50 txtseo-px-2 txtseo-py-1 txtseo-rounded-lg">25 Puan</span>
+                <div class="txtseo-flex txtseo-flex-col txtseo-items-end txtseo-gap-1 txtseo-w-1/3">
+                    <div class="txtseo-flex txtseo-items-center txtseo-gap-1_5">
+                        <span class="txtseo-text-[10px] txtseo-font-bold txtseo-text-red-500 txtseo-missing-score txtseo-hidden"></span>
+                        <span class="txtseo-text-xs txtseo-font-bold txtseo-px-2 txtseo-py-1 txtseo-rounded-lg txtseo-badge-score">Maks. 25 Puan</span>
+                    </div>
+                    <div class="txtseo-w-full txtseo-bg-gray-200 txtseo-rounded-full txtseo-h-1.5 txtseo-mt-1 txtseo-hidden txtseo-progress-bar-container">
+                        <div class="txtseo-h-1.5 txtseo-rounded-full txtseo-progress-bar" style="width: 0%"></div>
+                    </div>
+                </div>
             </div>
 
-            <div class="txtseo-p-2_5 txtseo-bg-gray-50 txtseo-rounded-xl txtseo-border txtseo-border-gray-100 txtseo-flex txtseo-justify-between txtseo-items-center">
-                <div>
+            <div class="txtseo-p-2_5 txtseo-bg-gray-50 txtseo-rounded-xl txtseo-border txtseo-border-gray-100 txtseo-flex txtseo-justify-between txtseo-items-center" id="scoreCat3">
+                <div class="txtseo-w-2/3">
                     <div class="txtseo-text-xs txtseo-font-bold txtseo-text-gray-800">3. İçerik Yapısı</div>
                     <div class="txtseo-text-[11px] txtseo-text-gray-500">Başlık hiyerarşisi (H1, H2 vb.) ve paragraf düzeni incelenir.</div>
                 </div>
-                <span class="txtseo-text-xs txtseo-font-bold txtseo-text-primary txtseo-bg-blue-50 txtseo-px-2 txtseo-py-1 txtseo-rounded-lg">20 Puan</span>
+                <div class="txtseo-flex txtseo-flex-col txtseo-items-end txtseo-gap-1 txtseo-w-1/3">
+                    <div class="txtseo-flex txtseo-items-center txtseo-gap-1_5">
+                        <span class="txtseo-text-[10px] txtseo-font-bold txtseo-text-red-500 txtseo-missing-score txtseo-hidden"></span>
+                        <span class="txtseo-text-xs txtseo-font-bold txtseo-px-2 txtseo-py-1 txtseo-rounded-lg txtseo-badge-score">Maks. 20 Puan</span>
+                    </div>
+                    <div class="txtseo-w-full txtseo-bg-gray-200 txtseo-rounded-full txtseo-h-1.5 txtseo-mt-1 txtseo-hidden txtseo-progress-bar-container">
+                        <div class="txtseo-h-1.5 txtseo-rounded-full txtseo-progress-bar" style="width: 0%"></div>
+                    </div>
+                </div>
             </div>
 
-            <div class="txtseo-p-2_5 txtseo-bg-gray-50 txtseo-rounded-xl txtseo-border txtseo-border-gray-100 txtseo-flex txtseo-justify-between txtseo-items-center">
-                <div>
+            <div class="txtseo-p-2_5 txtseo-bg-gray-50 txtseo-rounded-xl txtseo-border txtseo-border-gray-100 txtseo-flex txtseo-justify-between txtseo-items-center" id="scoreCat4">
+                <div class="txtseo-w-2/3">
                     <div class="txtseo-text-xs txtseo-font-bold txtseo-text-gray-800">4. Bilgi Yoğunluğu</div>
                     <div class="txtseo-text-[11px] txtseo-text-gray-500">Metnin sunduğu faydalı bilgi oranı ve kelime zenginliği analiz edilir.</div>
                 </div>
-                <span class="txtseo-text-xs txtseo-font-bold txtseo-text-primary txtseo-bg-blue-50 txtseo-px-2 txtseo-py-1 txtseo-rounded-lg">15 Puan</span>
+                <div class="txtseo-flex txtseo-flex-col txtseo-items-end txtseo-gap-1 txtseo-w-1/3">
+                    <div class="txtseo-flex txtseo-items-center txtseo-gap-1_5">
+                        <span class="txtseo-text-[10px] txtseo-font-bold txtseo-text-red-500 txtseo-missing-score txtseo-hidden"></span>
+                        <span class="txtseo-text-xs txtseo-font-bold txtseo-px-2 txtseo-py-1 txtseo-rounded-lg txtseo-badge-score">Maks. 15 Puan</span>
+                    </div>
+                    <div class="txtseo-w-full txtseo-bg-gray-200 txtseo-rounded-full txtseo-h-1.5 txtseo-mt-1 txtseo-hidden txtseo-progress-bar-container">
+                        <div class="txtseo-h-1.5 txtseo-rounded-full txtseo-progress-bar" style="width: 0%"></div>
+                    </div>
+                </div>
             </div>
 
-            <div class="txtseo-p-2_5 txtseo-bg-gray-50 txtseo-rounded-xl txtseo-border txtseo-border-gray-100 txtseo-flex txtseo-justify-between txtseo-items-center">
-                <div>
+            <div class="txtseo-p-2_5 txtseo-bg-gray-50 txtseo-rounded-xl txtseo-border txtseo-border-gray-100 txtseo-flex txtseo-justify-between txtseo-items-center" id="scoreCat5">
+                <div class="txtseo-w-2/3">
                     <div class="txtseo-text-xs txtseo-font-bold txtseo-text-gray-800">5. İkna Edicilik</div>
                     <div class="txtseo-text-[11px] txtseo-text-gray-500">Uzman dil kullanımı ve eyleme çağrı (CTA) mesajları değerlendirilir.</div>
                 </div>
-                <span class="txtseo-text-xs txtseo-font-bold txtseo-text-primary txtseo-bg-blue-50 txtseo-px-2 txtseo-py-1 txtseo-rounded-lg">15 Puan</span>
+                <div class="txtseo-flex txtseo-flex-col txtseo-items-end txtseo-gap-1 txtseo-w-1/3">
+                    <div class="txtseo-flex txtseo-items-center txtseo-gap-1_5">
+                        <span class="txtseo-text-[10px] txtseo-font-bold txtseo-text-red-500 txtseo-missing-score txtseo-hidden"></span>
+                        <span class="txtseo-text-xs txtseo-font-bold txtseo-px-2 txtseo-py-1 txtseo-rounded-lg txtseo-badge-score">Maks. 15 Puan</span>
+                    </div>
+                    <div class="txtseo-w-full txtseo-bg-gray-200 txtseo-rounded-full txtseo-h-1.5 txtseo-mt-1 txtseo-hidden txtseo-progress-bar-container">
+                        <div class="txtseo-h-1.5 txtseo-rounded-full txtseo-progress-bar" style="width: 0%"></div>
+                    </div>
+                </div>
             </div>
         </div>
 

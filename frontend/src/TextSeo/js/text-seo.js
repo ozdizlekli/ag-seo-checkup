@@ -338,14 +338,96 @@ document.addEventListener('DOMContentLoaded', () => {
         ai.otomatik_duzeltme = ai.otomatik_duzeltme || {};
 
         // Header
-        const healthScore = ai.analiz.saglik_skoru || 0;
+        const healthScore = parseFloat(ai.analiz.saglik_skoru || 0) || 0;
         document.getElementById('healthScoreText').textContent = healthScore;
         const circle = document.getElementById('healthScoreCircle');
-        circle.setAttribute('stroke-dasharray', `${healthScore}, 100`);
-        circle.classList.remove('txtseo-text-success', 'txtseo-text-warning', 'txtseo-text-danger');
-        if (healthScore >= 80) circle.classList.add('txtseo-text-success');
-        else if (healthScore >= 50) circle.classList.add('txtseo-text-warning');
-        else circle.classList.add('txtseo-text-danger');
+        if (circle) {
+            circle.setAttribute('stroke-dasharray', `${healthScore}, 100`);
+            circle.classList.remove('txtseo-text-success', 'txtseo-text-warning', 'txtseo-text-danger');
+            if (healthScore >= 80) circle.classList.add('txtseo-text-success');
+            else if (healthScore >= 50) circle.classList.add('txtseo-text-warning');
+            else circle.classList.add('txtseo-text-danger');
+        }
+
+        // Modal Top Summary
+        const modalTotalScoreText = document.getElementById('modalTotalScoreText');
+        const modalScoreStatusBadge = document.getElementById('modalScoreStatusBadge');
+        const modalScoreSummary = document.getElementById('modalScoreSummary');
+        
+        if (modalTotalScoreText && modalScoreStatusBadge && modalScoreSummary) {
+            modalTotalScoreText.textContent = `Toplam Skor: ${healthScore} / 100`;
+            modalScoreSummary.classList.remove('txtseo-hidden');
+            
+            modalScoreStatusBadge.className = 'txtseo-text-xs txtseo-font-bold txtseo-px-3 txtseo-py-1_5 txtseo-rounded-lg';
+            if (healthScore >= 80) {
+                modalScoreStatusBadge.textContent = 'Harika';
+                modalScoreStatusBadge.classList.add('txtseo-bg-green-100', 'txtseo-text-green-800');
+            } else if (healthScore >= 50) {
+                modalScoreStatusBadge.textContent = 'Geliştirilebilir';
+                modalScoreStatusBadge.classList.add('txtseo-bg-yellow-100', 'txtseo-text-yellow-800');
+            } else {
+                modalScoreStatusBadge.textContent = 'Zayıf';
+                modalScoreStatusBadge.classList.add('txtseo-bg-red-100', 'txtseo-text-red-800');
+            }
+        }
+
+        // Score Breakdown
+        const breakdown = ai.analiz.skor_dagilimi || ai.skor_dagilimi || {};
+        
+        const updateScoreCat = (id, score, maxScore) => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            const badge = el.querySelector('.txtseo-badge-score');
+            const missingSpan = el.querySelector('.txtseo-missing-score');
+            const progressContainer = el.querySelector('.txtseo-progress-bar-container');
+            const progressBar = el.querySelector('.txtseo-progress-bar');
+            
+            let numScore = parseFloat(score);
+            if (!isNaN(numScore)) {
+                badge.textContent = `${numScore} / ${maxScore} Puan`;
+                progressContainer.classList.remove('txtseo-hidden');
+                
+                const percent = Math.max(0, Math.min(100, (numScore / maxScore) * 100));
+                progressBar.style.width = `${percent}%`;
+                
+                progressBar.className = 'txtseo-h-1.5 txtseo-rounded-full txtseo-progress-bar';
+                badge.className = 'txtseo-text-xs txtseo-font-bold txtseo-px-2 txtseo-py-1 txtseo-rounded-lg txtseo-badge-score';
+                
+                if (percent >= 80) {
+                    progressBar.classList.add('txtseo-bg-success');
+                    badge.classList.add('txtseo-bg-green-100', 'txtseo-text-green-800');
+                } else if (percent >= 50) {
+                    progressBar.classList.add('txtseo-bg-warning');
+                    badge.classList.add('txtseo-bg-yellow-100', 'txtseo-text-yellow-800');
+                } else {
+                    progressBar.classList.add('txtseo-bg-danger');
+                    badge.classList.add('txtseo-bg-red-100', 'txtseo-text-red-800');
+                }
+                
+                if (missingSpan) {
+                    let missing = maxScore - numScore;
+                    if (missing > 0) {
+                        missingSpan.textContent = `(-${missing} Puan)`;
+                        missingSpan.classList.remove('txtseo-hidden');
+                    } else {
+                        missingSpan.classList.add('txtseo-hidden');
+                    }
+                }
+            } else {
+                badge.textContent = `Maks. ${maxScore} Puan`;
+                progressContainer.classList.add('txtseo-hidden');
+                badge.className = 'txtseo-text-xs txtseo-font-bold txtseo-px-2 txtseo-py-1 txtseo-rounded-lg txtseo-badge-score txtseo-bg-gray-100 txtseo-text-gray-500';
+                if (missingSpan) {
+                    missingSpan.classList.add('txtseo-hidden');
+                }
+            }
+        };
+
+        updateScoreCat('scoreCat1', breakdown.anahtar_kelime_uyumu, 25);
+        updateScoreCat('scoreCat2', breakdown.okunabilirlik, 25);
+        updateScoreCat('scoreCat3', breakdown.icerik_yapisi, 20);
+        updateScoreCat('scoreCat4', breakdown.bilgi_yogunlugu, 15);
+        updateScoreCat('scoreCat5', breakdown.ikna_edicilik, 15);
 
         console.log("[UI LOG] 4.1. Sağlık skoru ve başlık verileri yazıldı.");
 
@@ -717,14 +799,16 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // --- Score Info Modal ---
-    const scoreInfoBtn = document.getElementById('scoreInfoBtn');
+    const healthScoreCard = document.getElementById('healthScoreCard');
     const scoreInfoModal = document.getElementById('scoreInfoModal');
     const closeScoreInfoModalBtn = document.getElementById('closeScoreInfoModalBtn');
 
-    if (scoreInfoBtn && scoreInfoModal && closeScoreInfoModalBtn) {
-        scoreInfoBtn.addEventListener('click', () => {
-            scoreInfoModal.classList.remove('txtseo-hidden');
-        });
+    if (scoreInfoModal && closeScoreInfoModalBtn) {
+        if (healthScoreCard) {
+            healthScoreCard.addEventListener('click', () => {
+                scoreInfoModal.classList.remove('txtseo-hidden');
+            });
+        }
 
         closeScoreInfoModalBtn.addEventListener('click', () => {
             scoreInfoModal.classList.add('txtseo-hidden');

@@ -4,100 +4,176 @@ window.generatePDF = function(apiData, chartCanvas) {
         return;
     }
 
-    // 1. Telemetri ve Okunabilirlik Verilerini Eksiksiz Çek:
+    // 1. Data Extraction
     const rawTelemetry = apiData.telemetry_summary || {};
     const telemetry = rawTelemetry.telemetry_data || rawTelemetry;
     const readability = telemetry.readability || {};
     const anatomy = telemetry.anatomy || { headings: {} };
-    const ai = apiData.ai_dimensions || {};
+    const sentenceMetrics = anatomy.sentence_metrics || {};
+    const paragraphMetrics = anatomy.paragraph_metrics || {};
+    const lexical = telemetry.lexical_and_semantics || {};
+    const intent = telemetry.intent_and_action || {};
 
-    // Prepare Health Score
-    const healthScore = ai.analiz?.saglik_skoru || 0;
+    const ai = apiData.ai_dimensions || {};
+    const formData = apiData.form_data || apiData.inputs || {};
+    const targetKeyword = formData.keyword || formData.focus_keyword || 'Belirtilmedi';
+
+    // Score & Breakdown
+    const healthScore = parseFloat(ai.analiz?.saglik_skoru || ai.skor_dagilimi?.saglik_skoru || 0) || 0;
     let healthClass = 'danger';
     if (healthScore >= 80) healthClass = 'success';
     else if (healthScore >= 50) healthClass = 'warning';
 
-    // Prepare Executive Summary
-    const aiSummary = ai.analiz?.ozet || 'Özet bulunamadı.';
-    let issuesListHTML = '';
-    if (ai.analiz?.sorunlar && Array.isArray(ai.analiz.sorunlar)) {
-        ai.analiz.sorunlar.forEach(issue => {
-            issuesListHTML += `<li>${issue}</li>`;
-        });
-    }
+    const breakdown = ai.analiz?.skor_dagilimi || ai.skor_dagilimi || {};
+    const s1 = parseFloat(breakdown.anahtar_kelime_uyumu) || 0;
+    const s2 = parseFloat(breakdown.okunabilirlik) || 0;
+    const s3 = parseFloat(breakdown.icerik_yapisi) || 0;
+    const s4 = parseFloat(breakdown.bilgi_yogunlugu) || 0;
+    const s5 = parseFloat(breakdown.ikna_edicilik) || 0;
 
-    // Prepare Chart Image
+    const breakdownHTML = `
+        <div class="pdf-breakdown-grid">
+            <div class="pdf-breakdown-col"><span class="val">${s1}/25</span><span class="lbl">Anahtar K.</span></div>
+            <div class="pdf-breakdown-col"><span class="val">${s2}/25</span><span class="lbl">Okunabilirlik</span></div>
+            <div class="pdf-breakdown-col"><span class="val">${s3}/20</span><span class="lbl">İçerik Yap.</span></div>
+            <div class="pdf-breakdown-col"><span class="val">${s4}/15</span><span class="lbl">Bilgi Yoğ.</span></div>
+            <div class="pdf-breakdown-col"><span class="val">${s5}/15</span><span class="lbl">İkna Edicilik</span></div>
+        </div>
+    `;
+
+    // Executive Summary
+    const aiSummary = ai.analiz?.ozet || 'Özet bulunamadı.';
+
+    // Anatomy & 8-Grid
+    const wordCount = anatomy.word_count || 0;
+    const sentenceCount = anatomy.sentence_count || 0;
+    const h1Count = anatomy.headings?.h1_count || 0;
+    const h2Count = anatomy.headings?.h2_count || 0;
+    const h3Count = anatomy.headings?.h3_count || 0;
+    const paragraphCount = anatomy.paragraph_count || 0;
+    const longParagraphs = paragraphMetrics.monolithic_paragraphs_count || 0;
+    const longSentences = sentenceMetrics.sentences_over_25_words || 0;
+    const powerWords = intent.power_words?.matched_count || 0;
+    const ttr = lexical.lexical_diversity?.type_token_ratio || 0;
+    const readingTime = Math.ceil(wordCount / 200);
+
+    const anatomyGridHTML = `
+        <div class="pdf-grid-4">
+            <div class="pdf-stat-card"><div class="val">${wordCount}</div><div class="lbl">Kelime Hacmi</div></div>
+            <div class="pdf-stat-card"><div class="val">${sentenceCount}</div><div class="lbl">Cümle Sayısı</div></div>
+            <div class="pdf-stat-card"><div class="val">${h1Count+h2Count+h3Count}</div><div class="lbl">Toplam Başlık</div></div>
+            <div class="pdf-stat-card"><div class="val">${readingTime} dk</div><div class="lbl">Okuma Süresi</div></div>
+            
+            <div class="pdf-stat-card ${longParagraphs > 0 ? 'alert' : ''}"><div class="val">${paragraphCount}</div><div class="lbl">Paragraf Sayısı</div></div>
+            <div class="pdf-stat-card ${longSentences > 0 ? 'alert' : ''}"><div class="val">${longSentences}</div><div class="lbl">Uzun Cümle</div></div>
+            <div class="pdf-stat-card"><div class="val">${powerWords}</div><div class="lbl">İkna Edici Kelime</div></div>
+            <div class="pdf-stat-card"><div class="val">${ttr}</div><div class="lbl">Kelime Zenginliği</div></div>
+        </div>
+    `;
+
+    // Heading Tree
+    let headingTreeHTML = '<ul class="pdf-heading-tree">';
+    const hTree = anatomy.headings?.structure_tree || [];
+    if (hTree.length > 0) {
+        hTree.forEach(h => {
+            const indent = (h.level - 1) * 15;
+            headingTreeHTML += `<li style="margin-left: ${indent}px;"><span class="tag h${h.level}">H${h.level}</span> ${h.text}</li>`;
+        });
+    } else {
+        headingTreeHTML += '<li><span style="color:#94a3b8; font-style:italic;">Başlık hiyerarşisi bulunamadı.</span></li>';
+    }
+    headingTreeHTML += '</ul>';
+
+    // Chart
     let chartImageURI = '';
     try {
         if (chartCanvas && chartCanvas instanceof HTMLCanvasElement && chartCanvas.width > 0) {
             chartImageURI = chartCanvas.toDataURL('image/png', 1.0);
         }
     } catch (e) {
-        console.warn("Grafik render edilemedi veya henüz hazır değil:", e);
+        console.warn("Grafik render edilemedi", e);
     }
 
-    // Prepare Quotas Table
+    // Keyword Quotas
     let quotasTableHTML = '';
     const adetler = ai.strateji?.eklenecek_kelime_adetleri || {};
     for (const [kw, count] of Object.entries(adetler)) {
-        quotasTableHTML += `<tr><td>${kw}</td><td style="text-align: center;">+${count}</td></tr>`;
+        quotasTableHTML += `<tr><td>${kw}</td><td style="text-align: center;"><span class="pdf-badge-green">+${count}</span></td></tr>`;
     }
 
-    // Prepare Semantic Gaps
+    // Detected & Semantic Gaps
+    let detectedHTML = '';
+    const kwFreq = telemetry.keywords_and_frequency || {};
+    const unigrams = kwFreq.top_ngrams?.unigrams || [];
+    const bigrams = kwFreq.top_ngrams?.bigrams || [];
+    const allDetected = [];
+    unigrams.slice(0, 3).forEach(u => allDetected.push(u.term));
+    bigrams.slice(0, 3).forEach(b => allDetected.push(b.term));
+    
+    if (allDetected.length > 0) {
+        allDetected.forEach(kw => { detectedHTML += `<span class="pdf-badge">${kw}</span>`; });
+    } else {
+        detectedHTML = '<span class="pdf-badge" style="color:#94a3b8;">Bulunamadı</span>';
+    }
+
     let gapsHTML = '';
     const gaps = ai.strateji?.semantik_bosluklar || [];
-    gaps.forEach(gap => {
-        gapsHTML += `<span class="pdf-badge">${gap}</span>`;
-    });
+    if (gaps.length > 0) {
+        gaps.forEach(gap => { gapsHTML += `<span class="pdf-badge-red">${gap}</span>`; });
+    } else {
+        gapsHTML = '<span class="pdf-badge" style="color:#94a3b8;">Eksik bulunamadı</span>';
+    }
 
-    // Prepare PAA
+    // PAA
     let paaHTML = '';
     const paas = ai.strateji?.paa_hedefleri || [];
-    paas.forEach(paa => {
-        paaHTML += `<li>${paa}</li>`;
-    });
+    paas.forEach(paa => { paaHTML += `<div class="pdf-paa-item">${paa}</div>`; });
 
-    // Prepare Roadmap
+    // Roadmap
     let roadmapHTML = '';
     const steps = ai.entegrasyon?.adim_adim_rehber || [];
-    steps.forEach((step) => {
-        roadmapHTML += `<div class="pdf-roadmap-item">${step}</div>`;
+    steps.forEach((step, idx) => {
+        const cleanStep = step.replace(/^Adım\s*\d+[\s\:\-\.]*/i, '');
+        roadmapHTML += `<div class="pdf-roadmap-item"><div class="step-num">${idx+1}</div><div class="step-txt">${cleanStep}</div></div>`;
     });
 
-    // Prepare Optimized Text
+    // Optimized Text
     const optimizedText = ai.otomatik_duzeltme?.yeniden_yazilmis_metin || '';
     const paragraphs = optimizedText.split(/\n\s*\n/).filter(p => p.trim().length > 0);
     let formattedTextHTML = '';
     if (paragraphs.length === 0) {
-        formattedTextHTML = 'Veri yok';
+        formattedTextHTML = 'Optimizasyon metni bulunamadı.';
     } else {
         paragraphs.forEach(p => {
             const cleanP = p.replace(/</g, "&lt;").replace(/>/g, "&gt;");
             if (cleanP.startsWith('#')) {
-                formattedTextHTML += `<div class="pdf-p-heading" style="font-weight:bold; font-size:13px; margin: 12px 0 6px 0; color:#0f172a;">${cleanP}</div>`;
+                const hLevel = (cleanP.match(/^#+/) || [''])[0].length;
+                const hText = cleanP.replace(/^#+\s*/, '');
+                formattedTextHTML += `<h${Math.min(hLevel+1, 6)} class="pdf-opt-heading">${hText}</h${Math.min(hLevel+1, 6)}>`;
             } else {
-                formattedTextHTML += `<div class="pdf-p-text" style="font-size:11.5px; line-height:1.6; margin-bottom:8px; color:#334155;">${cleanP}</div>`;
+                formattedTextHTML += `<p class="pdf-opt-p">${cleanP}</p>`;
             }
         });
     }
+    
+    // Word count diff
+    const optimizedWordCount = ai.otomatik_duzeltme?.yeni_kelime_sayisi || (optimizedText.trim().split(/\s+/).filter(w => w.length>0).length);
+    const diff = optimizedWordCount - wordCount;
+    const diffText = diff >= 0 ? `+${diff} Kelime` : `${diff} Kelime`;
 
     // Extract Readability Safe Values
-    const rAtesmanScore = readability.atesman?.score || readability.atesman_index || '-';
-    const rAtesmanAdvice = readability.atesman?.advice || '';
-    
-    const rComplexScore = (readability.complex_words?.percentage !== undefined ? readability.complex_words.percentage : readability.complex_words_percentage) || '-';
-    const rComplexAdvice = readability.complex_words?.advice || '';
-
-    const rTransitionScore = (readability.transition_words?.percentage !== undefined ? readability.transition_words.percentage : readability.transition_words?.transition_sentence_ratio_percentage) || '-';
-    const rTransitionAdvice = readability.transition_words?.advice || '';
-
-    const rPassiveScore = (readability.passive_voice?.percentage !== undefined ? readability.passive_voice.percentage : readability.passive_voice?.passive_voice_percentage) || '-';
-    const rPassiveAdvice = readability.passive_voice?.advice || '';
+    const rAtesmanScore = readability.atesman_index || '-';
+    const rAtesmanAdvice = readability.atesman_feedback?.advice || '-';
+    const rComplexScore = readability.complex_words_percentage || '-';
+    const rComplexAdvice = readability.complex_words_feedback?.advice || '-';
+    const rTransitionScore = readability.transition_words?.transition_sentence_ratio_percentage || '-';
+    const rTransitionAdvice = readability.transition_words?.feedback?.advice || '-';
+    const rPassiveScore = readability.passive_voice?.passive_voice_percentage || '-';
+    const rPassiveAdvice = readability.passive_voice?.feedback?.advice || '-';
 
     // 2. Build DOM
     const wrapper = document.createElement('div');
     wrapper.className = 'pdf-export-wrapper';
-    
     const container = document.createElement('div');
     container.className = 'pdf-export-container';
     container.id = 'pdfExportContainer';
@@ -108,81 +184,55 @@ window.generatePDF = function(apiData, chartCanvas) {
     container.innerHTML = `
         <div class="pdf-header">
             <div class="pdf-header-content">
-                <h1>SEO & İçerik Analiz Raporu</h1>
-                <p>Proje: SEOMaster İçerik | Analiz Tarihi: ${dateStr}</p>
+                <h1>SEO Analiz & Optimizasyon Raporu</h1>
+                <div class="pdf-header-meta">
+                    <span><strong>Odak Kelime:</strong> ${targetKeyword}</span>
+                    <span><strong>Tarih:</strong> ${dateStr}</span>
+                </div>
             </div>
-            <div class="pdf-health-score ${healthClass}">
-                ${healthScore}
-                <span>Genel SEO Skoru</span>
+            <div class="pdf-header-score">
+                <div class="pdf-health-score ${healthClass}">${healthScore} <span>SEO Skoru</span></div>
             </div>
+        </div>
+        
+        <div class="pdf-section pdf-avoid-break">
+            ${breakdownHTML}
         </div>
 
         <div class="pdf-section">
-            <h2 class="pdf-section-title">Analiz Özeti ve Öneriler</h2>
+            <h2 class="pdf-section-title">Genel Değerlendirme Özeti</h2>
             <div class="pdf-card">
-                <p style="font-size: 13px; line-height: 1.5; margin-top: 0;">${aiSummary}</p>
-                <h4 style="font-size: 13px; color: #ef4444; margin-top: 15px; margin-bottom: 5px;">Kritik Sorunlar:</h4>
-                <ul class="pdf-list">
-                    ${issuesListHTML || '<li>Kritik sorun bulunamadı.</li>'}
-                </ul>
+                <p style="font-size: 13px; line-height: 1.6; margin-top: 0;">${aiSummary}</p>
             </div>
         </div>
 
         <div class="pdf-section pdf-avoid-break">
             <h2 class="pdf-section-title">Bölüm 1: İçerik Kalitesi ve SEO Metrikleri</h2>
-            <div class="pdf-grid-2">
-                <div class="pdf-card">
-                    <h3 style="font-size: 14px; margin-top: 0; margin-bottom: 10px;">İçerik Yapısı</h3>
-                    <div class="pdf-stat-item"><span class="pdf-stat-label">Kelime Sayısı</span><span class="pdf-stat-value">${anatomy.word_count || 0}</span></div>
-                    <div class="pdf-stat-item"><span class="pdf-stat-label">Cümle Sayısı</span><span class="pdf-stat-value">${anatomy.sentence_count || 0}</span></div>
-                    <div class="pdf-stat-item"><span class="pdf-stat-label">H1 Başlık</span><span class="pdf-stat-value">${anatomy.headings?.h1_count || 0}</span></div>
-                    <div class="pdf-stat-item"><span class="pdf-stat-label">Paragraf Sayısı</span><span class="pdf-stat-value">${anatomy.paragraph_count || 0}</span></div>
-                </div>
-                
-                <div class="pdf-card">
-                    <h3 style="font-size: 14px; margin-top: 0; margin-bottom: 10px;">Okunabilirlik ve Anlaşılırlık</h3>
-                    
-                    <div class="pdf-readability-item">
-                        <div class="pdf-readability-header">
-                            <span class="pdf-readability-title">Okunabilirlik Puanı</span>
-                            <span class="pdf-readability-score">${rAtesmanScore}</span>
-                        </div>
-                        <p class="pdf-readability-advice">${rAtesmanAdvice}</p>
-                    </div>
+            ${anatomyGridHTML}
+        </div>
 
-                    <div class="pdf-readability-item">
-                        <div class="pdf-readability-header">
-                            <span class="pdf-readability-title">Anlaşılması Zor Kelimeler</span>
-                            <span class="pdf-readability-score">%${rComplexScore}</span>
-                        </div>
-                        <p class="pdf-readability-advice">${rComplexAdvice}</p>
-                    </div>
-
-                    <div class="pdf-readability-item">
-                        <div class="pdf-readability-header">
-                            <span class="pdf-readability-title">Akıcılık Sağlayan Bağlaçlar</span>
-                            <span class="pdf-readability-score">%${rTransitionScore}</span>
-                        </div>
-                        <p class="pdf-readability-advice">${rTransitionAdvice}</p>
-                    </div>
-
-                    <div class="pdf-readability-item">
-                        <div class="pdf-readability-header">
-                            <span class="pdf-readability-title">Edilgen (Pasif) Anlatım</span>
-                            <span class="pdf-readability-score">%${rPassiveScore}</span>
-                        </div>
-                        <p class="pdf-readability-advice">${rPassiveAdvice}</p>
-                    </div>
-                </div>
+        <div class="pdf-section">
+            <div class="pdf-card pdf-avoid-break">
+                <h3 class="pdf-card-title">Okunabilirlik Detayları</h3>
+                <div class="pdf-readability-item"><div class="pdf-readability-header"><span class="pdf-readability-title">Ateşman Puanı</span><span class="pdf-readability-score">${rAtesmanScore}</span></div><p class="pdf-readability-advice">${rAtesmanAdvice}</p></div>
+                <div class="pdf-readability-item"><div class="pdf-readability-header"><span class="pdf-readability-title">Karmaşık Kelimeler</span><span class="pdf-readability-score">%${rComplexScore}</span></div><p class="pdf-readability-advice">${rComplexAdvice}</p></div>
+                <div class="pdf-readability-item"><div class="pdf-readability-header"><span class="pdf-readability-title">Geçiş Kelimeleri</span><span class="pdf-readability-score">%${rTransitionScore}</span></div><p class="pdf-readability-advice">${rTransitionAdvice}</p></div>
+                <div class="pdf-readability-item"><div class="pdf-readability-header"><span class="pdf-readability-title">Edilgen (Pasif) Çatı</span><span class="pdf-readability-score">%${rPassiveScore}</span></div><p class="pdf-readability-advice">${rPassiveAdvice}</p></div>
             </div>
             
-            <div class="pdf-card">
-                <h3 style="font-size: 14px; margin-top: 0; margin-bottom: 10px;">Sık Kullanılan Kelimeler</h3>
-                <div class="pdf-chart-container">
-                    ${chartImageURI ? `<img src="${chartImageURI}" />` : '<p style="font-size:12px;color:#94a3b8;">Grafik bulunamadı</p>'}
-                </div>
+            <div class="pdf-card pdf-avoid-break">
+                <h3 class="pdf-card-title">Başlık Hiyerarşisi (Ağaç)</h3>
+                ${headingTreeHTML}
             </div>
         </div>
+        
+        ${chartImageURI ? `
+        <div class="pdf-section pdf-avoid-break">
+            <div class="pdf-card">
+                <h3 class="pdf-card-title">Sık Kullanılan Kelimeler (N-Gram Frekansı)</h3>
+                <div class="pdf-chart-container"><img src="${chartImageURI}" /></div>
+            </div>
+        </div>` : ''}
 
         <div class="page-break"></div>
 
@@ -190,39 +240,37 @@ window.generatePDF = function(apiData, chartCanvas) {
             <h2 class="pdf-section-title">Bölüm 2: Anahtar Kelime Stratejisi</h2>
             <div class="pdf-grid-2">
                 <div class="pdf-card pdf-avoid-break">
-                    <h3 style="font-size: 14px; margin-top: 0; margin-bottom: 10px;">Önerilen Anahtar Kelimeler</h3>
+                    <h3 class="pdf-card-title">Önerilen Kelime Kotaları</h3>
                     <table class="pdf-table">
-                        <thead><tr><th>Kelime</th><th style="text-align:center;">Önerilen Sayı</th></tr></thead>
-                        <tbody>
-                            ${quotasTableHTML || '<tr><td colspan="2">Veri yok</td></tr>'}
-                        </tbody>
+                        <thead><tr><th>Kelime Öbeği</th><th style="text-align:center;">Hedef</th></tr></thead>
+                        <tbody>${quotasTableHTML || '<tr><td colspan="2">Öneri bulunamadı.</td></tr>'}</tbody>
                     </table>
                 </div>
                 <div class="pdf-card pdf-avoid-break">
-                    <h3 style="font-size: 14px; margin-top: 0; margin-bottom: 10px;">Eksik Konular</h3>
-                    <div style="margin-bottom: 15px;">
-                        ${gapsHTML || '<span style="font-size:12px;color:#94a3b8;">Veri yok</span>'}
-                    </div>
+                    <h3 class="pdf-card-title">Semantik Boşluklar (Eksik Konular)</h3>
+                    <div class="pdf-tags-container">${gapsHTML || '<span class="pdf-badge">Eksik bulunamadı</span>'}</div>
                     
-                    <h3 style="font-size: 14px; margin-top: 0; margin-bottom: 10px;">Sık Sorulan Sorular (Google PAA)</h3>
-                    <ul class="pdf-list">
-                        ${paaHTML || '<li>Veri yok</li>'}
-                    </ul>
+                    <h3 class="pdf-card-title" style="margin-top: 15px;">Mevcut Anahtar Kelimeler</h3>
+                    <div class="pdf-tags-container">${detectedHTML || '<span class="pdf-badge">Bulunamadı</span>'}</div>
                 </div>
             </div>
-        </div>
-
-        <div class="pdf-section pdf-avoid-break">
-            <h2 class="pdf-section-title">Bölüm 3: Adım Adım İyileştirme Planı</h2>
-            <div class="pdf-card">
-                ${roadmapHTML || '<p style="font-size:12px;color:#94a3b8;">Veri yok</p>'}
+            <div class="pdf-card pdf-avoid-break">
+                <h3 class="pdf-card-title">Sık Sorulan Sorular (Google PAA - Niyet Analizi)</h3>
+                <div class="pdf-paa-container">${paaHTML || 'İlgili soru bulunamadı.'}</div>
             </div>
         </div>
 
         <div class="page-break"></div>
 
         <div class="pdf-section">
-            <h2 class="pdf-section-title">Bölüm 4: Optimize Edilmiş Metin</h2>
+            <h2 class="pdf-section-title">Bölüm 3: Adım Adım İyileştirme Planı</h2>
+            <div class="pdf-card pdf-avoid-break" style="background: #f8fafc; border-left: 4px solid #3b82f6;">
+                ${roadmapHTML || '<p>Rehber verisi yok.</p>'}
+            </div>
+        </div>
+
+        <div class="pdf-section">
+            <h2 class="pdf-section-title">Bölüm 4: Optimize Edilmiş Metin <span class="pdf-diff-badge">${diffText}</span></h2>
             <div class="pdf-text-content">${formattedTextHTML}</div>
         </div>
     `;
