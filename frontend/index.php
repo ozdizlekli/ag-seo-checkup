@@ -517,19 +517,19 @@ require_once __DIR__ . '/db.php';
 <div class="modal-overlay" id="battle-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
   <div class="modal-content" style="background:#fff; width:90%; max-width:900px; height:85vh; border-radius:12px; padding:24px; display:flex; flex-direction:column; box-shadow:0 10px 40px rgba(0,0,0,0.3);">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-      <h2 style="margin:0; font-size:22px; display:flex; align-items:center; gap:8px;"> Rakip Savaş Modu (AI GEO Kıyaslaması)</h2>
+      <h2 style="margin:0; font-size:22px; display:flex; align-items:center; gap:8px;">Rakip AI GEO Kıyaslaması</h2>
       <button id="battle-close" style="background:none; border:none; font-size:28px; cursor:pointer; color:#64748b;">&times;</button>
     </div>
     <div style="display:flex; gap:12px; margin-bottom:16px;">
       <input type="url" id="battle-target-url" class="input" placeholder="Sizin URL'niz (Örn: https://adresgezgini.com/)" style="flex:1; border:2px solid #e2e8f0; padding:12px; border-radius:8px;">
       <div style="background: #dc2626; color: white; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 14px; box-shadow: 0 4px 10px rgba(220,38,38,0.3); flex-shrink: 0; margin-top: 2px;">VS</div>
       <input type="url" id="battle-comp-url" class="input" placeholder="Rakip URL (Örn: https://reklamvermek.com/)" style="flex:1; border:2px solid #e2e8f0; padding:12px; border-radius:8px;">
-      <button id="battle-start-btn" class="btn btn--primary" style="background:#dc2626; color:white; border:none; padding:0 24px; font-weight:bold; border-radius:8px; font-size:15px;">Savaşı Başlat</button>
+      <button id="battle-start-btn" class="btn btn--primary" style="background:#dc2626; color:white; border:none; padding:0 24px; font-weight:bold; border-radius:8px; font-size:15px;">Karşılaştır</button>
     </div>
     <div id="battle-results" class="chat-content" style="flex:1; overflow-y:auto; background:#f8fafc; border-radius:8px; padding:24px; border:1px solid #e2e8f0;">
        <div style="color:#64748b; text-align:center; margin-top:80px; font-size:16px;">
          <div style="font-size:48px; margin-bottom:16px;"></div>
-         Hedef ve rakip URL'yi girip <strong>Savaşı Başlat</strong>'a tıklayın.<br>Yapay zeka SGE ve GEO standartlarına göre iki siteyi kıyaslayıp acil strateji çıkaracaktır.
+         Hedef ve rakip URL'yi girip <strong>Karşılaştır</strong>'a tıklayın.<br>Yapay zeka SGE ve GEO standartlarına göre iki siteyi kıyaslayıp acil strateji çıkaracaktır.
        </div>
     </div>
   </div>

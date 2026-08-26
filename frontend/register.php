@@ -21,38 +21,47 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     } elseif (strlen($password) < 8) {
         $error = "Şifre en az 8 karakter olmalıdır.";
     } else {
+        $registered = false;
         if ($pdo) {
             try {
                 $stmt = $pdo->prepare("SELECT id FROM users WHERE username = ?");
                 $stmt->execute([$username]);
                 if ($stmt->rowCount() > 0) {
                     $error = "Bu kullanıcı adı zaten alınmış.";
+                    $registered = true;
                 } else {
                     $hashed_password = password_hash($password, PASSWORD_DEFAULT);
                     $stmt = $pdo->prepare("INSERT INTO users (username, password) VALUES (?, ?)");
                     if ($stmt->execute([$username, $hashed_password])) {
                         $success = "Kayıt başarılı! Şimdi giriş yapabilirsiniz.";
-                    } else {
-                        $error = "Kayıt sırasında bir hata oluştu.";
+                        $registered = true;
                     }
                 }
             } catch (PDOException $e) {
-                // Hata ayrıntısı kullanıcıya gösterilmez, sadece loglanır
-                error_log("register.php PDO hatası: " . $e->getMessage());
-                $error = "Kayıt sırasında bir hata oluştu. Lütfen tekrar deneyin.";
+                error_log("register.php PDO hatası (JSON fallback'e geçiliyor): " . $e->getMessage());
+                $registered = false;
             }
-        } else {
-            // DB bağlantısı yoksa JSON fallback
+        }
+
+        if (!$registered && empty($error)) {
+            // DB bağlantısı yoksa veya DB hatası alındıysa JSON fallback
+            $users_file = __DIR__ . '/users.json';
             $users = [];
-            if (file_exists('users.json')) {
-                $users = json_decode(file_get_contents('users.json'), true) ?? [];
+            if (file_exists($users_file)) {
+                $content = @file_get_contents($users_file);
+                $users = $content ? (json_decode($content, true) ?? []) : [];
             }
             if (isset($users[$username])) {
                 $error = "Bu kullanıcı adı zaten alınmış.";
             } else {
                 $users[$username] = password_hash($password, PASSWORD_DEFAULT);
-                file_put_contents('users.json', json_encode($users));
-                $success = "Kayıt başarılı! Şimdi giriş yapabilirsiniz.";
+                $saved = @file_put_contents($users_file, json_encode($users, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX);
+                if ($saved !== false) {
+                    $success = "Kayıt başarılı! Şimdi giriş yapabilirsiniz.";
+                } else {
+                    error_log("register.php: users.json yazılamadı. Yol: " . $users_file);
+                    $error = "Kayıt sırasında bir hata oluştu. Lütfen tekrar deneyin.";
+                }
             }
         }
     }
