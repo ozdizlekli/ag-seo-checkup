@@ -62,6 +62,21 @@ CREATE TABLE IF NOT EXISTS score_history (
     FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS technical_score_history (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    url VARCHAR(500) NOT NULL,
+    client_id INT NULL,
+    final_score INT DEFAULT 0,
+    crawlability_score INT DEFAULT 0,
+    performance_score INT DEFAULT 0,
+    site_structure_score INT DEFAULT 0,
+    security_score INT DEFAULT 0,
+    schema_score INT DEFAULT 0,
+    mobile_score INT DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS chat_history (
     id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(100) NOT NULL,
@@ -83,6 +98,92 @@ try {
     echo "Tablolar başarıyla oluşturuldu veya zaten var.\n";
 } catch (PDOException $e) {
     die("Tablo oluşturma hatası: " . $e->getMessage() . "\n");
+}
+
+// technical_score_history tablosuna sonradan eklenen kolonlar (is_partial,
+// is_full_crawl) - tablo migrate.php'nin ilk suruminde bunlar olmadan
+// olusturuldugu icin zaten var olan kurulumlarda ALTER TABLE ile eklememiz
+// gerekiyor. Idempotent olmasi icin once information_schema'dan kolonun var
+// olup olmadigini kontrol ediyoruz (MySQL'in eski surumleri ADD COLUMN IF
+// NOT EXISTS desteklemiyor).
+$technicalScoreHistoryColumns = [
+    'is_partial' => "ALTER TABLE technical_score_history ADD COLUMN is_partial TINYINT(1) NOT NULL DEFAULT 0 AFTER final_score",
+    'is_full_crawl' => "ALTER TABLE technical_score_history ADD COLUMN is_full_crawl TINYINT(1) NOT NULL DEFAULT 0 AFTER is_partial",
+    // 'domain' - url'nin normalize edilmis hostname'i (protokol/www/yol/
+    // sorgu/sondaki slash yok sayilir). Bir URL'nin, kayitli bir musterinin
+    // domain_url'iyle ayni siteye ait olup olmadigini ANLAMAK icin - boylece
+    // "URL ile Ara" ve "Musteriye Gore" ayni site icin ayni gecmisi
+    // gosterebiliyor (bkz. api/technical_score_history.php).
+    'domain' => "ALTER TABLE technical_score_history ADD COLUMN domain VARCHAR(255) NULL AFTER url",
+];
+foreach ($technicalScoreHistoryColumns as $columnName => $alterSql) {
+    try {
+        $stmt = $pdo->prepare("SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'technical_score_history' AND COLUMN_NAME = ?");
+        $stmt->execute([$columnName]);
+        if ((int) $stmt->fetchColumn() === 0) {
+            $pdo->exec($alterSql);
+            echo "technical_score_history tablosuna $columnName kolonu eklendi.\n";
+        }
+    } catch (PDOException $e) {
+        echo "$columnName kolonu eklenirken hata (yoksayilabilir): " . $e->getMessage() . "\n";
+    }
+}
+
+// domain kolonunda arama yapilacagi icin (client_id = ? OR domain = ?) bir
+// index faydali olur - yoksa her sorguda tam tablo taramasi olur.
+try {
+    $stmt = $pdo->prepare("SELECT COUNT(*) FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'technical_score_history' AND INDEX_NAME = 'idx_domain'");
+    $stmt->execute();
+    if ((int) $stmt->fetchColumn() === 0) {
+        $pdo->exec("ALTER TABLE technical_score_history ADD INDEX idx_domain (domain)");
+        echo "technical_score_history.domain icin index eklendi.\n";
+    }
+} catch (PDOException $e) {
+    echo "domain index'i eklenirken hata (yoksayilabilir): " . $e->getMessage() . "\n";
+}
+
+// Eskiden kaydedilmis satirlarin domain kolonu bos kalir (yukaridaki ALTER
+// TABLE onlari NULL birakir) - bu satirlar geriye donuk olarak musteri-domain
+// eslestirmesine dahil OLMAZ, halbuki tam da onlar icin bu ozellik istendi.
+// Bu yuzden bos domain'leri, url'den ayni normalizasyon mantigiyla (bkz.
+// api/technical_score_history.php normalizeDomain()) tek seferlik geriye
+// donuk dolduruyoruz.
+function migrateNormalizeDomain(string $url): string
+{
+    $url = trim($url);
+    if ($url === '') {
+        return '';
+    }
+    if (!preg_match('#^https?://#i', $url)) {
+        $url = 'https://' . $url;
+    }
+    $host = parse_url($url, PHP_URL_HOST);
+    if (!is_string($host) || $host === '') {
+        return '';
+    }
+    $host = strtolower(trim($host));
+    if (str_starts_with($host, 'www.')) {
+        $host = substr($host, 4);
+    }
+    return $host;
+}
+
+try {
+    $rows = $pdo->query("SELECT id, url FROM technical_score_history WHERE domain IS NULL OR domain = ''")->fetchAll(PDO::FETCH_ASSOC);
+    if (!empty($rows)) {
+        $updateStmt = $pdo->prepare("UPDATE technical_score_history SET domain = ? WHERE id = ?");
+        $backfilled = 0;
+        foreach ($rows as $row) {
+            $domain = migrateNormalizeDomain((string) $row['url']);
+            if ($domain !== '') {
+                $updateStmt->execute([$domain, $row['id']]);
+                $backfilled++;
+            }
+        }
+        echo "technical_score_history: $backfilled eski kayit icin domain geriye donuk dolduruldu.\n";
+    }
+} catch (PDOException $e) {
+    echo "domain geriye donuk doldurma hatasi (yoksayilabilir): " . $e->getMessage() . "\n";
 }
 
 echo "chat_history.json verileri MySQL'e aktarılıyor...\n";
