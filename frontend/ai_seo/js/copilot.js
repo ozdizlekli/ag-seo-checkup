@@ -133,10 +133,10 @@ function renderIssuesUI() {
     if (completedSteps.has(i)) {
       btn.style.display = 'block';
       const isFixed = fixedIssues.has(i);
-      // Badge stili: fixed=yeşil, unfixed=mavi — background/border badge konumunu korur
-      btn.style.background = isFixed ? '#10b981' : '#2563eb';
-      btn.style.color = '#fff';
-      btn.style.border = isFixed ? '1px solid #10b981' : '1px solid #2563eb';
+      btn.style.background = 'transparent';
+      btn.style.color = isFixed ? '#10b981' : '#2563eb';
+      btn.style.borderColor = 'transparent';
+      btn.style.border = 'none';
       
       btn.innerHTML = isFixed ? '✓' : '🔧';
       btn.title = isFixed ? `${i}. Adım Çözüldü` : `${i}. Adımı Çöz (Manuel)`;
@@ -625,8 +625,7 @@ function resetChat(loadFromHistory = null, forceActionView = false) {
   const tableC = document.getElementById('action-plan-table-container');
   if (tableC) tableC.innerHTML = '<div style="color:var(--muted); font-size:13px; text-align:center; margin-top:20px;">Henüz veri yok.</div>';
 
-  const llmsC = document.getElementById('copilot-llms-container');
-  if (llmsC) llmsC.style.display = 'none';
+
   const msgContainer = document.getElementById('copilot-chat-messages-container');
 if (msgContainer) { 
     msgContainer.style.display = 'flex'; 
@@ -817,11 +816,7 @@ function renderAiSeoActions() {
   updateProgressUI(currentStep);
   window.renderDynamicQuickActions();
 
-  // Yeşil butonların konteynerini sadece URL varsa göster
-  const llmsContainer = document.getElementById('copilot-llms-container');
-  if (llmsContainer && targetUrl !== '') {
-      llmsContainer.style.display = 'flex';
-  }
+
   let nextStep = 1;
   while(completedSteps.has(nextStep) && nextStep <= 5) { nextStep++; }
   
@@ -1276,6 +1271,8 @@ async function saveChat() {
 
 async function loadHistory() {
   let historyList = document.getElementById('copilot-history-list');
+  let sidebarHistoryList = document.getElementById('copilot-sidebar-history-list');
+  
   try {
     const res = await fetch('ai_seo/api/save_chat.php?t=' + Date.now());
     const data = await res.json();
@@ -1284,49 +1281,65 @@ async function loadHistory() {
     
     // dashboard render edildikten sonra tekrar al
     historyList = document.getElementById('copilot-history-list');
-    if (!historyList) return;
     
-    historyList.innerHTML = '';
+    if (historyList) historyList.innerHTML = '';
+    if (sidebarHistoryList) sidebarHistoryList.innerHTML = '';
+    
     if (!data.history || data.history.length === 0) {
-      historyList.innerHTML = '<p class="empty-note">Henüz geçmiş sohbet yok.</p>';
+      if (historyList) historyList.innerHTML = '<p class="empty-note">Henüz geçmiş sohbet yok.</p>';
+      if (sidebarHistoryList) sidebarHistoryList.innerHTML = '<p class="empty-note">Henüz geçmiş sohbet yok.</p>';
       return;
     }
+    
     data.history.forEach(item => {
-      const div = document.createElement('div');
-      div.className = 'history-item';
-      div.setAttribute('data-chat-id', item.chatId || item.id);
-      div.style.padding = '12px';
-      div.style.background = '#f9fafb';
-      div.style.border = '1px solid var(--border)';
-      div.style.borderRadius = '6px';
-      div.style.display = 'flex';
-      div.style.justifyContent = 'space-between';
-      div.style.alignItems = 'center';
-      
-      const infoDiv = document.createElement('div');
-      infoDiv.style.cursor = 'pointer';
-      infoDiv.style.flex = '1';
-      infoDiv.innerHTML = `<div style="font-weight:600; font-size:13px; color:#111;">${item.url}</div><div style="font-size:12px; color:#666; margin-top:4px;">${item.date} • Adım: ${item.completedSteps ? item.completedSteps.length : 0}/5</div>`;
-      infoDiv.addEventListener('click', () => resetChat(item));
-      
-      const deleteBtn = document.createElement('button');
-      deleteBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" color="#ef4444"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`;
-      deleteBtn.style.background = 'none';
-      deleteBtn.style.border = 'none';
-      deleteBtn.style.cursor = 'pointer';
-      deleteBtn.style.padding = '8px';
-      deleteBtn.addEventListener('click', async (e) => {
-        e.stopPropagation();
-        await fetch(`save_chat.php?id=${item.chatId}`, { method: 'DELETE' });
-        loadHistory();
-      });
+      // Helper function to create history item DOM
+      const createItem = () => {
+          const div = document.createElement('div');
+          div.className = 'history-item';
+          div.setAttribute('data-chat-id', item.chatId || item.id);
+          div.style.padding = '12px';
+          div.style.background = '#f9fafb';
+          div.style.border = '1px solid var(--border)';
+          div.style.borderRadius = '6px';
+          div.style.display = 'flex';
+          div.style.justifyContent = 'space-between';
+          div.style.alignItems = 'center';
+          
+          const infoDiv = document.createElement('div');
+          infoDiv.style.cursor = 'pointer';
+          infoDiv.style.flex = '1';
+          infoDiv.innerHTML = `<div style="font-weight:600; font-size:13px; color:#111;">${item.url}</div><div style="font-size:12px; color:#666; margin-top:4px;">${item.date} • Adım: ${item.completedSteps ? item.completedSteps.length : 0}/5</div>`;
+          infoDiv.addEventListener('click', () => {
+              resetChat(item, true); // forceActionView=true
+              const hs = document.getElementById('ai-history-sidebar');
+              if (hs) hs.style.right = '-350px';
+          });
+          
+          const deleteBtn = document.createElement('button');
+          deleteBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" color="#ef4444"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`;
+          deleteBtn.style.background = 'none';
+          deleteBtn.style.border = 'none';
+          deleteBtn.style.cursor = 'pointer';
+          deleteBtn.style.padding = '8px';
+          deleteBtn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            if (confirm('Bu geçmiş sohbeti silmek istediğinize emin misiniz?')) {
+                await fetch(`ai_seo/api/save_chat.php?id=${item.chatId}`, { method: 'DELETE' });
+                loadHistory();
+            }
+          });
+    
+          div.appendChild(infoDiv);
+          div.appendChild(deleteBtn);
+          return div;
+      };
 
-      div.appendChild(infoDiv);
-      div.appendChild(deleteBtn);
-      historyList.appendChild(div);
+      if (historyList) historyList.appendChild(createItem());
+      if (sidebarHistoryList) sidebarHistoryList.appendChild(createItem());
     });
+    
     renderAiSeoActions();
-  if (typeof updateActiveHistoryItem === 'function') updateActiveHistoryItem();
+    if (typeof updateActiveHistoryItem === 'function') updateActiveHistoryItem();
   } catch(e) {}
 }
 
@@ -1335,6 +1348,32 @@ if (copilotSaveBtn) {
 }
 
 
+
+// HISTORY SIDEBAR TOGGLE
+const btnToggleSidebar = document.getElementById('btn-toggle-history-sidebar');
+const btnCloseSidebar = document.getElementById('btn-close-history-sidebar');
+const historySidebar = document.getElementById('ai-history-sidebar');
+const btnClearSidebar = document.getElementById('btn-clear-history-sidebar');
+
+if (btnToggleSidebar && historySidebar) {
+  btnToggleSidebar.addEventListener('click', () => {
+    historySidebar.style.right = '0';
+  });
+}
+if (btnCloseSidebar && historySidebar) {
+  btnCloseSidebar.addEventListener('click', () => {
+    historySidebar.style.right = '-350px';
+  });
+}
+if (btnClearSidebar) {
+  btnClearSidebar.addEventListener('click', async () => {
+    if (confirm('Tüm geçmiş sohbetleri silmek istediğinize emin misiniz?')) {
+      await fetch('ai_seo/api/save_chat.php?id=all', { method: 'DELETE' });
+      window.agChatHistory = [];
+      loadHistory();
+    }
+  });
+}
 
 if (copilotResetBtn) {
   copilotResetBtn.addEventListener('click', () => {

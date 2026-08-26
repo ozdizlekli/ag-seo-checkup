@@ -148,6 +148,19 @@
             </svg>
             Yeni Sohbet
           </button>
+          
+          <button
+            class="btn btn--ghost btn--sm"
+            title="Geçmiş Sohbetleri Göster"
+            id="btn-toggle-history-sidebar"
+            style="display:inline-flex; align-items:center; gap:4px; padding:4px 10px; margin-left:4px; font-size:12px; font-weight:600; color:var(--muted);"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+               <circle cx="12" cy="12" r="10"></circle>
+               <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+            Geçmiş
+          </button>
         </div>
 
       </div>
@@ -196,7 +209,7 @@
             <div
               class="copilot-progress"
               id="copilot-progress"
-              style="display:flex; justify-content:center; align-items:center; gap:8px; width:100%; flex-wrap:wrap; padding:4px;"
+              style="display:flex; justify-content:center; align-items:center; gap:8px; width:100%; flex-wrap:wrap; padding: 4px 4px 28px 4px;"
             >
 
               <!-- STEP 1 -->
@@ -226,7 +239,7 @@
                   class="btn-fix-issue"
                   data-step="1"
                   id="btn-fix-1"
-                  style="position:absolute; top:-4px; right:-4px; display:none; width:16px; height:16px; border-radius:50%; background:#fff; color:#2563eb; border:1px solid #e2e8f0; padding:0; box-shadow:0 1px 3px rgba(0,0,0,0.12); font-size:10px; line-height:14px; text-align:center; cursor:pointer; z-index:10;"
+                  style="position:absolute; top:100%; left:50%; transform:translateX(-50%); margin-top:6px; display:none; background:transparent; border:none; padding:0; font-size:16px; cursor:pointer; z-index:10;"
                   title="1. Adımı Çöz"
                 >
                   🔧
@@ -276,7 +289,7 @@
                   class="btn-fix-issue"
                   data-step="2"
                   id="btn-fix-2"
-                  style="position:absolute; top:-4px; right:-4px; display:none; width:16px; height:16px; border-radius:50%; background:#fff; color:#2563eb; border:1px solid #e2e8f0; padding:0; box-shadow:0 1px 3px rgba(0,0,0,0.12); font-size:10px; line-height:14px; text-align:center; cursor:pointer; z-index:10;"
+                  style="position:absolute; top:100%; left:50%; transform:translateX(-50%); margin-top:6px; display:none; background:transparent; border:none; padding:0; font-size:16px; cursor:pointer; z-index:10;"
                   title="2. Adımı Çöz"
                 >
                   🔧
@@ -326,7 +339,7 @@
                   class="btn-fix-issue"
                   data-step="3"
                   id="btn-fix-3"
-                  style="position:absolute; top:-4px; right:-4px; display:none; width:16px; height:16px; border-radius:50%; background:#fff; color:#2563eb; border:1px solid #e2e8f0; padding:0; box-shadow:0 1px 3px rgba(0,0,0,0.12); font-size:10px; line-height:14px; text-align:center; cursor:pointer; z-index:10;"
+                  style="position:absolute; top:100%; left:50%; transform:translateX(-50%); margin-top:6px; display:none; background:transparent; border:none; padding:0; font-size:16px; cursor:pointer; z-index:10;"
                   title="3. Adımı Çöz"
                 >
                   🔧
@@ -376,7 +389,7 @@
                   class="btn-fix-issue"
                   data-step="4"
                   id="btn-fix-4"
-                  style="position:absolute; top:-4px; right:-4px; display:none; width:16px; height:16px; border-radius:50%; background:#fff; color:#2563eb; border:1px solid #e2e8f0; padding:0; box-shadow:0 1px 3px rgba(0,0,0,0.12); font-size:10px; line-height:14px; text-align:center; cursor:pointer; z-index:10;"
+                  style="position:absolute; top:100%; left:50%; transform:translateX(-50%); margin-top:6px; display:none; background:transparent; border:none; padding:0; font-size:16px; cursor:pointer; z-index:10;"
                   title="4. Adımı Çöz"
                 >
                   🔧
@@ -426,7 +439,7 @@
                   class="btn-fix-issue"
                   data-step="5"
                   id="btn-fix-5"
-                  style="position:absolute; top:-4px; right:-4px; display:none; width:16px; height:16px; border-radius:50%; background:#fff; color:#2563eb; border:1px solid #e2e8f0; padding:0; box-shadow:0 1px 3px rgba(0,0,0,0.12); font-size:10px; line-height:14px; text-align:center; cursor:pointer; z-index:10;"
+                  style="position:absolute; top:100%; left:50%; transform:translateX(-50%); margin-top:6px; display:none; background:transparent; border:none; padding:0; font-size:16px; cursor:pointer; z-index:10;"
                   title="5. Adımı Çöz"
                 >
                   🔧
@@ -810,5 +823,23 @@
 
   </div>
   <!-- /COPILOT ACTION VIEW -->
+
+  <!-- HISTORY SIDEBAR -->
+  <div id="ai-history-sidebar" style="position:fixed; top:0; right:-350px; width:350px; height:100vh; background:#fff; box-shadow:-4px 0 15px rgba(0,0,0,0.1); z-index:9999; transition:right 0.3s ease; display:flex; flex-direction:column; border-left:1px solid #e2e8f0;">
+      <div style="padding:16px 20px; border-bottom:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center; background:#f8fafc;">
+          <h3 style="margin:0; font-size:16px; font-weight:600; color:#0f172a;">Geçmiş Sohbetler</h3>
+          <button id="btn-close-history-sidebar" style="background:none; border:none; cursor:pointer; padding:4px; color:#64748b;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+      </div>
+      <div style="padding:12px 20px; font-size:13px; color:#64748b; background:#f1f5f9; display:flex; justify-content:space-between; align-items:center;">
+          Tıklayarak sohbeti geri yükle
+          <button class="btn btn--ghost btn--sm" id="btn-clear-history-sidebar" style="font-size:12px; padding:2px 6px; color:#ef4444;">Tümünü Sil</button>
+      </div>
+      <div id="copilot-sidebar-history-list" style="flex:1; overflow-y:auto; padding:12px 20px; display:flex; flex-direction:column; gap:8px;">
+          <p class="empty-note">Henüz geçmiş sohbet yok.</p>
+      </div>
+  </div>
+  <!-- /HISTORY SIDEBAR -->
 
 </section>
