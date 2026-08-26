@@ -149,19 +149,12 @@ require_once __DIR__ . '/db.php';
       <div id="site-explorer-tree" style="max-height: 180px; overflow-y: auto; font-size: 11px; line-height: 1.6; color: #E4E7EE;">
          <span class="spinner" style="width:12px;height:12px;border-width:2px;display:inline-block;vertical-align:middle;margin-right:5px;"></span> Yükleniyor...
       </div>
-      <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px;">
-        <button class="btn btn--primary" id="auto-pilot-btn" style="width: 100%; font-size:11px; padding:6px; display:none;" disabled>
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px;"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-          Auto-Pilot Başlat
-        </button>
-        <button class="btn btn--primary" id="schedule-night-btn" style="width: 100%; font-size:11px; padding:6px; display:none;" disabled title="Gece 03:00'te analizi başlatır ve raporu Google Drive'a gönderir">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-          Gece 3'te Çalıştır
-        </button>
-      </div>
-      <!-- Zamanlayıcı Bilgi Alanı -->
-      <div id="schedule-timer-info" style="display:none; font-size: 10px; color: var(--muted-2); margin-top: 8px; text-align: center; background: rgba(59, 130, 246, 0.1); padding: 4px; border-radius: 4px; border: 1px solid rgba(59, 130, 246, 0.2);">
-      </div>
+      <!-- Auto-Pilot Başlat / Gece 3'te Çalıştır butonları kaldırıldı
+           (kullanıcı isteği). js/app.js'deki ilgili kod (runEnterpriseAutoPilot,
+           schedule-night-btn tıklama dinleyicisi, routeUrlToActiveTab'deki
+           apBtn/schedBtn referansları) hepsi ?.addEventListener veya if(el)
+           koruması kullandığı için bu elementler DOM'dan kalkınca güvenle
+           no-op oluyor, hiçbir yerde hata üretmiyor. -->
     </div>
 
     <div style="padding: 0 20px 16px 20px;">

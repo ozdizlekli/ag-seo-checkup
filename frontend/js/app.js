@@ -143,7 +143,7 @@ function renderClientSelect(){
   const prev = sel.value;
   sel.innerHTML = '<option value="">— Müşteri seçin —</option>' +
     state.clients.map(c => '<option value="' + c.id + '">' + escapeHtml(c.name) + '</option>').join('');
-  if(prev && state.clients.some(c => c.id === prev)) sel.value = prev;
+  if(prev && state.clients.some(c => String(c.id) === prev)) sel.value = prev;
 }
 
 document.getElementById('client-add-btn')?.addEventListener('click', async () => {
@@ -234,7 +234,13 @@ document.getElementById('client-delete-btn')?.addEventListener('click', async ()
 document.getElementById('client-select')?.addEventListener('change', async (e) => {
   const id = e.target.value;
   state.currentClientId = id || null;
-  state.currentClient = id ? state.clients.find(c => c.id === id) || null : null;
+  // ÖNEMLİ DÜZELTME: c.id veritabanından PHP int olarak gelir (json'da sayı),
+  // ama <select> elemanının e.target.value'su HER ZAMAN string döner. Eskiden
+  // burada "===" ile karşılaştırılıyordu (ör. 5 === "5" -> false), bu yüzden
+  // state.currentClient HER SEÇİMDE null kalıyordu - "Düzenle"/"Sil"
+  // butonlarının çalışmamasının, sidebar domain/sitemap explorer'ın hiç
+  // görünmemesinin ve URL otomatik doldurmanın çalışmamasının kök sebebi buydu.
+  state.currentClient = id ? state.clients.find(c => String(c.id) === id) || null : null;
   resetAllForms();
   
   const domainEl = document.getElementById('sidebar-client-domain');
@@ -243,6 +249,9 @@ document.getElementById('client-select')?.addEventListener('change', async (e) =
   if(state.currentClient && state.currentClient.domain_url) {
     domainEl.style.display = 'block';
     domainEl.textContent = 'Ana Domain: ' + state.currentClient.domain_url;
+    // Sitemap Explorer artık kendi pure-PHP api/sitemap.php endpoint'imizi
+    // kullanıyor (eskiden var olmayan localhost:3000 Node servisine
+    // bağımlıydı, bu yüzden her zaman "Failed to fetch" veriyordu).
     explorerEl.style.display = 'block';
     loadClientSitemap(state.currentClient.domain_url);
   } else {
@@ -251,16 +260,32 @@ document.getElementById('client-select')?.addEventListener('change', async (e) =
     explorerEl.style.display = 'none';
   }
 
-  // Tab 6'daki müşteri bağlantı alanlarını doldur
-  document.getElementById('t6-gsc-url').value = state.currentClient?.gsc_site_url || '';
-  document.getElementById('t6-ga4-id').value = state.currentClient?.ga4_property_id || '';
-  document.getElementById('t6-drive-id').value = state.currentClient?.drive_folder_id || '';
-  document.getElementById('t6-real-data-wrap').style.display = 'none';
+  // YENİ: müşteri seçildiğinde (kök URL'si tanımlıysa) ilgili sekmelerdeki
+  // URL alanlarını otomatik doldur - hangi sekmede olursak olalım, çünkü
+  // kullanıcı seçim anında dolmasını istiyor, sadece o an açık olan sekmede
+  // değil (aksi halde başka bir sekmeye geçilince alan boş kalırdı).
+  autofillClientUrlFields(state.currentClient?.domain_url || null);
+
+  // Tab 6/7'deki müşteri bağlantı alanları - eski (7 sekmelik) yapıdan kalma,
+  // mevcut arayüzde bu elementler artık yok. Element bulunamazsa sessizce
+  // atlanır - aksi halde tüm handler burada çökerdi ve altındaki "bu
+  // müşterinin geçmişini yeniden yükle" adımı hiç çalışmazdı.
+  const t6GscUrlEl = document.getElementById('t6-gsc-url');
+  if (t6GscUrlEl) t6GscUrlEl.value = state.currentClient?.gsc_site_url || '';
+  const t6Ga4IdEl = document.getElementById('t6-ga4-id');
+  if (t6Ga4IdEl) t6Ga4IdEl.value = state.currentClient?.ga4_property_id || '';
+  const t6DriveIdEl = document.getElementById('t6-drive-id');
+  if (t6DriveIdEl) t6DriveIdEl.value = state.currentClient?.drive_folder_id || '';
+  const t6RealDataWrapEl = document.getElementById('t6-real-data-wrap');
+  if (t6RealDataWrapEl) t6RealDataWrapEl.style.display = 'none';
 
   // Tab 7'deki müşteri adını da otomatik doldur (Drive klasör/dosya isimlendirmesi için)
-  document.getElementById('t7-customer').value = state.currentClient?.name || '';
-  document.getElementById('t6-gsc-result').innerHTML = '';
-  document.getElementById('t6-ga4-result').innerHTML = '';
+  const t7CustomerEl = document.getElementById('t7-customer');
+  if (t7CustomerEl) t7CustomerEl.value = state.currentClient?.name || '';
+  const t6GscResultEl = document.getElementById('t6-gsc-result');
+  if (t6GscResultEl) t6GscResultEl.innerHTML = '';
+  const t6Ga4ResultEl = document.getElementById('t6-ga4-result');
+  if (t6Ga4ResultEl) t6Ga4ResultEl.innerHTML = '';
   state.lastGSC = null;
   state.lastGA4 = null;
 
@@ -277,7 +302,9 @@ async function loadClientSitemap(domain) {
   treeEl.innerHTML = '<span class="spinner" style="width:12px;height:12px;border-width:2px;display:inline-block;vertical-align:middle;margin-right:5px;border-top-color:var(--accent);"></span> Yükleniyor...';
   
   try {
-    const targetUrl = `http://localhost:3000/api/sitemap?url=${encodeURIComponent(domain)}`;
+    // ESKİDEN: http://localhost:3000/api/sitemap - var olmayan bir Node servisi.
+    // Artık kendi pure-PHP api/sitemap.php endpoint'imizi kullanıyoruz.
+    const targetUrl = `api/sitemap.php?url=${encodeURIComponent(domain)}`;
     const res = await fetch(targetUrl);
     if (!res.ok) throw new Error('Sitemap alınamadı');
     const urls = await res.json();
@@ -504,6 +531,29 @@ document.getElementById('schedule-night-btn')?.addEventListener('click', () => {
   }, msUntil3AM);
 });
 
+function autofillClientUrlFields(domainUrl) {
+  // YENİ: bir müşteri seçildiğinde (kök domain_url'i varsa) o URL'yi ilgili
+  // sekmelerdeki URL giriş alanlarına otomatik doldurur. domainUrl null/boşsa
+  // hiçbir şeye dokunmuyoruz (kullanıcının elle girdiği bir değeri yanlışlıkla
+  // silmemek için). Not: Metin Bazlı SEO (tab 1) artık URL değil, doğrudan
+  // yapıştırılan metinle çalışıyor (bkz. src/TextSeo/views/tab1_view.php
+  // #rawText) - o yüzden burada bir t1 alanı doldurmuyoruz, öyle bir alan yok.
+  if (!domainUrl) return;
+
+  const t3Url = document.getElementById('t3-url');
+  if (t3Url) t3Url.value = domainUrl;
+  const t3SchemaUrl = document.getElementById('t3-schema-url');
+  if (t3SchemaUrl) t3SchemaUrl.value = domainUrl;
+
+  // Skor Geçmişi > "URL ile Ara" alanı - daha önce unutulmuştu, otomatik
+  // doldurmaya dahil edilmemişti.
+  const t3HistoryLookupUrl = document.getElementById('t3-history-lookup-url');
+  if (t3HistoryLookupUrl) t3HistoryLookupUrl.value = domainUrl;
+
+  const copilotUrl = document.getElementById('copilot-text-input');
+  if (copilotUrl) copilotUrl.value = domainUrl;
+}
+
 function routeUrlToActiveTab(url) {
   state.selectedSitemapUrl = url;
   const apBtn = document.getElementById('auto-pilot-btn');
@@ -522,11 +572,28 @@ function routeUrlToActiveTab(url) {
   const rootDomain = (state.currentClient && state.currentClient.domain_url) ? state.currentClient.domain_url : url;
   
   if (tabId === '1') {
-    document.getElementById('t1-fetch-url').value = url;
+    // NOT: t1-fetch-url artık mevcut arayüzde yok (Metin Bazlı SEO metin
+    // yapıştırma tabanlı çalışıyor) - bu dal muhtemelen eski bir sürümden
+    // kalma, kapsamımız dışında bıraktık (element yoksa güvenle no-op olur).
+    const t1FetchUrl = document.getElementById('t1-fetch-url');
+    if (t1FetchUrl) t1FetchUrl.value = url;
     showToast('URL aktarıldı, işlemi manuel başlatabilirsiniz.', 'info');
-  } else if (tabId === '3') {
+  } else if (tabId === '2') {
+    // DÜZELTME: burası eskiden yanlışlıkla '3' kontrol ediyordu - nav sekmeleri
+    // yeniden numaralandırıldığında (Teknik SEO artık data-tab="2") bu dal
+    // güncellenmemişti, yani Teknik SEO sekmesindeyken hiçbir alan dolmuyordu.
     document.getElementById('t3-url').value = url;
     document.getElementById('t3-schema-url').value = url;
+    // Skor Geçmişi > "URL ile Ara" alanı - Sitemap Explorer'dan bir sayfa
+    // seçildiğinde bu da doldurulmalı, daha önce unutulmuştu.
+    const t3HistoryLookupUrlEl = document.getElementById('t3-history-lookup-url');
+    if (t3HistoryLookupUrlEl) t3HistoryLookupUrlEl.value = url;
+    showToast('URL aktarıldı, işlemi manuel başlatabilirsiniz.', 'info');
+  } else if (tabId === '3') {
+    // AI SEO Analizi sekmesi (data-tab="3") - eskiden bu dal yanlışlıkla
+    // Teknik SEO'nun alanlarını dolduruyordu (bkz. yukarıdaki not).
+    const copilotUrl = document.getElementById('copilot-text-input');
+    if (copilotUrl) copilotUrl.value = url;
     showToast('URL aktarıldı, işlemi manuel başlatabilirsiniz.', 'info');
   } else if (tabId === '4') {
     // Tab 4 için sitemap kutusunu ana domain üzerinden doldur

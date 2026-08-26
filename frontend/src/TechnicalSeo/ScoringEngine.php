@@ -266,6 +266,25 @@ final class ScoringEngine
         return ['score' => (int) round($blended), 'confidence' => 'kesin'];
     }
 
+    /**
+     * scorePerformance()'daki mobil-oncelikli (0.7/0.3) harmanlama mantiginin
+     * ayni sekilde - PSI'nin diger kategori skorlari (accessibility,
+     * best-practices) icin bulgu uretirken tek bir sayi elde etmek amaciyla
+     * kullanilir. scorePerformance()'in kendi hesaplamasina BILEREK
+     * dokunmuyoruz (zaten calisiyor, test edilmis) - bu sadece asagidaki
+     * YENI bulgu bloklarinin kullandigi ayri bir yardimci fonksiyon.
+     */
+    private function blendMobileDesktopScore(?int $mobile, ?int $desktop): ?int
+    {
+        if ($mobile === null && $desktop === null) {
+            return null;
+        }
+        if ($mobile !== null && $desktop !== null) {
+            return (int) round(($mobile * 0.7) + ($desktop * 0.3));
+        }
+        return $mobile ?? $desktop;
+    }
+
     private function scoreSiteStructure(array $linkCheck, array $siteStructure): array
     {
         $score = 100.0;
@@ -735,6 +754,53 @@ final class ScoringEngine
         foreach ($psiErrors as $strategy => $errorMessage) {
             $add('performance', 'minor', 'kesin', "PageSpeed API hatası ({$strategy})", $errorMessage,
                 'Hata mesajını kontrol edin - genellikle API kotası, geçersiz URL veya .env dosyasında eksik anahtar kaynaklıdır.', 1);
+        }
+
+        // YENİ: Erişilebilirlik ve En İyi Uygulamalar skorları PSI yanıtında
+        // zaten geliyordu (ekstra API çağrısı gerekmiyor) ama şimdiye kadar
+        // sadece arayüzde birer gösterge (gauge) olarak duruyordu, hiçbir
+        // bulguya dönüşmüyordu. Eşikler PSI'nin kendi renk skalasıyla aynı:
+        // 90+ iyi (bulgu yok), 50-89 turuncu (minor), <50 kırmızı (major).
+        $psiMobileScores = $input['psi']['mobile']['category_scores'] ?? [];
+        $psiDesktopScores = $input['psi']['desktop']['category_scores'] ?? [];
+
+        $psiScoreFindingLabels = [
+            'accessibility' => 'Erişilebilirlik',
+            'best-practices' => 'En İyi Uygulamalar',
+        ];
+        foreach ($psiScoreFindingLabels as $scoreKey => $label) {
+            $blended = $this->blendMobileDesktopScore($psiMobileScores[$scoreKey] ?? null, $psiDesktopScores[$scoreKey] ?? null);
+            if ($blended === null || $blended >= 90) {
+                continue; // veri yok ya da PSI'nin kendi eşiğine göre zaten iyi
+            }
+            $severity = $blended < 50 ? 'major' : 'minor';
+            $mobileDisplay = $psiMobileScores[$scoreKey] ?? '—';
+            $desktopDisplay = $psiDesktopScores[$scoreKey] ?? '—';
+            $add('performance', $severity, 'kesin', "{$label} skoru düşük ({$blended}/100)",
+                "Google PageSpeed Insights, bu sayfa için {$label} kategorisinde {$blended}/100 puan veriyor "
+                    . "(mobil: {$mobileDisplay}, masaüstü: {$desktopDisplay}). "
+                    . ($scoreKey === 'accessibility'
+                        ? 'Bu genelde yetersiz renk kontrastı, eksik alternatif metinler, form etiketleri veya ARIA kullanımı gibi sorunlardan kaynaklanır.'
+                        : 'Bu genelde eksik güvenlik başlıkları, tarayıcı konsolu hataları, eski API kullanımı veya görsellerde yanlış en-boy oranı gibi sorunlardan kaynaklanır.'),
+                'PageSpeed Insights raporunu (pagespeed.web.dev) açıp "' . $label . '" bölümündeki kırmızı/turuncu maddeleri tek tek inceleyin ve düzeltin.',
+                1);
+        }
+
+        // YENİ: lab_field_mismatch PageSpeedClient'ta zaten hesaplanıyordu
+        // ama hiçbir yerde okunmuyordu (ölü kod) - burada gerçek bir bulguya
+        // bağlıyoruz.
+        $labFieldMismatch = $input['psi']['lab_field_mismatch'] ?? null;
+        if (is_array($labFieldMismatch) && ($labFieldMismatch['mismatch'] ?? false) === true) {
+            $labMs = $labFieldMismatch['lab_lcp_ms'] ?? null;
+            $fieldMs = $labFieldMismatch['field_lcp_ms'] ?? null;
+            $add('performance', 'major', 'olası', 'Laboratuvar testi gerçek kullanıcı deneyimini yansıtmıyor olabilir',
+                ($labFieldMismatch['note'] ?? 'Laboratuvar testinde LCP iyi görünüyor ama gerçek kullanıcı verisine göre kötü.')
+                    . ($labMs !== null && $fieldMs !== null
+                        ? sprintf(' (laboratuvar: %d ms, gerçek kullanıcı: %d ms)', (int) $labMs, (int) $fieldMs)
+                        : ''),
+                'Gerçek kullanıcı koşullarını (yavaş ağ, uzak sunucu konumu, düşük performanslı cihazlar, üçüncü taraf scriptlerin gerçek etkisi) '
+                    . 'göz önünde bulundurun - laboratuvar skoru yüksek olsa bile gerçek ziyaretçiler daha yavaş bir deneyim yaşıyor olabilir.',
+                1);
         }
 
         return $findings;
