@@ -20,3 +20,9 @@ google_error.txt
 # IDE
 .idea/
 .vscode/
+
+# Geçici patch/fix scriptleri (üretim reposunda bulunmamalı)
+apply_user_fixes.js
+fix_user_changes.js
+*_fixes.js
+*_changes.js

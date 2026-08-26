@@ -1,39 +1,49 @@
 <?php
 /**
  * dashboard_data.php
- * 
- * Dashboard için özet verisi hesaplar.
- * Bu dosya index.php tarafından require ile dahil edilmeli (include edildiğinde session zaten açık olur).
- * Doğrudan HTTP erişimi engellenmiştir.
+ *
+ * NOT: Dashboard istatistikleri (toplam analiz, E-E-A-T skoru vb.)
+ * tamamen JavaScript tarafında hesaplanıyor (copilot.js → window.renderDashboard).
+ * Bu PHP dosyası şu an aktif olarak kullanılmıyor.
+ *
+ * Eğer ileride SSR (sunucu taraflı render) gerekirse:
+ *   1. index.php'nin PHP bloğuna aşağıdakini ekle:
+ *      define('AGSEO_INTERNAL', true);
+ *      require_once __DIR__ . '/dashboard_data.php';
+ *   2. $dashboardData değişkenini Blade/PHP template'e aktar.
+ *
+ * MEVCUT DURUM: Bu dosya index.php'de require edilmiyor.
+ * dashboard istatistikleri JS History'den (window.agChatHistory) okunuyor.
+ *
+ * GÜVENLİK: Doğrudan HTTP erişimi hâlâ engellidir (AGSEO_INTERNAL sabiti).
  */
 
-// Doğrudan HTTP erişimini engelle — sadece index.php içinden include ile çalışmalı
 if (!defined('AGSEO_INTERNAL')) {
     http_response_code(403);
     exit('Forbidden');
 }
 
-// Session ve giriş kontrolü
 if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
-    return; // include bağlamında sessizce çık
+    return;
 }
 
-$username = $_SESSION['username'];
+$username      = $_SESSION['username'];
 $dashboardData = [
     'totalAnalyses' => 0,
-    'battleCount' => 0,
-    'avgEEAT' => 0,
-    'recent' => []
+    'battleCount'   => 0,
+    'avgEEAT'       => 0,
+    'recent'        => [],
 ];
 
-if ($pdo) {
+if (isset($pdo) && $pdo instanceof PDO) {
     try {
-        // Ensure trust_score column exists
         try {
             $pdo->exec("ALTER TABLE chat_history ADD COLUMN trust_score INT DEFAULT 0");
         } catch (PDOException $e) {}
 
-        $stmt = $pdo->prepare("SELECT * FROM chat_history WHERE username = ? ORDER BY id DESC, chat_id DESC");
+        $stmt = $pdo->prepare(
+            "SELECT * FROM chat_history WHERE username = ? ORDER BY id DESC, chat_id DESC"
+        );
         $stmt->execute([$username]);
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -43,17 +53,16 @@ if ($pdo) {
 
         foreach ($rows as $index => $row) {
             $messages = $row['messages'] ?? '';
-            $cSteps = json_decode($row['completed_steps'], true) ?? [];
-            $fIssues = json_decode($row['fixed_issues'], true) ?? [];
+            $cSteps   = json_decode($row['completed_steps'], true) ?? [];
+            $fIssues  = json_decode($row['fixed_issues'], true)    ?? [];
 
             if (stripos($messages, 'rakip') !== false || stripos($messages, 'battle') !== false) {
                 $dashboardData['battleCount']++;
             }
 
             $trustScore = (int)($row['trust_score'] ?? 0);
-            if ($trustScore == 0 && (in_array("4", $cSteps) || in_array(4, $cSteps))) {
-                $trustScore = 70 + (count($fIssues) * 4);
-                if ($trustScore > 98) $trustScore = 98;
+            if ($trustScore === 0 && (in_array('4', $cSteps) || in_array(4, $cSteps))) {
+                $trustScore = min(98, 70 + (count($fIssues) * 4));
             }
 
             if ($trustScore > 0) {
@@ -62,24 +71,25 @@ if ($pdo) {
             }
 
             if ($index < 5) {
-                $health = "Orta";
-                $color = "#eab308";
-                $comp = count($cSteps);
-                $fixes = count($fIssues);
+                $health = 'Orta';
+                $color  = '#eab308';
+                $comp   = count($cSteps);
+                $fixes  = count($fIssues);
 
-                if ($trustScore >= 90) { $health = "Mükemmel"; $color = "#22c55e"; }
-                else if ($trustScore > 0 && $trustScore < 60) { $health = "Kritik"; $color = "#ef4444"; }
-                else if ($comp >= 5 && $fixes >= 3) { $health = "Mükemmel"; $color = "#22c55e"; }
-                else if ($comp >= 3 && $fixes < 2) { $health = "Kritik"; $color = "#ef4444"; }
+                if ($trustScore >= 90)                           { $health = 'Mükemmel'; $color = '#22c55e'; }
+                elseif ($trustScore > 0 && $trustScore < 60)    { $health = 'Kritik';   $color = '#ef4444'; }
+                elseif ($comp >= 5 && $fixes >= 3)              { $health = 'Mükemmel'; $color = '#22c55e'; }
+                elseif ($comp >= 3 && $fixes < 2)               { $health = 'Kritik';   $color = '#ef4444'; }
 
                 $dashboardData['recent'][] = [
-                    'url' => $row['url'],
-                    'date' => $row['date_str'],
+                    'url'    => $row['url'],
+                    'date'   => $row['date_str'],
                     'health' => $health,
-                    'color' => $color
+                    'color'  => $color,
                 ];
             }
         }
+
         if ($eeatCount > 0) {
             $dashboardData['avgEEAT'] = round($totalEeat / $eeatCount);
         }

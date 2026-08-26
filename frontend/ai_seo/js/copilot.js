@@ -30,7 +30,12 @@ window.renderDynamicQuickActions = function() {
   
   quickActionsContainer.innerHTML = html;
 }
-
+window.showFollowUpPrompt = function() {
+  addMessage("Başka bir konuda yardımcı olmamı ister misiniz? İşte birkaç örnek soru:", 'ai', false, false);
+  window.renderDynamicQuickActions();
+  const cqa = document.getElementById("copilot-quick-actions");
+  if (cqa) cqa.style.display = "flex";
+};
 document.addEventListener('DOMContentLoaded', () => {
 const copilotChat = document.getElementById('copilot-chat-messages-container');
 const copilotResetBtn = document.getElementById('btn-clear-chat');
@@ -1076,6 +1081,7 @@ Son olarak, LLM (SGE) dostu kusursuz hale getirilmiş YENİ BİR ÖRNEK METİN v
           });
         }
       }, 100);
+      setTimeout(() => { window.showFollowUpPrompt(); }, 300);
     }
     renderAiSeoActions();
     if (window.isAutoAnalyzing) {
