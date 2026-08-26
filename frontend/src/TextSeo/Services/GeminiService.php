@@ -4,7 +4,7 @@ namespace Services;
 
 class GeminiService {
     private string $apiKey;
-    private string $model = 'gemini-3.6-flash';
+    private string $model = 'gemini-3.5-flash-lite';
     private string $baseUrl = 'https://generativelanguage.googleapis.com/v1beta/models/';
 
     public function __construct() {

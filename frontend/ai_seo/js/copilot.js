@@ -167,13 +167,13 @@ function renderIssuesUI() {
 }
 
 async function fixAiSeoIssue(step) {
-  const kural = "ÖNEMLİ KURAL: Önerdiğin İSTİSNASIZ HER eylemi modül mantığıyla sun. Eğer eylem sadece yazılım/teknik ekibini ilgilendiriyorsa (Şema, kod, hız) başına tam olarak '🚨 [TEKNİK - Modül: Modül Adı]', sadece içerik ekibini ilgilendiriyorsa (metin yazımı) '✍️ [METİN - Modül: Modül Adı]', her ikisini de içeren bütünleşik bir eylemse (veya fotoğraf, strateji, çoklu lokasyon gibi genel bir kurguysa) '📌 [GENEL - Modül: Modül Adı]' yaz. (Örn: 📌 [GENEL - Modül: SSS] Bu soruları sayfaya ekle ve FAQ şemasını da yayımla). Bütün eksikleri atlamadan bu formata sok!";
+  const kural = "ÖNEMLİ KURAL: Önerdiğin İSTİSNASIZ HER eylemi modül mantığıyla sun. Eğer eylem sadece yazılım/teknik ekibini ilgilendiriyorsa (Şema, kod, hız, yönlendirme) başına tam olarak '🚨 [TEKNİK - Modül: Modül Adı]', sadece içerik ekibini ilgilendiriyorsa (metin yazımı) '✍️ [METİN - Modül: Modül Adı]', her ikisini de içeren bütünleşik bir eylemse (veya fotoğraf, strateji, çoklu lokasyon gibi genel bir kurguysa) '📌 [GENEL - Modül: Modül Adı]' yaz. (Örn: 📌 [GENEL - Modül: SSS] Bu soruları sayfaya ekle ve FAQ şemasını da yayımla). Bütün eksikleri atlamadan bu formata sok!";
   const fixPrompts = [
     "",
-    "Az önceki 1. Adım analizinde bulduğun eksikleri gidermek için siteme doğrudan ekleyebileceğim E-E-A-T sinyallerini artıran metinler yaz ve Site Hiyerarşisini (Bilgi Mimarisini) düzeltmek için menü/kategori URL yapısı önerileri sun. " + kural,
+    "Az önceki 1. Adım analizinde bulduğun eksikleri gidermek için siteme doğrudan ekleyebileceğim E-E-A-T sinyallerini artıran metinler yaz. Ayrıca Site Hiyerarşisini (Bilgi Mimarisini) düzeltmek için menü/kategori URL yapısı önerileri sun. Teknik ekip için HTTP/HTTPS tutarlılığı, kırık linkler (404) ve canonical yönlendirmeleri (301) hakkında spesifik onarım kodları veya talimatları ver. " + kural,
     "Az önceki 2. Adım analizine dayanarak, kullanıcıların en çok aradığı sorulara doğrudan yanıt veren 5 adet 'Kullanıcı Odaklı SSS (FAQ)' metni ve bu soruların hatasız JSON-LD Schema kodunu hazırla. " + kural,
     "Az önceki 3. Adım analizinde bulduğun içerik açıklarını kapatmak için; hizmet kapsamını detaylandıran, teknik terimleri basitleştiren ve rakiplerden ayrışan ikna edici bir Değer Teklifi (Value Proposition) metni yaz. " + kural,
-    "Az önceki 4. Adım analizine göre; bu sayfanın otoritesini besleyecek 'Site İçi İçerik Bağlantıları (Internal Linking / Topic Clusters)' stratejisi oluştur. Hangi blog başlıkları yazılmalı ve bu sayfaya hangi Anchor Text (bağlantı metni) ile linklenmeli detaylıca yaz. " + kural,
+    "Az önceki 4. Adım analizine göre; bu sayfanın otoritesini besleyecek 'Site İçi İçerik Bağlantıları (Internal Linking / Topic Clusters)' stratejisi oluştur. Hangi blog başlıkları yazılmalı ve bu sayfaya hangi Anchor Text (bağlantı metni) ile linklenmeli detaylıca yaz. Ek olarak Google Search Console, Bing ve Yandex Webmaster Tools üzerinde indeksleme sorunlarının nasıl çözüleceğine dair teknik ekibe talimat ver. " + kural,
     "Az önceki 5. Adım analizine göre sayfadaki Yapılandırılmış Veri (Schema) derinliğini artır. Eğer sayfa ürünse Product, hizmetse Service (veya uygun olan) şemasını fiyat, yorum, açıklama gibi tüm detaylarıyla baştan yaz. Şema koduna yapay zeka (LLM) dostu 'knowsAbout' veya 'mentions' bağlamsal etiketlerini ekle. " + kural,
     "" // 6. adımın fix butonu yok.
   ];
@@ -192,9 +192,10 @@ async function fixAiSeoIssue(step) {
     prompt += `\n\n--- SİTE BAĞLAMI (BUNLARI KULLAN) ---\nURL: ${fetchedData.url}\nBaşlık: ${fetchedData.title}\nAçıklama: ${fetchedData.description}\nKategori: ${reportData.siteCategory || 'Bilinmiyor'}\nSchema: ${JSON.stringify(fetchedData.schemas)}\n---------------------\n\nÖNEMLİ KURAL: Bana şablon (Örn: [Şirket Adı], [Sektör]) verme! Yukarıdaki site bağlamı verilerini kullanarak metni doğrudan bu şirket için kişiselleştir.`;
   }
   
-  // Instead of calling handleSend which might conflict with state, we process directly:
   addMessage(`${step}. Adımdaki Eksiklikler Gideriliyor (Otomatik Çözüm)...`, 'user');
   addTypingIndicator();
+  copilotActions.style.display = 'none';
+
   prompt += `\n\nÖNEMLİ: Yanıtının SONUNA, analizine dayanan şu verileri içeren, aşağıdaki YAPIDA KESİN bir JSON bloğu ekle (\`\`\`json ... \`\`\` içinde olsun):
 {
 "overview_html": "<p>Sitenin genel özeti...</p>",
@@ -228,15 +229,15 @@ async function fixAiSeoIssue(step) {
       return;
     }
 
-          let aiText = result.candidates[0].content.parts[0].text;
-          const { cleanText, parsedData, rawJsonStr } = extractAndCleanJson(aiText);
-          
-          if (parsedData) {
-              initOrUpdateCharts(parsedData);
-          }
+    let aiText = result.candidates[0].content.parts[0].text;
+    const { cleanText, parsedData, rawJsonStr } = extractAndCleanJson(aiText);
+    
+    if (parsedData) {
+        initOrUpdateCharts(parsedData);
+    }
 
-          let htmlText = (typeof marked !== 'undefined' ? marked.parse(cleanText) : cleanText) + (rawJsonStr ? '<div class="ai-raw-json" style="display:none;">' + rawJsonStr + '</div>' : '');
-          addMessage(htmlText, 'ai', true);
+    let htmlText = (typeof marked !== 'undefined' ? marked.parse(cleanText) : cleanText) + (rawJsonStr ? '<div class="ai-raw-json" style="display:none;">' + rawJsonStr + '</div>' : '');
+    addMessage(htmlText, 'ai', true);
 
     fixedIssues.add(step);
     renderIssuesUI();
@@ -326,21 +327,27 @@ function initOrUpdateCharts(data) {
               },
               options: { cutout: '75%' },
               plugins: [{
-                  id: 'textCenter',
-                  beforeDraw: function(chart) {
-                      var width = chart.width, height = chart.height, ctx = chart.ctx;
-                      ctx.restore();
-                      var fontSize = (height / 100).toFixed(2);
-                      ctx.font = 'bold ' + (fontSize * 1.4) + 'em sans-serif';
-                      ctx.textBaseline = 'middle';
-                      ctx.fillStyle = '#0f172a';
-                      var text = trustScore + '%',
-                          textX = Math.round((width - ctx.measureText(text).width) / 2),
-                          textY = height / 2;
-                      ctx.fillText(text, textX, textY);
-                      ctx.save();
-                  }
-              }]
+                id: 'textCenter',
+                beforeDraw: function(chart) {
+                    var width = chart.width,
+                        height = chart.height,
+                        ctx = chart.ctx;
+            
+                    ctx.restore();
+                    var fontSize = (height / 100).toFixed(2);
+                    ctx.font = "bold " + fontSize + "em sans-serif";
+                    ctx.textBaseline = "middle";
+                    ctx.fillStyle = "#1e293b"; // Yazı rengi
+            
+                    var text = trustScore + "%", // Dinamik veri eklendi!
+    textX = Math.round((width - ctx.measureText(text).width) / 2),
+                        // Grafiğin tam ortasını (Y ekseni) bulmak için chart.chartArea.top da hesaba katılmalı
+                        textY = chart.chartArea.top + (chart.chartArea.bottom - chart.chartArea.top) / 2;
+            
+                    ctx.fillText(text, textX, textY);
+                    ctx.save();
+                }
+            }]
           });
       }
   }
@@ -471,6 +478,47 @@ function initOrUpdateCharts(data) {
 // --- CHART.JS LOGIC END ---
 
 window._forceResetChat = resetChat;
+// --- ZAMAN YOLCULUĞU (TIME TRAVEL) FONKSİYONU ---
+window.rebuildChartsForStep = function(targetStep) {
+  // 1. Panelin hafızasını tamamen sıfırla
+  window.liveStepMetrics = {};
+  window.liveTags = { intent: '', entities: new Set() };
+  window.liveActionPlanItems = [];
+  
+  const metricsC = document.getElementById('dynamic-metrics-container');
+  if (metricsC) metricsC.innerHTML = '<p style="color: #94a3b8; font-size: 12px; text-align: center; margin: 10px 0;">Analiz edildikçe dolacak...</p>';
+  const tagsC = document.getElementById('dynamic-tags-container');
+  if (tagsC) tagsC.innerHTML = '';
+  const tableC = document.getElementById('action-plan-table-container');
+  if (tableC) tableC.innerHTML = '<div style="color:var(--muted); font-size:13px; text-align:center; margin-top:20px;">Henüz veri yok.</div>';
+
+  // 2. Sohbet geçmişini 1. adımdan tıkladığın adıma kadar sessizce yeniden oynat
+  let currentParsingStep = 0;
+  
+  chatMessages.forEach(msg => {
+      // Kullanıcının attığı "X. Adım: ..." mesajından hangi adımda olduğumuzu anlıyoruz
+      if (msg.sender === 'user') {
+          const match = msg.text.match(/^(\d+)\.\s*Adım:/i);
+          if (match) currentParsingStep = parseInt(match[1]);
+      }
+      
+      // Sadece tıkladığımız adıma kadar olan AI yanıtlarındaki JSON'ları oku
+      if (msg.sender === 'ai' && currentParsingStep <= targetStep) {
+          try {
+              const jsonMatch = msg.text.match(/<div class="ai-raw-json"[^>]*>([\s\S]*?)<\/div>/i);
+              let rawJson = '';
+              if (jsonMatch) {
+                  const codeMatch = jsonMatch[1].match(/```(?:json)?\s*(\{[\s\S]*?\})\s*```/i);
+                  rawJson = codeMatch ? codeMatch[1] : jsonMatch[1];
+              }
+              if (rawJson) {
+                  const chartData = JSON.parse(rawJson);
+                  initOrUpdateCharts(chartData); // Grafikleri ve tabloları sessizce güncelle
+              }
+          } catch(e) { console.error("Zaman yolculuğu hatası:", e); }
+      }
+  });
+};
 function resetChat(loadFromHistory = null, forceActionView = false) {
   const actionView = document.getElementById('copilot-action-view');
   if (actionView) actionView.style.display = 'flex';
@@ -669,8 +717,8 @@ async function handleSend() {
     if (cqa) {
       cqa.style.display = "flex";
       cqa.innerHTML = `
-        <button type="button" class="btn btn--primary" id="btn-type-service" style="padding:8px 16px; font-weight:600; background:#2563eb; color:#fff; border:none; border-radius:20px; cursor:pointer; font-size:13px; margin-right:8px; box-shadow:0 2px 4px rgba(37,99,235,0.2);">🏢 Hizmet / Kurumsal</button>
-        <button type="button" class="btn btn--primary" id="btn-type-product" style="padding:8px 16px; font-weight:600; background:#059669; color:#fff; border:none; border-radius:20px; cursor:pointer; font-size:13px; box-shadow:0 2px 4px rgba(5,150,105,0.2);">🛒 Ürün / E-Ticaret</button>
+        <button type="button" class="btn btn--primary" id="btn-type-service" style="padding:8px 16px; font-weight:600; background:#2563eb; color:#fff; border:none; border-radius:20px; cursor:pointer; font-size:13px; margin-right:8px; box-shadow:0 2px 4px rgba(122, 146, 199, 0.2);">🏢 Hizmet / Kurumsal</button>
+        <button type="button" class="btn btn--primary" id="btn-type-product" style="padding:8px 16px; font-weight:600; background:#059669; color:#fff; border:none; border-radius:20px; cursor:pointer; font-size:13px; box-shadow:0 2px 4px rgba(166, 211, 197, 0.2);">🛒 Ürün / E-Ticaret</button>
       `;
       const btnS = document.getElementById('btn-type-service');
       const btnP = document.getElementById('btn-type-product');
@@ -968,7 +1016,7 @@ async function processAiSeoStep() {
 * BU SAYFA NE HAKKINDADIR VE KİMİN İÇİNDİR?
 * HİYERARŞİ VE AYRIŞMA: Sayfadaki hizmet/ürün hiyerarşisi net mi? Karmaşıklık var mı?
 * ANAHTAR VARLIKLAR (ENTITIES): Yapay zekanın Knowledge Graph (Bilgi Grafiği) için bu sitenin odaklanması gereken en önemli 3-4 kavram.
-* TEKNİK SEO EKSİKLERİ: Sayfanın taranabilirliğini (Robots.txt, Sitemap, Canonical vb. standartları) göz önünde bulundurarak olası risklerini değerlendir.
+* TEKNİK SEO VE TARANABİLİRLİK EKSİKLERİ: Sayfanın taranabilirliğini (Robots.txt, Sitemap) göz önünde bulundurarak olası risklerini değerlendir. Aynı içeriği açan alternatif adresler için Canonical etiketleri doğru kullanılmış mı? HTTP ve HTTPS adresleri arasında tutarlılık var mı? Sitedeki kırık bağlantılar ve 404 sayfalarının genel durumu nedir? Yönlendirme zincirleri (301) sağlıklı çalışıyor mu?
 Buna ek olarak E-E-A-T (Deneyim, Uzmanlık, Otoriterlik, Güvenilirlik) kurallarına göre bir değerlendirme yaz.`;
   } 
   else if (step === 2) {
@@ -989,7 +1037,7 @@ Sitenin rakiplere kıyasla hangi açıkları kapatması ve metinleri nasıl özg
     p += `Aşağıdaki başlıkları kullanarak LLM içerik güven metriklerini yüzdelik (%) olarak belirle:
 Altına "İÇERİK İÇİ BAĞLANTILAR (INTERNAL LINKING) VE CANONICAL" başlığı aç.
 * İÇERİK BAĞ AĞI (TOPIC CLUSTERS): Bu sayfanın otoritesini artırmak için hangi konularda bilgilendirici blog yazıları yazılmalı ve bu sayfaya nasıl iç link (internal link) verilmeli?
-* ARAMA MOTORU KAYITLARI: GSC, Bing ve Yandex üzerinde takip edilmesi gereken indeks ve tarama durumları için genel stratejik tavsiyeler.`;
+* ARAMA MOTORU KAYITLARI: Sadece Google Search Console değil, Bing Webmaster Tools ve Yandex Webmaster üzerinde de takip edilmesi gereken indeks, tarama durumu ve site haritası hatalarına dair genel stratejik tavsiyeler ver. Her üç platformda yaşanabilecek potansiyel teknik uyarıları (Geçerli/Geçersiz sayfa durumları) açıkla.`;
   } 
   else if (step === 5) {
     p += `Aşağıdaki başlıkları kullanarak Yapılandırılmış Veri ve Optimizasyon analizi yap:
@@ -1000,11 +1048,27 @@ Son olarak, LLM (SGE) dostu kusursuz hale getirilmiş YENİ BİR ÖRNEK METİN v
   }
   else if (step === 6) {
     p += `ÖNEMLİ: Sen bir Bütünsel Entegrasyon Şefisin. Önceki 5 adımdaki Metin ve Teknik yapıları birbirine nasıl bağlamamız gerektiğini analiz et. 
-* AI TANITIM DOSYALARI (llms.txt): Bu sitenin kök dizininde bulunması gereken bir llms.txt dosyasının önemini ve yapay zeka botlarına siteyi nasıl özetlemesi gerektiğini anlat.
+* AI TANITIM DOSYALARI (llms.txt): Bu sitenin kök dizininde bulunması gereken bir llms.txt dosyasının önemini anlat. Bu dosyanın içinde; işletmenin temel faaliyet alanlarının, önemli hizmet ve kategori sayfalarının listesinin ve teknik doküman, katalog, rehber içeriklerin (canonical) URL bağlantılarının yapay zeka botları için nasıl özetlenmesi gerektiğini detaylıca açıkla. Sadece 'ekleyin' deme, içeriğinde nelerin listelenmesi gerektiğini madde madde göster.
 * SENTEZ: Hangi içeriğin, hangi şemayla ve hangi linkleme (Topic Cluster) kurgusuyla BİRLİKTE canlıya alınması gerektiğini açıkla. Hiçbir kod üretme, sadece bu organik bağı analiz et.`;
   }
 
-          p += `\n\nÖNEMLİ: Yanıtının SONUNA, analizine dayanan şu verileri içeren, aşağıdaki YAPIDA KESİN bir JSON bloğu ekle (\`\`\`json ... \`\`\` içinde olsun):
+  // --- DİNAMİK METRİK MANTIĞI (ÇÖZÜM ADIMI İÇİN) ---
+  let stepMetricsJson = "";
+  if (step === 1) {
+     stepMetricsJson = `,\n  "step_metrics": { "crawl_health": "0-100 arası puan" }`;
+  } else if (step === 2) {
+     stepMetricsJson = `,\n  "step_metrics": { "faq_score": "0-100 arası puan" },\n  "tags": { "intent": "Kullanıcı Niyeti (Örn: Bilgi / Satın Alma)" }`;
+  } else if (step === 3) {
+     stepMetricsJson = `,\n  "step_metrics": { "content_depth": "0-100 arası puan" }`;
+  } else if (step === 4) {
+     stepMetricsJson = `,\n  "step_metrics": { "internal_link_power": "0-100 arası puan" }`;
+  } else if (step === 5) {
+     stepMetricsJson = `,\n  "step_metrics": { "schema_richness": "0-100 arası puan" },\n  "tags": { "entities": ["Varlık 1", "Varlık 2", "Varlık 3"] }`;
+  } else if (step === 6) {
+     stepMetricsJson = `,\n  "step_metrics": { "llm_readiness": "0-100 arası puan" }`;
+  }
+
+  prompt += `\n\nÖNEMLİ: Yanıtının SONUNA, analizine dayanan şu verileri içeren, aşağıdaki YAPIDA KESİN bir JSON bloğu ekle (\`\`\`json ... \`\`\` içinde olsun):
 {
 "overview_html": "<p>Sitenin genel özeti...</p>",
 "charts_data": {
@@ -1014,7 +1078,7 @@ Son olarak, LLM (SGE) dostu kusursuz hale getirilmiş YENİ BİR ÖRNEK METİN v
     "expertise": 0-100,
     "authoritativeness": 0-100,
     "trustworthiness": 0-100
-  }
+  }${stepMetricsJson}
 },
 "action_plan_table": [
   { "issue": "Aksiyon açıklaması", "category": "Kategori", "priority": "high/medium/low", "color": "red/orange/green" }
@@ -1037,8 +1101,6 @@ Son olarak, LLM (SGE) dostu kusursuz hale getirilmiş YENİ BİR ÖRNEK METİN v
     let htmlText = parsedHtml + (rawJsonStr ? '<div class="ai-raw-json" style="display:none;">' + rawJsonStr + '</div>' : '');
     addMessage(htmlText, 'ai', true);
 
-
-    
     reportData[step - 1] = parsedHtml; // Clean parsed text without hidden raw JSON
 
     completedSteps.add(step); if(step === 5) completedSteps.add(6);
@@ -1290,7 +1352,6 @@ async function loadHistory() {
       if (sidebarHistoryList) sidebarHistoryList.appendChild(createItem());
     });
     
-    renderAiSeoActions();
     if (typeof updateActiveHistoryItem === 'function') updateActiveHistoryItem();
   } catch(e) {}
 }
@@ -1363,6 +1424,10 @@ for (let i = 1; i <= 6; i++) {
 
           observer.observe(targetMsg);
         }
+        // --- SİHİRLİ DOKUNUŞ: GRAFİKLERİ O ADIMA GERİ SAR! ---
+        if (typeof window.rebuildChartsForStep === 'function') {
+          window.rebuildChartsForStep(i);
+      }
       } else {
         if (!window.isAutoAnalyzing && !window.isAutoFixing && i <= 6) {
            currentStep = i;
