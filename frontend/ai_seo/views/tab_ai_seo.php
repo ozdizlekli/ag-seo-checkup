@@ -1,41 +1,15 @@
 <section class="tab-panel" id="tab-3">
 
-  <!-- DASHBOARD VIEW -->
-  <div id="ai-seo-dashboard-view"></div>
-
   <!-- ACTION VIEW -->
   <div
     id="copilot-action-view"
-    style="display:none; flex-direction:column; gap:16px; min-height:80vh;"
+    style="display:flex; flex-direction:column; gap:16px; min-height:80vh;"
   >
 
     <!-- TOP NAV -->
     <div
-      style="display:flex; justify-content:space-between; align-items:center; width:100%; margin-bottom:8px;"
+      style="display:flex; justify-content:flex-end; align-items:center; width:100%; margin-bottom:8px;"
     >
-
-      <!-- Sol Üst -->
-      <button
-        id="btn-return-dashboard"
-        class="btn btn--ghost btn--sm"
-        style="display:inline-flex; align-items:center; color:var(--muted); font-weight:600; padding:8px 16px; border-radius:8px; font-size:13px; background:#fff; border:1px solid var(--border); box-shadow:0 1px 2px rgba(0,0,0,0.05);"
-      >
-        <svg
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          style="margin-right:6px;"
-        >
-          <line x1="19" y1="12" x2="5" y2="12"></line>
-          <polyline points="12 19 5 12 12 5"></polyline>
-        </svg>
-        Kontrol Paneline Dön
-      </button>
 
       <!-- Sağ Üst -->
       <div style="display:flex; gap:6px; align-items:center;">
@@ -217,7 +191,7 @@
                 class="copilot-step active has-tooltip"
                 data-step="1"
                 id="cp-step-1"
-                data-tooltip="İş Bağlamı (Bağlamsal Alaka) analizi."
+                data-tooltip="URL yapısı, hız, mobil uyum ve indekslenebilirlik durumunu tarar."
               >
                 <div class="copilot-step-circle">
                   <span class="num">1</span>
@@ -245,7 +219,7 @@
                   🔧
                 </button>
 
-                <span>İş Bağlamı</span>
+                <span>Site Yapısı</span>
               </div>
 
 
@@ -267,7 +241,7 @@
                 class="copilot-step has-tooltip"
                 data-step="2"
                 id="cp-step-2"
-                data-tooltip="Kullanıcı niyeti ve etkililik analizi."
+                data-tooltip="İçeriğin kalitesi, okunabilirliği, hedef kitleye uygunluğu ve SSS eksiklerini analiz eder."
               >
                 <div class="copilot-step-circle">
                   <span class="num">2</span>
@@ -295,7 +269,7 @@
                   🔧
                 </button>
 
-                <span>Etkililik</span>
+                <span>İçerik Analizi</span>
               </div>
 
 
@@ -317,7 +291,7 @@
                 class="copilot-step has-tooltip"
                 data-step="3"
                 id="cp-step-3"
-                data-tooltip="Rakiplere kıyasla eksik içerik/değer boşlukları analizi."
+                data-tooltip="Rakiplerinizdeki eksikleri tespit edip içerik boşluklarını ve fırsatları belirler."
               >
                 <div class="copilot-step-circle">
                   <span class="num">3</span>
@@ -345,7 +319,7 @@
                   🔧
                 </button>
 
-                <span>Rakip Analizi</span>
+                <span>Rakip Zafiyetleri</span>
               </div>
 
 
@@ -367,7 +341,7 @@
                 class="copilot-step has-tooltip"
                 data-step="4"
                 id="cp-step-4"
-                data-tooltip="Yapay zeka sistemleri nezdinde marka güveni ve otorite (E-E-A-T) analizi."
+                data-tooltip="Sayfa içi linkleme stratejisi, anchor metinleri ve gezinme kolaylığını denetler."
               >
                 <div class="copilot-step-circle">
                   <span class="num">4</span>
@@ -395,7 +369,7 @@
                   🔧
                 </button>
 
-                <span>AI Güveni</span>
+                <span>İç Bağlantılar</span>
               </div>
 
 
@@ -417,7 +391,7 @@
                 class="copilot-step has-tooltip"
                 data-step="5"
                 id="cp-step-5"
-                data-tooltip="Okunabilirlik, Şema yapıları ve kullanıcı deneyimi (UX/UI) sorunları."
+                data-tooltip="Schema.org işaretlemelerini kontrol ederek zengin sonuç performansını artırır."
               >
                 <div class="copilot-step-circle">
                   <span class="num">5</span>
@@ -445,7 +419,7 @@
                   🔧
                 </button>
 
-                <span>Optimizasyon</span>
+                <span>Yapılandırılmış Veri</span>
               </div>
 
 
@@ -499,7 +473,7 @@
         <div
           class="copilot-chat"
           id="copilot-chat-messages-container"
-          style="padding:24px; min-height:200px; flex:1; overflow-y:auto;"
+          style="padding:24px; min-height:200px; flex:1; overflow-y:auto; scroll-behavior:smooth;"
         >
           <!-- Chat messages go here -->
         </div>
@@ -836,7 +810,7 @@
           Tıklayarak sohbeti geri yükle
           <button class="btn btn--ghost btn--sm" id="btn-clear-history-sidebar" style="font-size:12px; padding:2px 6px; color:#ef4444;">Tümünü Sil</button>
       </div>
-      <div id="copilot-sidebar-history-list" style="flex:1; overflow-y:auto; padding:12px 20px; display:flex; flex-direction:column; gap:8px;">
+      <div id="copilot-sidebar-history-list" style="flex:1; overflow-y:auto; padding:12px 20px; display:flex; flex-direction:column; gap:8px; scroll-behavior: smooth;">
           <p class="empty-note">Henüz geçmiş sohbet yok.</p>
       </div>
   </div>

@@ -147,6 +147,7 @@ function renderIssuesUI() {
       
       // Use onclick to avoid duplicates and DOM replacement issues
       btn.onclick = (e) => {
+        e.stopPropagation();
         const s = parseInt(e.currentTarget.getAttribute('data-step'));
         if (!fixedIssues.has(s)) {
           fixAiSeoIssue(s);
@@ -278,133 +279,6 @@ async function fixAiSeoIssue(step) {
   }
 }
 
-      window.renderDashboard = function() {
-    const history = window.agChatHistory || [];
-    const totalAnalyses = history.length;
-    
-    let battleCount = 0;
-    let totalEEAT = 0;
-    let eeatCount = 0;
-    
-    history.forEach(h => {
-       if (h.messages) {
-          const msgs = JSON.stringify(h.messages).toLowerCase();
-          if (msgs.includes('rakip') || msgs.includes('battle') || msgs.includes('competitor_comparison')) battleCount++;
-          
-          // Try to extract real EEAT score from JSON blocks in history
-          h.messages.forEach(msg => {
-              if (msg.sender === 'ai' && msg.text) {
-                  try {
-                      const jsonMatch = msg.text.match(/<div class="ai-raw-json" style="display:none;">```json\s*(\{[\s\S]*?\})\s*```<\/div>/);
-                      if (jsonMatch) {
-                          const data = JSON.parse(jsonMatch[1]);
-                          let charts = data.charts_data || data;
-                          if (charts.eeat_radar) {
-                              let exp = charts.eeat_radar.experience || 0;
-                              let expt = charts.eeat_radar.expertise || 0;
-                              let auth = charts.eeat_radar.authoritativeness || 0;
-                              let trust = charts.eeat_radar.trustworthiness || 0;
-                              let avg = (exp + expt + auth + trust) / 4;
-                              if (avg > 0) {
-                                  totalEEAT += avg;
-                                  eeatCount++;
-                              }
-                          }
-                      }
-                  } catch(e) {}
-              }
-          });
-       }
-    });
-
-    const avgEEAT = eeatCount > 0 ? Math.round(totalEEAT / eeatCount) : 0;
-
-    let recentHtml = '';
-    history.slice(0, 5).forEach(h => {
-       const comp = h.completedSteps ? h.completedSteps.length : 0;
-       const fixes = h.fixedIssues ? h.fixedIssues.length : 0;
-       let health = "Orta";
-       let color = "#eab308";
-       if (comp >= 5 && fixes >= 3) { health = "Mükemmel"; color = "#22c55e"; }
-       else if (comp >= 3 && fixes < 2) { health = "Kritik"; color = "#ef4444"; }
-       
-       const dateStr = new Date(h.date).toLocaleDateString('tr-TR');
-       recentHtml += `
-          <div style="display:flex; justify-content:space-between; align-items:center; padding: 12px; border-bottom: 1px solid var(--border);">
-             <div style="font-weight: 500; font-size: 13px; color: var(--text);">${h.url} <span style="font-size:11px; color:var(--muted); margin-left:8px;">${dateStr}</span></div>
-             <div style="font-size: 12px; font-weight: 600; color: ${color}; background: ${color}20; padding: 4px 8px; border-radius: 6px;">${health}</div>
-          </div>
-       `;
-    });
-    if (recentHtml === '') recentHtml = '<div style="padding: 12px; color: var(--muted); font-size: 13px;">Henüz analiz bulunmuyor.</div>';
-
-    const dbView = document.getElementById('ai-seo-dashboard-view');
-    const actionView = document.getElementById('copilot-action-view');
-    if(dbView) {
-        dbView.innerHTML = `
-      <div id="welcome-dashboard-flag" style="padding: 24px;">
-         <h2 style="margin-bottom: 24px; font-size: 20px; font-weight: 600; color: var(--text);">Agency OS Kontrol Paneli</h2>
-         
-         <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 32px;">
-            <div style="background: #fff; padding: 20px; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
-               <div style="font-size: 12px; color: var(--muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">Toplam Analiz</div>
-               <div style="font-size: 32px; font-weight: 700; color: #2563eb;">${totalAnalyses}</div>
-            </div>
-            <div style="background: #fff; padding: 20px; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
-               <div style="font-size: 12px; color: var(--muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">Rakip Analizi (Battle)</div>
-               <div style="font-size: 32px; font-weight: 700; color: #dc2626;">${battleCount}</div>
-            </div>
-            <div style="background: #fff; padding: 20px; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
-               <div style="font-size: 12px; color: var(--muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">Ortalama E-E-A-T</div>
-               <div style="font-size: 32px; font-weight: 700; color: #16a34a;">${avgEEAT > 0 ? avgEEAT + '/100' : '-'}</div>
-            </div>
-         </div>
-
-         <div style="background: #fff; border-radius: 12px; border: 1px solid var(--border); overflow: hidden; margin-bottom: 32px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
-            <div style="padding: 16px; background: #f8fafc; border-bottom: 1px solid var(--border); font-weight: 600; font-size: 14px; color: var(--text); display:flex; justify-content:space-between; align-items:center;">
-               <div>Geçmiş Sohbetler</div>
-               <button class="btn btn--ghost btn--sm" id="btn-clear-history" style="font-size:12px; padding:4px 8px;">Tümünü Temizle</button>
-            </div>
-            <div style="padding: 12px 16px; font-size:13px; color:var(--muted); background:#fafafa; border-bottom: 1px solid var(--border);">
-               Önceki URL analizleriniz burada listelenir. Tıklayarak sohbeti geri yükleyebilirsiniz.
-            </div>
-            <div id="copilot-history-list" style="display:flex; flex-direction:column; padding:16px; gap:8px;">
-               <p class="empty-note">Henüz geçmiş sohbet yok.</p>
-            </div>
-         </div>
-
-         <div style="text-align: center;">
-            <button id="btn-dashboard-start-fresh" class="btn btn--primary" style="padding: 12px 24px; font-size: 14px; font-weight: 600; cursor: pointer; position: relative; z-index: 9999;">
-               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:8px; vertical-align:middle;"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-               Yeni Analiz Başlat
-            </button>
-         </div>
-      </div>
-    `;
-    const btnFresh = document.getElementById('btn-dashboard-start-fresh');
-    if (btnFresh) {
-        btnFresh.addEventListener('click', () => {
-            if (typeof window.startFreshAnalysis === 'function') {
-                window.startFreshAnalysis();
-            }
-        });
-    }
-
-    const btnClearDashboardHistory = document.getElementById('btn-clear-history');
-    if (btnClearDashboardHistory) {
-        btnClearDashboardHistory.addEventListener('click', async () => {
-            if (confirm('Tüm geçmiş sohbetleri silmek istediğinize emin misiniz?')) {
-                await fetch('ai_seo/api/save_chat.php?id=all', { method: 'DELETE' });
-                window.agChatHistory = [];
-                loadHistory(); 
-                if (typeof window.startFreshAnalysis === 'function') {
-                    window.startFreshAnalysis();
-                }
-            }
-        });
-    }
-} // close if(dbView)
-}; // close window.renderDashboard = function()
 
 // --- CHART.JS LOGIC START ---
 let overallHealthChart = null;
@@ -523,21 +397,8 @@ function initOrUpdateCharts(data) {
 
 window._forceResetChat = resetChat;
 function resetChat(loadFromHistory = null, forceActionView = false) {
-  const dbView = document.getElementById('ai-seo-dashboard-view');
   const actionView = document.getElementById('copilot-action-view');
-  if (dbView && actionView) {
-      if (loadFromHistory || forceActionView) {
-          // Loading a history item OR explicitly forcing action view → show chat view
-          dbView.style.display = 'none'; 
-          actionView.style.display = 'flex';
-      } else if (actionView.style.display === 'flex' || actionView.style.display === 'block') {
-          // Already in action view (e.g. "Yeni Sohbet" clicked) → stay in action view
-      } else {
-          // Called at page load → show dashboard
-          dbView.style.display = 'block'; 
-          actionView.style.display = 'none';
-      }
-  }
+  if (actionView) actionView.style.display = 'flex';
   if (loadFromHistory) {
     window._chatLoadedFromHistory = true;
     currentChatId = loadFromHistory.chatId;
@@ -575,7 +436,7 @@ function resetChat(loadFromHistory = null, forceActionView = false) {
       reportData = chatMessages.filter(m => m.sender === 'ai' && m.text.length > 200).map(m => m.text);
     }
     const llmsC = document.getElementById('copilot-llms-container');
-    if (llmsC) llmsC.style.display = 'none';
+    if (llmsC) llmsC.style.display = 'flex';
     const msgContainer = document.getElementById('copilot-chat-messages-container');
     if (msgContainer) { 
         msgContainer.style.display = 'flex'; 
@@ -587,7 +448,12 @@ function resetChat(loadFromHistory = null, forceActionView = false) {
     if (msgContainer) { try { msgContainer.replaceChildren(); } catch(e) { msgContainer.innerHTML = ''; } }
     chatMessages.forEach(msg => { addMessage(msg.text, msg.sender, msg.isHtml, false); if (msg.sender === 'ai') { try { const jsonMatch = msg.text.match(/<div class="ai-raw-json" style="display:none;">```json\s*(\{[\s\S]*?\})\s*```<\/div>/); if (jsonMatch) { const chartData = JSON.parse(jsonMatch[1]); initOrUpdateCharts(chartData); } } catch(e){} } });
     
-    copilotInputArea.style.display = "none"; const cqa = document.getElementById("copilot-quick-actions"); if(cqa) cqa.style.display = "flex";
+    if (copilotInputArea) copilotInputArea.style.display = "block";
+    const textInput = document.getElementById('copilot-text-input');
+    if (textInput) textInput.placeholder = "Sormak istediğiniz bir şey var mı?";
+    
+    const cqa = document.getElementById("copilot-quick-actions"); 
+    if(cqa) cqa.style.display = "flex";
     renderAiSeoActions();
     
     if (copilotSaveBtn) {
@@ -835,13 +701,22 @@ function renderAiSeoActions() {
     const analyzeText = completedSteps.size === 0 ? "Tüm Siteyi Analiz Et" : "Kalan Adımları Analiz Et";
     const fixText = fixedIssues.size === 0 ? "Tüm Eksikleri Gider" : "Kalan Eksikleri Gider";
     
+    const isReady = targetUrl && targetType;
     if (btnAnalyze) {
-        btnAnalyze.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg> ${analyzeText}`;
+        btnAnalyze.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px;"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg> ${analyzeText}`;
         btnAnalyze.style.display = 'flex';
+        btnAnalyze.style.background = isReady ? '#10b981' : '#64748b';
+        btnAnalyze.style.cursor = isReady ? 'pointer' : 'not-allowed';
+        btnAnalyze.title = isReady ? analyzeText : 'URL girilmeden ve site tipi seçilmeden kullanılamaz';
+        btnAnalyze.disabled = !isReady;
     }
     if (btnFix) {
-        btnFix.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg> ${fixText}`;
+        btnFix.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px;"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg> ${fixText}`;
         btnFix.style.display = 'flex';
+        btnFix.style.background = isReady ? '#10b981' : '#64748b';
+        btnFix.style.cursor = isReady ? 'pointer' : 'not-allowed';
+        btnFix.title = isReady ? fixText : 'URL girilmeden ve site tipi seçilmeden kullanılamaz';
+        btnFix.disabled = !isReady;
     }
   } else {
     if (btnAnalyze) btnAnalyze.style.display = 'none';
@@ -1873,10 +1748,8 @@ window.openLlmsGenerator = function() {
 };
 
 document.addEventListener('DOMContentLoaded', () => {
-    const btnReturn = document.getElementById('btn-return-dashboard');
     if (btnReturn) {
         btnReturn.addEventListener('click', () => {
-            const dbView = document.getElementById('ai-seo-dashboard-view');
             const actionView = document.getElementById('copilot-action-view');
             if(dbView && actionView) {
                 actionView.style.display = 'none';
@@ -1887,7 +1760,6 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 window.startFreshAnalysis = function() {
   try {
-      const dbView = document.getElementById('ai-seo-dashboard-view');
       const actionView = document.getElementById('copilot-action-view');
       if (dbView) dbView.style.display = 'none';
       if (actionView) actionView.style.display = 'flex';
