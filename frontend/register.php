@@ -43,16 +43,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             }
         } else {
             // DB bağlantısı yoksa JSON fallback
+            $users_file = __DIR__ . '/users.json';
             $users = [];
-            if (file_exists('users.json')) {
-                $users = json_decode(file_get_contents('users.json'), true) ?? [];
+            if (file_exists($users_file)) {
+                $content = @file_get_contents($users_file);
+                $users = $content ? (json_decode($content, true) ?? []) : [];
             }
             if (isset($users[$username])) {
                 $error = "Bu kullanıcı adı zaten alınmış.";
             } else {
                 $users[$username] = password_hash($password, PASSWORD_DEFAULT);
-                file_put_contents('users.json', json_encode($users));
-                $success = "Kayıt başarılı! Şimdi giriş yapabilirsiniz.";
+                $saved = @file_put_contents($users_file, json_encode($users, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX);
+                if ($saved !== false) {
+                    $success = "Kayıt başarılı! Şimdi giriş yapabilirsiniz.";
+                } else {
+                    error_log("register.php: users.json yazılamadı (izin hatası). Yol: " . $users_file);
+                    $error = "Kayıt sırasında bir hata oluştu. Lütfen sunucu dosya izinlerini kontrol edin.";
+                }
             }
         }
     }
