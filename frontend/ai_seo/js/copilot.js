@@ -553,6 +553,17 @@ if (msgContainer) {
   if (typeof updateActiveHistoryItem === 'function') updateActiveHistoryItem();
 }
 
+function selectCategory(selectedType) {
+  if (currentState !== 'WAITING_FOR_TYPE') return;
+  targetType = selectedType;
+  addMessage(targetType, 'user');
+  if (copilotTextInput) {
+    copilotTextInput.value = '';
+    copilotTextInput.placeholder = 'Sormak istediğiniz bir şey var mı?';
+  }
+  startUrlFetch();
+}
+
 async function handleSend() {
   const val = copilotTextInput.value.trim();
   if (!val) return;
@@ -566,21 +577,32 @@ async function handleSend() {
     currentState = 'WAITING_FOR_TYPE';
     const msgContainer = document.getElementById('copilot-chat-messages-container');
     if (msgContainer) { 
-    msgContainer.style.display = 'flex'; 
-    msgContainer.style.flexDirection = 'column'; 
-    msgContainer.style.flex = '1'; 
-    msgContainer.style.overflowY = 'auto'; 
-    msgContainer.style.paddingTop = '16px'; 
+      msgContainer.style.display = 'flex'; 
+      msgContainer.style.flexDirection = 'column'; 
+      msgContainer.style.flex = '1'; 
+      msgContainer.style.overflowY = 'auto'; 
+      msgContainer.style.paddingTop = '16px'; 
     }
-    copilotInputArea.style.display = "none"; const cqa = document.getElementById("copilot-quick-actions"); if(cqa) cqa.style.display = "flex";
+    
+    if (copilotInputArea) copilotInputArea.style.display = "block";
+    if (copilotTextInput) copilotTextInput.placeholder = "Kategori seçin veya yazın (Örn: Hizmet / Kurumsal)";
+
     addMessage("Harika! Bu sayfa hangi kategoride yer alıyor? (Hizmet mi, yoksa ürün sattığınız bir E-Ticaret sayfası mı?)", 'ai');
     
-    copilotActions.innerHTML = `
-      <button class="btn btn--primary" id="btn-type-service">Hizmet / Kurumsal</button>
-      <button class="btn btn--primary" id="btn-type-product">Ürün / E-Ticaret</button>
-    `;
-    document.getElementById('btn-type-service').addEventListener('click', () => { targetType = 'Hizmet / Kurumsal'; addMessage(targetType, 'user'); startUrlFetch(); });
-    document.getElementById('btn-type-product').addEventListener('click', () => { targetType = 'Ürün / E-Ticaret'; addMessage(targetType, 'user'); startUrlFetch(); });
+    const cqa = document.getElementById("copilot-quick-actions");
+    if (cqa) {
+      cqa.style.display = "flex";
+      cqa.innerHTML = `
+        <button type="button" class="btn btn--primary" id="btn-type-service" style="padding:8px 16px; font-weight:600; background:#2563eb; color:#fff; border:none; border-radius:20px; cursor:pointer; font-size:13px; margin-right:8px; box-shadow:0 2px 4px rgba(37,99,235,0.2);">🏢 Hizmet / Kurumsal</button>
+        <button type="button" class="btn btn--primary" id="btn-type-product" style="padding:8px 16px; font-weight:600; background:#059669; color:#fff; border:none; border-radius:20px; cursor:pointer; font-size:13px; box-shadow:0 2px 4px rgba(5,150,105,0.2);">🛒 Ürün / E-Ticaret</button>
+      `;
+      const btnS = document.getElementById('btn-type-service');
+      const btnP = document.getElementById('btn-type-product');
+      if (btnS) btnS.addEventListener('click', () => selectCategory('Hizmet / Kurumsal'));
+      if (btnP) btnP.addEventListener('click', () => selectCategory('Ürün / E-Ticaret'));
+    }
+  } else if (currentState === 'WAITING_FOR_TYPE') {
+    selectCategory(val);
   } else if (currentState === 'CHAT_MODE') {
     addMessage(val, 'user');
     copilotTextInput.value = '';
