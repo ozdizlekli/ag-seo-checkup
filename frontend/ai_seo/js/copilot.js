@@ -41,7 +41,7 @@ const copilotChat = document.getElementById('copilot-chat-messages-container');
 const copilotResetBtn = document.getElementById('btn-clear-chat');
 const copilotSaveBtn = document.getElementById('copilot-manual-save-btn');
 const copilotProgress = document.getElementById('copilot-progress');
-const copilotActions = document.getElementById('copilot-actions');
+const copilotActions = document.getElementById('copilot-actions') || { style: {}, innerHTML: '', replaceChildren: function(){} };
 const copilotInputArea = document.getElementById('copilot-input-area-container');
 const copilotTextInput = document.getElementById('copilot-text-input');
 const copilotSendBtn = document.getElementById('btn-send-message');
@@ -133,10 +133,10 @@ function renderIssuesUI() {
     if (completedSteps.has(i)) {
       btn.style.display = 'block';
       const isFixed = fixedIssues.has(i);
-      // Badge stili: fixed=yeşil, unfixed=mavi — background/border badge konumunu korur
-      btn.style.background = isFixed ? '#10b981' : '#2563eb';
-      btn.style.color = '#fff';
-      btn.style.border = isFixed ? '1px solid #10b981' : '1px solid #2563eb';
+      btn.style.background = 'transparent';
+      btn.style.color = isFixed ? '#10b981' : '#2563eb';
+      btn.style.borderColor = 'transparent';
+      btn.style.border = 'none';
       
       btn.innerHTML = isFixed ? '✓' : '🔧';
       btn.title = isFixed ? `${i}. Adım Çözüldü` : `${i}. Adımı Çöz (Manuel)`;
@@ -147,6 +147,7 @@ function renderIssuesUI() {
       
       // Use onclick to avoid duplicates and DOM replacement issues
       btn.onclick = (e) => {
+        e.stopPropagation();
         const s = parseInt(e.currentTarget.getAttribute('data-step'));
         if (!fixedIssues.has(s)) {
           fixAiSeoIssue(s);
@@ -166,13 +167,13 @@ function renderIssuesUI() {
 }
 
 async function fixAiSeoIssue(step) {
-  const kural = "ÖNEMLİ KURAL: Önerdiğin İSTİSNASIZ HER eylemi modül mantığıyla sun. Eğer eylem sadece yazılım/teknik ekibini ilgilendiriyorsa (Şema, kod, hız) başına tam olarak '🚨 [TEKNİK - Modül: Modül Adı]', sadece içerik ekibini ilgilendiriyorsa (metin yazımı) '✍️ [METİN - Modül: Modül Adı]', her ikisini de içeren bütünleşik bir eylemse (veya fotoğraf, strateji, çoklu lokasyon gibi genel bir kurguysa) '📌 [GENEL - Modül: Modül Adı]' yaz. (Örn: 📌 [GENEL - Modül: SSS] Bu soruları sayfaya ekle ve FAQ şemasını da yayımla). Bütün eksikleri atlamadan bu formata sok!";
+  const kural = "ÖNEMLİ KURAL: Önerdiğin İSTİSNASIZ HER eylemi modül mantığıyla sun. Eğer eylem sadece yazılım/teknik ekibini ilgilendiriyorsa (Şema, kod, hız, yönlendirme) başına tam olarak '🚨 [TEKNİK - Modül: Modül Adı]', sadece içerik ekibini ilgilendiriyorsa (metin yazımı) '✍️ [METİN - Modül: Modül Adı]', her ikisini de içeren bütünleşik bir eylemse (veya fotoğraf, strateji, çoklu lokasyon gibi genel bir kurguysa) '📌 [GENEL - Modül: Modül Adı]' yaz. (Örn: 📌 [GENEL - Modül: SSS] Bu soruları sayfaya ekle ve FAQ şemasını da yayımla). Bütün eksikleri atlamadan bu formata sok!";
   const fixPrompts = [
     "",
-    "Az önceki 1. Adım analizinde bulduğun eksikleri gidermek için siteme doğrudan ekleyebileceğim E-E-A-T sinyallerini artıran metinler yaz ve Site Hiyerarşisini (Bilgi Mimarisini) düzeltmek için menü/kategori URL yapısı önerileri sun. " + kural,
+    "Az önceki 1. Adım analizinde bulduğun eksikleri gidermek için siteme doğrudan ekleyebileceğim E-E-A-T sinyallerini artıran metinler yaz. Ayrıca Site Hiyerarşisini (Bilgi Mimarisini) düzeltmek için menü/kategori URL yapısı önerileri sun. Teknik ekip için HTTP/HTTPS tutarlılığı, kırık linkler (404) ve canonical yönlendirmeleri (301) hakkında spesifik onarım kodları veya talimatları ver. " + kural,
     "Az önceki 2. Adım analizine dayanarak, kullanıcıların en çok aradığı sorulara doğrudan yanıt veren 5 adet 'Kullanıcı Odaklı SSS (FAQ)' metni ve bu soruların hatasız JSON-LD Schema kodunu hazırla. " + kural,
     "Az önceki 3. Adım analizinde bulduğun içerik açıklarını kapatmak için; hizmet kapsamını detaylandıran, teknik terimleri basitleştiren ve rakiplerden ayrışan ikna edici bir Değer Teklifi (Value Proposition) metni yaz. " + kural,
-    "Az önceki 4. Adım analizine göre; bu sayfanın otoritesini besleyecek 'Site İçi İçerik Bağlantıları (Internal Linking / Topic Clusters)' stratejisi oluştur. Hangi blog başlıkları yazılmalı ve bu sayfaya hangi Anchor Text (bağlantı metni) ile linklenmeli detaylıca yaz. " + kural,
+    "Az önceki 4. Adım analizine göre; bu sayfanın otoritesini besleyecek 'Site İçi İçerik Bağlantıları (Internal Linking / Topic Clusters)' stratejisi oluştur. Hangi blog başlıkları yazılmalı ve bu sayfaya hangi Anchor Text (bağlantı metni) ile linklenmeli detaylıca yaz. Ek olarak Google Search Console, Bing ve Yandex Webmaster Tools üzerinde indeksleme sorunlarının nasıl çözüleceğine dair teknik ekibe talimat ver. " + kural,
     "Az önceki 5. Adım analizine göre sayfadaki Yapılandırılmış Veri (Schema) derinliğini artır. Eğer sayfa ürünse Product, hizmetse Service (veya uygun olan) şemasını fiyat, yorum, açıklama gibi tüm detaylarıyla baştan yaz. Şema koduna yapay zeka (LLM) dostu 'knowsAbout' veya 'mentions' bağlamsal etiketlerini ekle. " + kural,
     "" // 6. adımın fix butonu yok.
   ];
@@ -191,12 +192,11 @@ async function fixAiSeoIssue(step) {
     prompt += `\n\n--- SİTE BAĞLAMI (BUNLARI KULLAN) ---\nURL: ${fetchedData.url}\nBaşlık: ${fetchedData.title}\nAçıklama: ${fetchedData.description}\nKategori: ${reportData.siteCategory || 'Bilinmiyor'}\nSchema: ${JSON.stringify(fetchedData.schemas)}\n---------------------\n\nÖNEMLİ KURAL: Bana şablon (Örn: [Şirket Adı], [Sektör]) verme! Yukarıdaki site bağlamı verilerini kullanarak metni doğrudan bu şirket için kişiselleştir.`;
   }
   
-  // Instead of calling handleSend which might conflict with state, we process directly:
   addMessage(`${step}. Adımdaki Eksiklikler Gideriliyor (Otomatik Çözüm)...`, 'user');
   addTypingIndicator();
   copilotActions.style.display = 'none';
 
-          p += `\n\nÖNEMLİ: Yanıtının SONUNA, analizine dayanan şu verileri içeren, aşağıdaki YAPIDA KESİN bir JSON bloğu ekle (\`\`\`json ... \`\`\` içinde olsun):
+  prompt += `\n\nÖNEMLİ: Yanıtının SONUNA, analizine dayanan şu verileri içeren, aşağıdaki YAPIDA KESİN bir JSON bloğu ekle (\`\`\`json ... \`\`\` içinde olsun):
 {
 "overview_html": "<p>Sitenin genel özeti...</p>",
 "charts_data": {
@@ -229,34 +229,11 @@ async function fixAiSeoIssue(step) {
       return;
     }
 
-          let aiText = result.candidates[0].content.parts[0].text;
+    let aiText = result.candidates[0].content.parts[0].text;
+    const { cleanText, parsedData, rawJsonStr } = extractAndCleanJson(aiText);
     
-    // JSON Extraction
-    let cleanText = aiText;
-    let chartData = null;
-    let rawJsonStr = '';
-    
-    const jsonMatch = aiText.match(/```(?:json)?\s*(\{[\s\S]*?\})\s*```/i);
-    if (jsonMatch) {
-        cleanText = aiText.replace(jsonMatch[0], '').trim();
-        rawJsonStr = jsonMatch[0];
-        try {
-            chartData = JSON.parse(jsonMatch[1]);
-        } catch(e) { console.warn("JSON Parse Error:", e); }
-    } else {
-        const fallbackMatch = aiText.match(/\{[\s\S]*"trust_score"[\s\S]*\}$/);
-        if (fallbackMatch) {
-            cleanText = aiText.replace(fallbackMatch[0], '').trim();
-            rawJsonStr = fallbackMatch[0];
-            try { chartData = JSON.parse(fallbackMatch[0]); } catch(e){}
-        }
-    }
-    
-          if (chartData) {
-        initOrUpdateCharts(chartData);
-        if (chartData.overview_html) {
-            cleanText = chartData.overview_html + "\n\n" + cleanText;
-        }
+    if (parsedData) {
+        initOrUpdateCharts(parsedData);
     }
 
     let htmlText = (typeof marked !== 'undefined' ? marked.parse(cleanText) : cleanText) + (rawJsonStr ? '<div class="ai-raw-json" style="display:none;">' + rawJsonStr + '</div>' : '');
@@ -278,111 +255,47 @@ async function fixAiSeoIssue(step) {
   }
 }
 
-      window.renderDashboard = function() {
-    const history = window.agChatHistory || [];
-    const totalAnalyses = history.length;
-    
-    let battleCount = 0;
-    let totalEEAT = 0;
-    let eeatCount = 0;
-    
-    history.forEach(h => {
-       if (h.messages) {
-          const msgs = JSON.stringify(h.messages).toLowerCase();
-          if (msgs.includes('rakip') || msgs.includes('battle') || msgs.includes('competitor_comparison')) battleCount++;
-          
-          // Try to extract real EEAT score from JSON blocks in history
-          h.messages.forEach(msg => {
-              if (msg.sender === 'ai' && msg.text) {
-                  try {
-                      const jsonMatch = msg.text.match(/<div class="ai-raw-json" style="display:none;">```json\s*(\{[\s\S]*?\})\s*```<\/div>/);
-                      if (jsonMatch) {
-                          const data = JSON.parse(jsonMatch[1]);
-                          let charts = data.charts_data || data;
-                          if (charts.eeat_radar) {
-                              let exp = charts.eeat_radar.experience || 0;
-                              let expt = charts.eeat_radar.expertise || 0;
-                              let auth = charts.eeat_radar.authoritativeness || 0;
-                              let trust = charts.eeat_radar.trustworthiness || 0;
-                              let avg = (exp + expt + auth + trust) / 4;
-                              if (avg > 0) {
-                                  totalEEAT += avg;
-                                  eeatCount++;
-                              }
-                          }
-                      }
-                  } catch(e) {}
-              }
-          });
-       }
-    });
 
-    const avgEEAT = eeatCount > 0 ? Math.round(totalEEAT / eeatCount) : 0;
+window.liveActionPlanItems = window.liveActionPlanItems || [];
 
-    let recentHtml = '';
-    history.slice(0, 5).forEach(h => {
-       const comp = h.completedSteps ? h.completedSteps.length : 0;
-       const fixes = h.fixedIssues ? h.fixedIssues.length : 0;
-       let health = "Orta";
-       let color = "#eab308";
-       if (comp >= 5 && fixes >= 3) { health = "Mükemmel"; color = "#22c55e"; }
-       else if (comp >= 3 && fixes < 2) { health = "Kritik"; color = "#ef4444"; }
-       
-       const dateStr = new Date(h.date).toLocaleDateString('tr-TR');
-       recentHtml += `
-          <div style="display:flex; justify-content:space-between; align-items:center; padding: 12px; border-bottom: 1px solid var(--border);">
-             <div style="font-weight: 500; font-size: 13px; color: var(--text);">${h.url} <span style="font-size:11px; color:var(--muted); margin-left:8px;">${dateStr}</span></div>
-             <div style="font-size: 12px; font-weight: 600; color: ${color}; background: ${color}20; padding: 4px 8px; border-radius: 6px;">${health}</div>
-          </div>
-       `;
-    });
-    if (recentHtml === '') recentHtml = '<div style="padding: 12px; color: var(--muted); font-size: 13px;">Henüz analiz bulunmuyor.</div>';
+function extractAndCleanJson(aiText) {
+  let cleanText = aiText || '';
+  let parsedData = null;
+  let rawJsonStr = '';
 
-    const dbView = document.getElementById('ai-seo-dashboard-view');
-    const actionView = document.getElementById('copilot-action-view');
-    if(dbView) {
-        dbView.innerHTML = `
-      <div id="welcome-dashboard-flag" style="padding: 24px;">
-         <h2 style="margin-bottom: 24px; font-size: 20px; font-weight: 600; color: var(--text);">Agency OS Kontrol Paneli</h2>
-         
-         <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 32px;">
-            <div style="background: #fff; padding: 20px; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
-               <div style="font-size: 12px; color: var(--muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">Toplam Analiz</div>
-               <div style="font-size: 32px; font-weight: 700; color: #2563eb;">${totalAnalyses}</div>
-            </div>
-            <div style="background: #fff; padding: 20px; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
-               <div style="font-size: 12px; color: var(--muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">Rakip Analizi (Battle)</div>
-               <div style="font-size: 32px; font-weight: 700; color: #dc2626;">${battleCount}</div>
-            </div>
-            <div style="background: #fff; padding: 20px; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
-               <div style="font-size: 12px; color: var(--muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">Ortalama E-E-A-T</div>
-               <div style="font-size: 32px; font-weight: 700; color: #16a34a;">${avgEEAT > 0 ? avgEEAT + '/100' : '-'}</div>
-            </div>
-         </div>
+  if (!cleanText) return { cleanText: '', parsedData: null, rawJsonStr: '' };
 
-         <div style="background: #fff; border-radius: 12px; border: 1px solid var(--border); overflow: hidden; margin-bottom: 32px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
-            <div style="padding: 16px; background: #f8fafc; border-bottom: 1px solid var(--border); font-weight: 600; font-size: 14px; color: var(--text);">Son Taranan 5 Site</div>
-            ${recentHtml}
-         </div>
+  // 1. ```json ... ``` veya ``` ... ``` kontrolü
+  const codeBlockMatch = cleanText.match(/```(?:json)?\s*(\{[\s\S]*?\})\s*```/i);
+  if (codeBlockMatch) {
+    cleanText = cleanText.replace(codeBlockMatch[0], '').trim();
+    rawJsonStr = codeBlockMatch[0];
+    try { parsedData = JSON.parse(codeBlockMatch[1]); } catch(e){}
+  }
 
-         <div style="text-align: center;">
-            <button id="btn-dashboard-start-fresh" class="btn btn--primary" style="padding: 12px 24px; font-size: 14px; font-weight: 600; cursor: pointer; position: relative; z-index: 9999;">
-               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:8px; vertical-align:middle;"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-               Yeni Analiz Başlat
-            </button>
-         </div>
-      </div>
-    `;
-    const btnFresh = document.getElementById('btn-dashboard-start-fresh');
-    if (btnFresh) {
-        btnFresh.addEventListener('click', () => {
-            if (typeof window.startFreshAnalysis === 'function') {
-                window.startFreshAnalysis();
-            }
-        });
+  // 2. Ham JSON objesi { ... } kontrolü
+  if (!parsedData) {
+    const rawJsonMatch = cleanText.match(/\{[\s\S]*\}/);
+    if (rawJsonMatch) {
+      try {
+        parsedData = JSON.parse(rawJsonMatch[0]);
+        cleanText = cleanText.replace(rawJsonMatch[0], '').trim();
+        rawJsonStr = rawJsonMatch[0];
+      } catch(e){}
     }
-} // close if(dbView)
-}; // close window.renderDashboard = function()
+  }
+
+  // 3. Metin boş kaldıysa fakat JSON varsa okunabilir metin üret
+  if (!cleanText && parsedData) {
+    if (parsedData.overview_html) {
+      cleanText = parsedData.overview_html;
+    } else if (parsedData.rakip_ustunluk_nedenleri) {
+      cleanText = `### 🎯 Rakip Üstünlük Nedenleri\n\n${parsedData.rakip_ustunluk_nedenleri}`;
+    }
+  }
+
+  return { cleanText, parsedData, rawJsonStr };
+}
 
 // --- CHART.JS LOGIC START ---
 let overallHealthChart = null;
@@ -390,83 +303,170 @@ let eeatChart = null;
 let battleChart = null;
 
 function initOrUpdateCharts(data) {
-  if (typeof Chart === 'undefined') return;
+  if (!data || typeof Chart === 'undefined') return;
 
-  let chartsData = data.charts_data || data; // Fallback if AI skips wrapper
+  let chartsData = data.charts_data || data; 
   let trustScore = chartsData.trust_score || chartsData.genel_skor || 0;
   
-  // 1. Genel Sağlık (Doughnut)
-  const ctxOverall = document.getElementById('chart-overall-health');
-  if (ctxOverall) {
-      const placeholder = document.getElementById('chart-overall-health-placeholder');
-      if (placeholder) placeholder.style.display = 'none';
-      if (overallHealthChart) overallHealthChart.destroy();
-      overallHealthChart = new Chart(ctxOverall, {
-          type: 'doughnut',
-          data: {
-              labels: ['Güven Skoru', 'Eksik'],
-              datasets: [{
-                  data: [trustScore, 100 - trustScore],
-                  backgroundColor: ['#475569', '#e2e8f0'],
-                  borderWidth: 0
-              }]
-          },
-          options: { cutout: '80%' }, plugins: [{ id: 'textCenter', beforeDraw: function(chart) { var width = chart.width, height = chart.height, ctx = chart.ctx; ctx.restore(); var fontSize = (height / 100).toFixed(2); ctx.font = 'bold ' + (fontSize * 1.5) + 'em sans-serif'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#0f172a'; var text = trustScore + '%', textX = Math.round((width - ctx.measureText(text).width) / 2), textY = height / 2; ctx.fillText(text, textX, textY); ctx.save(); } }]
-      });
-      
-      // Update the centered text inside doughnut (I had a plugin for this, but let's just use absolute div if they prefer)
-      let textDiv = document.getElementById('chart-overall-health-text');
-      if (textDiv) textDiv.innerHTML = trustScore + '%';
+  // 1. Genel Sağlık (Doughnut Chart)
+  if (trustScore > 0) {
+      const ctxOverall = document.getElementById('chart-overall-health');
+      if (ctxOverall) {
+          const placeholder = document.getElementById('chart-overall-health-placeholder');
+          if (placeholder) placeholder.style.display = 'none';
+          if (overallHealthChart) overallHealthChart.destroy();
+          overallHealthChart = new Chart(ctxOverall, {
+              type: 'doughnut',
+              data: {
+                  labels: ['Güven Skoru', 'Eksik'],
+                  datasets: [{
+                      data: [trustScore, 100 - trustScore],
+                      backgroundColor: ['#2563eb', '#e2e8f0'],
+                      borderWidth: 0
+                  }]
+              },
+              options: { cutout: '75%' },
+              plugins: [{
+                id: 'textCenter',
+                beforeDraw: function(chart) {
+                    var width = chart.width,
+                        height = chart.height,
+                        ctx = chart.ctx;
+            
+                    ctx.restore();
+                    var fontSize = (height / 100).toFixed(2);
+                    ctx.font = "bold " + fontSize + "em sans-serif";
+                    ctx.textBaseline = "middle";
+                    ctx.fillStyle = "#1e293b"; // Yazı rengi
+            
+                    var text = trustScore + "%", // Dinamik veri eklendi!
+    textX = Math.round((width - ctx.measureText(text).width) / 2),
+                        // Grafiğin tam ortasını (Y ekseni) bulmak için chart.chartArea.top da hesaba katılmalı
+                        textY = chart.chartArea.top + (chart.chartArea.bottom - chart.chartArea.top) / 2;
+            
+                    ctx.fillText(text, textX, textY);
+                    ctx.save();
+                }
+            }]
+          });
+      }
   }
 
-  // 2. E-E-A-T Radar
-  const ctxEeat = document.getElementById('chart-eeat');
-  if (ctxEeat && chartsData.eeat_radar) {
-      const eeatPlaceholder = document.getElementById('chart-eeat-placeholder');
-      if (eeatPlaceholder) eeatPlaceholder.style.display = 'none';
-      if (eeatChart) eeatChart.destroy();
-      
-      let eeat = chartsData.eeat_radar;
-      // fallback to old turkish keys just in case AI messes up
-      let exp = eeat.experience || eeat.deneyim || 0;
-      let exp_t = eeat.expertise || eeat.uzmanlik || 0;
-      let auth = eeat.authoritativeness || eeat.otorite || 0;
-      let trust = eeat.trustworthiness || eeat.guvenilirlik || 0;
+  // 2. E-E-A-T Radar Chart
+  if (chartsData.eeat_radar) {
+      const ctxEeat = document.getElementById('chart-eeat');
+      if (ctxEeat) {
+          const eeatPlaceholder = document.getElementById('chart-eeat-placeholder');
+          if (eeatPlaceholder) eeatPlaceholder.style.display = 'none';
+          if (eeatChart) eeatChart.destroy();
+          
+          let eeat = chartsData.eeat_radar;
+          let exp = eeat.experience || eeat.deneyim || 60;
+          let exp_t = eeat.expertise || eeat.uzmanlik || 65;
+          let auth = eeat.authoritativeness || eeat.otorite || 70;
+          let trust = eeat.trustworthiness || eeat.guvenilirlik || 75;
 
-      eeatChart = new Chart(ctxEeat, {
-          type: 'radar',
-          data: {
-              labels: ['Deneyim', 'Uzmanlık', 'Otorite', 'Güvenilirlik'],
-              datasets: [{
-                  label: 'E-E-A-T Profili',
-                  data: [exp, exp_t, auth, trust],
-                  backgroundColor: 'rgba(59, 130, 235, 0.2)',
-                  borderColor: '#2563eb',
-                  pointBackgroundColor: '#2563eb'
-              }]
-          },
-          options: { scales: { r: { min: 0, max: 100 } } }
-      });
+          eeatChart = new Chart(ctxEeat, {
+              type: 'radar',
+              data: {
+                  labels: ['Deneyim', 'Uzmanlık', 'Otorite', 'Güvenilirlik'],
+                  datasets: [{
+                      label: 'E-E-A-T Profili',
+                      data: [exp, exp_t, auth, trust],
+                      backgroundColor: 'rgba(37, 99, 235, 0.2)',
+                      borderColor: '#2563eb',
+                      pointBackgroundColor: '#2563eb'
+                  }]
+              },
+              options: { scales: { r: { min: 0, max: 100 } } }
+          });
+      }
   }
 
-  // 3. Aksiyon Planı Tablosu
+  // 3. Rakip Kıyaslama Bar Chart (Battle Mode / Savaş Modu)
+  let siteA = chartsData.site_a_skorlari || (chartsData.competitor_comparison ? chartsData.competitor_comparison.main_scores : null);
+  let siteB = chartsData.site_b_skorlari || (chartsData.competitor_comparison ? chartsData.competitor_comparison.comp_scores : null);
+  if (siteA || siteB) {
+      const bContainer = document.getElementById('battle-chart-container');
+      if (bContainer) bContainer.style.display = 'block';
+      const ctxB = document.getElementById('chart-battle');
+      if (ctxB) {
+          const battlePlaceholder = document.getElementById('chart-battle-placeholder');
+          if (battlePlaceholder) battlePlaceholder.style.display = 'none';
+          if (battleChart) battleChart.destroy();
+          
+          let sa = siteA || [60, 65, 50];
+          let sb = siteB || [85, 90, 88];
+
+          battleChart = new Chart(ctxB, {
+              type: 'bar',
+              data: {
+                  labels: ['İçerik Derinliği', 'SEO Kalitesi', 'E-E-A-T'],
+                  datasets: [
+                      { label: 'Senin Siten', data: Array.isArray(sa) ? sa : [sa.icerik || 60, sa.seo || 65, sa.eeat || 50], backgroundColor: '#2563eb' },
+                      { label: 'Rakip', data: Array.isArray(sb) ? sb : [sb.icerik || 85, sb.seo || 90, sb.eeat || 88], backgroundColor: '#ef4444' }
+                  ]
+              },
+              options: { scales: { y: { min: 0, max: 100 } } }
+          });
+      }
+  }
+
+  // 4. Aksiyon Planı Tablosuna Tüm Adımlardan Gelen Verileri Ekle (Accumulate)
+  let rawPlan = data.action_plan_table || data.acil_aksiyon_plani;
+  if (rawPlan) {
+      if (Array.isArray(rawPlan)) {
+          rawPlan.forEach(item => {
+              const issueText = item.issue || item.sorun || '';
+              if (issueText && !window.liveActionPlanItems.some(existing => existing.issue === issueText)) {
+                  window.liveActionPlanItems.push({
+                      issue: issueText,
+                      category: item.category || item.kategori || 'Genel SEO',
+                      priority: item.priority || item.onem || 'MEDIUM',
+                      color: item.color || '#f59e0b'
+                  });
+              }
+          });
+      } else if (typeof rawPlan === 'object') {
+          const categories = [
+              { key: 'icerik_derinligi', label: 'İçerik Derinliği', color: '#2563eb', priority: 'HIGH' },
+              { key: 'seo_kalitesi', label: 'SEO Kalitesi', color: '#10b981', priority: 'MEDIUM' },
+              { key: 'eeat_sinyalleri', label: 'E-E-A-T Sinyalleri', color: '#f59e0b', priority: 'HIGH' }
+          ];
+          categories.forEach(cat => {
+              const list = rawPlan[cat.key];
+              if (Array.isArray(list)) {
+                  list.forEach(task => {
+                      if (task && !window.liveActionPlanItems.some(existing => existing.issue === task)) {
+                          window.liveActionPlanItems.push({
+                              issue: task,
+                              category: cat.label,
+                              priority: cat.priority,
+                              color: cat.color
+                          });
+                      }
+                  });
+              }
+          });
+      }
+  }
+
+  // Canlı Rapor Paneline Birikimli Tabloyu Yansıt
   const tableContainer = document.getElementById('action-plan-table-container');
-  let actionPlan = data.action_plan_table || data.acil_aksiyon_plani || [];
-  
-  if (tableContainer && actionPlan.length > 0) {
+  if (tableContainer && window.liveActionPlanItems.length > 0) {
       let tableHtml = '<table style="width:100%; border-collapse: collapse; text-align:left; font-size:13px;">';
-      tableHtml += '<tr style="border-bottom: 2px solid #e2e8f0; color: #475569;"><th>Tespit Edilen Sorun</th><th>Kategori</th><th>Önem</th></tr>';
+      tableHtml += '<tr style="border-bottom: 2px solid #e2e8f0; color: #475569;"><th style="padding:10px;">Tespit Edilen Aksiyon</th><th style="padding:10px;">Kategori</th><th style="padding:10px;">Önem</th></tr>';
 
-      actionPlan.forEach(item => {
-          let priorityText = item.priority || item.onem || 'Medium';
-          let color = item.color || (priorityText.toLowerCase().includes('high') || priorityText.toLowerCase().includes('yüksek') ? '#ef4444' : (priorityText.toLowerCase().includes('low') || priorityText.toLowerCase().includes('düşük') ? '#10b981' : '#f59e0b'));
+      window.liveActionPlanItems.forEach(item => {
+          let priorityText = (item.priority || 'MEDIUM').toString().toUpperCase();
+          let color = item.color || (priorityText.includes('HIGH') || priorityText.includes('YÜKSEK') ? '#ef4444' : (priorityText.includes('LOW') || priorityText.includes('DÜŞÜK') ? '#10b981' : '#f59e0b'));
           
           tableHtml += `<tr style="border-bottom: 1px solid #f1f5f9;">
-              <td style="padding: 10px;">${item.issue || item.sorun || '-'}</td>
-              <td style="padding: 10px; color: #64748b;">${item.category || item.kategori || '-'}</td>
+              <td style="padding: 10px; color: #0f172a; font-weight: 500;">${item.issue}</td>
+              <td style="padding: 10px; color: #64748b;">${item.category}</td>
               <td style="padding: 10px;">
-                  <span style="background: ${color}; color: white; padding: 4px 8px; border-radius: 12px; font-size: 11px;">
-                      ${priorityText.toUpperCase()}
+                  <span style="background: ${color}; color: white; padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;">
+                      ${priorityText}
                   </span>
               </td>
           </tr>`;
@@ -474,48 +474,54 @@ function initOrUpdateCharts(data) {
       tableHtml += '</table>';
       tableContainer.innerHTML = tableHtml;
   }
-  
-  // 4. Battle Mode Bar Chart
-  if (chartsData.competitor_comparison && chartsData.competitor_comparison.main_scores) {
-      const comp = chartsData.competitor_comparison;
-      document.getElementById('battle-chart-container').style.display = 'block';
-      const ctxB = document.getElementById('chart-battle');
-      const battlePlaceholder = document.getElementById('chart-battle-placeholder');
-      if (battlePlaceholder) battlePlaceholder.style.display = 'none';
-      if (ctxB) {
-          if (battleChart) battleChart.destroy();
-          battleChart = new Chart(ctxB, {
-              type: 'bar',
-              data: {
-                  labels: ['İçerik', 'SEO', 'E-E-A-T'],
-                  datasets: [
-                      { label: comp.main_site_name || 'Senin Siten', data: comp.main_scores, backgroundColor: '#3b82f6' },
-                      { label: comp.competitor_name || 'Rakip', data: comp.comp_scores, backgroundColor: '#ef4444' }
-                  ]
-              }
-          });
-      }
-  }
 }
 // --- CHART.JS LOGIC END ---
 
 window._forceResetChat = resetChat;
-function resetChat(loadFromHistory = null, forceActionView = false) {
-  const dbView = document.getElementById('ai-seo-dashboard-view');
-  const actionView = document.getElementById('copilot-action-view');
-  if (dbView && actionView) {
-      if (loadFromHistory || forceActionView) {
-          // Loading a history item OR explicitly forcing action view → show chat view
-          dbView.style.display = 'none'; 
-          actionView.style.display = 'flex';
-      } else if (actionView.style.display === 'flex' || actionView.style.display === 'block') {
-          // Already in action view (e.g. "Yeni Sohbet" clicked) → stay in action view
-      } else {
-          // Called at page load → show dashboard
-          dbView.style.display = 'block'; 
-          actionView.style.display = 'none';
+// --- ZAMAN YOLCULUĞU (TIME TRAVEL) FONKSİYONU ---
+window.rebuildChartsForStep = function(targetStep) {
+  // 1. Panelin hafızasını tamamen sıfırla
+  window.liveStepMetrics = {};
+  window.liveTags = { intent: '', entities: new Set() };
+  window.liveActionPlanItems = [];
+  
+  const metricsC = document.getElementById('dynamic-metrics-container');
+  if (metricsC) metricsC.innerHTML = '<p style="color: #94a3b8; font-size: 12px; text-align: center; margin: 10px 0;">Analiz edildikçe dolacak...</p>';
+  const tagsC = document.getElementById('dynamic-tags-container');
+  if (tagsC) tagsC.innerHTML = '';
+  const tableC = document.getElementById('action-plan-table-container');
+  if (tableC) tableC.innerHTML = '<div style="color:var(--muted); font-size:13px; text-align:center; margin-top:20px;">Henüz veri yok.</div>';
+
+  // 2. Sohbet geçmişini 1. adımdan tıkladığın adıma kadar sessizce yeniden oynat
+  let currentParsingStep = 0;
+  
+  chatMessages.forEach(msg => {
+      // Kullanıcının attığı "X. Adım: ..." mesajından hangi adımda olduğumuzu anlıyoruz
+      if (msg.sender === 'user') {
+          const match = msg.text.match(/^(\d+)\.\s*Adım:/i);
+          if (match) currentParsingStep = parseInt(match[1]);
       }
-  }
+      
+      // Sadece tıkladığımız adıma kadar olan AI yanıtlarındaki JSON'ları oku
+      if (msg.sender === 'ai' && currentParsingStep <= targetStep) {
+          try {
+              const jsonMatch = msg.text.match(/<div class="ai-raw-json"[^>]*>([\s\S]*?)<\/div>/i);
+              let rawJson = '';
+              if (jsonMatch) {
+                  const codeMatch = jsonMatch[1].match(/```(?:json)?\s*(\{[\s\S]*?\})\s*```/i);
+                  rawJson = codeMatch ? codeMatch[1] : jsonMatch[1];
+              }
+              if (rawJson) {
+                  const chartData = JSON.parse(rawJson);
+                  initOrUpdateCharts(chartData); // Grafikleri ve tabloları sessizce güncelle
+              }
+          } catch(e) { console.error("Zaman yolculuğu hatası:", e); }
+      }
+  });
+};
+function resetChat(loadFromHistory = null, forceActionView = false) {
+  const actionView = document.getElementById('copilot-action-view');
+  if (actionView) actionView.style.display = 'flex';
   if (loadFromHistory) {
     window._chatLoadedFromHistory = true;
     currentChatId = loadFromHistory.chatId;
@@ -553,7 +559,7 @@ function resetChat(loadFromHistory = null, forceActionView = false) {
       reportData = chatMessages.filter(m => m.sender === 'ai' && m.text.length > 200).map(m => m.text);
     }
     const llmsC = document.getElementById('copilot-llms-container');
-    if (llmsC) llmsC.style.display = 'none';
+    if (llmsC) llmsC.style.display = 'flex';
     const msgContainer = document.getElementById('copilot-chat-messages-container');
     if (msgContainer) { 
         msgContainer.style.display = 'flex'; 
@@ -565,7 +571,12 @@ function resetChat(loadFromHistory = null, forceActionView = false) {
     if (msgContainer) { try { msgContainer.replaceChildren(); } catch(e) { msgContainer.innerHTML = ''; } }
     chatMessages.forEach(msg => { addMessage(msg.text, msg.sender, msg.isHtml, false); if (msg.sender === 'ai') { try { const jsonMatch = msg.text.match(/<div class="ai-raw-json" style="display:none;">```json\s*(\{[\s\S]*?\})\s*```<\/div>/); if (jsonMatch) { const chartData = JSON.parse(jsonMatch[1]); initOrUpdateCharts(chartData); } } catch(e){} } });
     
-    copilotInputArea.style.display = "none"; const cqa = document.getElementById("copilot-quick-actions"); if(cqa) cqa.style.display = "flex";
+    if (copilotInputArea) copilotInputArea.style.display = "block";
+    const textInput = document.getElementById('copilot-text-input');
+    if (textInput) textInput.placeholder = "Sormak istediğiniz bir şey var mı?";
+    
+    const cqa = document.getElementById("copilot-quick-actions"); 
+    if(cqa) cqa.style.display = "flex";
     renderAiSeoActions();
     
     if (copilotSaveBtn) {
@@ -594,6 +605,7 @@ function resetChat(loadFromHistory = null, forceActionView = false) {
   window.fetchedCompetitorData = null;
   chatMessages = [];
   reportData = [];
+  window.liveActionPlanItems = [];
   
   updateProgressUI(0);
   
@@ -603,8 +615,7 @@ function resetChat(loadFromHistory = null, forceActionView = false) {
   const tableC = document.getElementById('action-plan-table-container');
   if (tableC) tableC.innerHTML = '<div style="color:var(--muted); font-size:13px; text-align:center; margin-top:20px;">Henüz veri yok.</div>';
 
-  const llmsC = document.getElementById('copilot-llms-container');
-  if (llmsC) llmsC.style.display = 'none';
+
   const msgContainer = document.getElementById('copilot-chat-messages-container');
 if (msgContainer) { 
     msgContainer.style.display = 'flex'; 
@@ -666,6 +677,17 @@ if (msgContainer) {
   if (typeof updateActiveHistoryItem === 'function') updateActiveHistoryItem();
 }
 
+function selectCategory(selectedType) {
+  if (currentState !== 'WAITING_FOR_TYPE') return;
+  targetType = selectedType;
+  addMessage(targetType, 'user');
+  if (copilotTextInput) {
+    copilotTextInput.value = '';
+    copilotTextInput.placeholder = 'Sormak istediğiniz bir şey var mı?';
+  }
+  startUrlFetch();
+}
+
 async function handleSend() {
   const val = copilotTextInput.value.trim();
   if (!val) return;
@@ -679,21 +701,32 @@ async function handleSend() {
     currentState = 'WAITING_FOR_TYPE';
     const msgContainer = document.getElementById('copilot-chat-messages-container');
     if (msgContainer) { 
-    msgContainer.style.display = 'flex'; 
-    msgContainer.style.flexDirection = 'column'; 
-    msgContainer.style.flex = '1'; 
-    msgContainer.style.overflowY = 'auto'; 
-    msgContainer.style.paddingTop = '16px'; 
+      msgContainer.style.display = 'flex'; 
+      msgContainer.style.flexDirection = 'column'; 
+      msgContainer.style.flex = '1'; 
+      msgContainer.style.overflowY = 'auto'; 
+      msgContainer.style.paddingTop = '16px'; 
     }
-    copilotInputArea.style.display = "none"; const cqa = document.getElementById("copilot-quick-actions"); if(cqa) cqa.style.display = "flex";
+    
+    if (copilotInputArea) copilotInputArea.style.display = "block";
+    if (copilotTextInput) copilotTextInput.placeholder = "Kategori seçin veya yazın (Örn: Hizmet / Kurumsal)";
+
     addMessage("Harika! Bu sayfa hangi kategoride yer alıyor? (Hizmet mi, yoksa ürün sattığınız bir E-Ticaret sayfası mı?)", 'ai');
     
-    copilotActions.innerHTML = `
-      <button class="btn btn--primary" id="btn-type-service">Hizmet / Kurumsal</button>
-      <button class="btn btn--primary" id="btn-type-product">Ürün / E-Ticaret</button>
-    `;
-    document.getElementById('btn-type-service').addEventListener('click', () => { targetType = 'Hizmet / Kurumsal'; addMessage(targetType, 'user'); startUrlFetch(); });
-    document.getElementById('btn-type-product').addEventListener('click', () => { targetType = 'Ürün / E-Ticaret'; addMessage(targetType, 'user'); startUrlFetch(); });
+    const cqa = document.getElementById("copilot-quick-actions");
+    if (cqa) {
+      cqa.style.display = "flex";
+      cqa.innerHTML = `
+        <button type="button" class="btn btn--primary" id="btn-type-service" style="padding:8px 16px; font-weight:600; background:#2563eb; color:#fff; border:none; border-radius:20px; cursor:pointer; font-size:13px; margin-right:8px; box-shadow:0 2px 4px rgba(122, 146, 199, 0.2);">🏢 Hizmet / Kurumsal</button>
+        <button type="button" class="btn btn--primary" id="btn-type-product" style="padding:8px 16px; font-weight:600; background:#059669; color:#fff; border:none; border-radius:20px; cursor:pointer; font-size:13px; box-shadow:0 2px 4px rgba(166, 211, 197, 0.2);">🛒 Ürün / E-Ticaret</button>
+      `;
+      const btnS = document.getElementById('btn-type-service');
+      const btnP = document.getElementById('btn-type-product');
+      if (btnS) btnS.addEventListener('click', () => selectCategory('Hizmet / Kurumsal'));
+      if (btnP) btnP.addEventListener('click', () => selectCategory('Ürün / E-Ticaret'));
+    }
+  } else if (currentState === 'WAITING_FOR_TYPE') {
+    selectCategory(val);
   } else if (currentState === 'CHAT_MODE') {
     addMessage(val, 'user');
     copilotTextInput.value = '';
@@ -795,11 +828,7 @@ function renderAiSeoActions() {
   updateProgressUI(currentStep);
   window.renderDynamicQuickActions();
 
-  // Yeşil butonların konteynerini sadece URL varsa göster
-  const llmsContainer = document.getElementById('copilot-llms-container');
-  if (llmsContainer && targetUrl !== '') {
-      llmsContainer.style.display = 'flex';
-  }
+
   let nextStep = 1;
   while(completedSteps.has(nextStep) && nextStep <= 5) { nextStep++; }
   
@@ -818,13 +847,22 @@ function renderAiSeoActions() {
     const analyzeText = completedSteps.size === 0 ? "Tüm Siteyi Analiz Et" : "Kalan Adımları Analiz Et";
     const fixText = fixedIssues.size === 0 ? "Tüm Eksikleri Gider" : "Kalan Eksikleri Gider";
     
+    const isReady = targetUrl && targetType;
     if (btnAnalyze) {
-        btnAnalyze.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg> ${analyzeText}`;
+        btnAnalyze.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px;"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg> ${analyzeText}`;
         btnAnalyze.style.display = 'flex';
+        btnAnalyze.style.background = isReady ? '#10b981' : '#64748b';
+        btnAnalyze.style.cursor = isReady ? 'pointer' : 'not-allowed';
+        btnAnalyze.title = isReady ? analyzeText : 'URL girilmeden ve site tipi seçilmeden kullanılamaz';
+        btnAnalyze.disabled = !isReady;
     }
     if (btnFix) {
-        btnFix.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg> ${fixText}`;
+        btnFix.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px;"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg> ${fixText}`;
         btnFix.style.display = 'flex';
+        btnFix.style.background = isReady ? '#10b981' : '#64748b';
+        btnFix.style.cursor = isReady ? 'pointer' : 'not-allowed';
+        btnFix.title = isReady ? fixText : 'URL girilmeden ve site tipi seçilmeden kullanılamaz';
+        btnFix.disabled = !isReady;
     }
   } else {
     if (btnAnalyze) btnAnalyze.style.display = 'none';
@@ -978,7 +1016,7 @@ async function processAiSeoStep() {
 * BU SAYFA NE HAKKINDADIR VE KİMİN İÇİNDİR?
 * HİYERARŞİ VE AYRIŞMA: Sayfadaki hizmet/ürün hiyerarşisi net mi? Karmaşıklık var mı?
 * ANAHTAR VARLIKLAR (ENTITIES): Yapay zekanın Knowledge Graph (Bilgi Grafiği) için bu sitenin odaklanması gereken en önemli 3-4 kavram.
-* TEKNİK SEO EKSİKLERİ: Sayfanın taranabilirliğini (Robots.txt, Sitemap, Canonical vb. standartları) göz önünde bulundurarak olası risklerini değerlendir.
+* TEKNİK SEO VE TARANABİLİRLİK EKSİKLERİ: Sayfanın taranabilirliğini (Robots.txt, Sitemap) göz önünde bulundurarak olası risklerini değerlendir. Aynı içeriği açan alternatif adresler için Canonical etiketleri doğru kullanılmış mı? HTTP ve HTTPS adresleri arasında tutarlılık var mı? Sitedeki kırık bağlantılar ve 404 sayfalarının genel durumu nedir? Yönlendirme zincirleri (301) sağlıklı çalışıyor mu?
 Buna ek olarak E-E-A-T (Deneyim, Uzmanlık, Otoriterlik, Güvenilirlik) kurallarına göre bir değerlendirme yaz.`;
   } 
   else if (step === 2) {
@@ -999,7 +1037,7 @@ Sitenin rakiplere kıyasla hangi açıkları kapatması ve metinleri nasıl özg
     p += `Aşağıdaki başlıkları kullanarak LLM içerik güven metriklerini yüzdelik (%) olarak belirle:
 Altına "İÇERİK İÇİ BAĞLANTILAR (INTERNAL LINKING) VE CANONICAL" başlığı aç.
 * İÇERİK BAĞ AĞI (TOPIC CLUSTERS): Bu sayfanın otoritesini artırmak için hangi konularda bilgilendirici blog yazıları yazılmalı ve bu sayfaya nasıl iç link (internal link) verilmeli?
-* ARAMA MOTORU KAYITLARI: GSC, Bing ve Yandex üzerinde takip edilmesi gereken indeks ve tarama durumları için genel stratejik tavsiyeler.`;
+* ARAMA MOTORU KAYITLARI: Sadece Google Search Console değil, Bing Webmaster Tools ve Yandex Webmaster üzerinde de takip edilmesi gereken indeks, tarama durumu ve site haritası hatalarına dair genel stratejik tavsiyeler ver. Her üç platformda yaşanabilecek potansiyel teknik uyarıları (Geçerli/Geçersiz sayfa durumları) açıkla.`;
   } 
   else if (step === 5) {
     p += `Aşağıdaki başlıkları kullanarak Yapılandırılmış Veri ve Optimizasyon analizi yap:
@@ -1010,11 +1048,27 @@ Son olarak, LLM (SGE) dostu kusursuz hale getirilmiş YENİ BİR ÖRNEK METİN v
   }
   else if (step === 6) {
     p += `ÖNEMLİ: Sen bir Bütünsel Entegrasyon Şefisin. Önceki 5 adımdaki Metin ve Teknik yapıları birbirine nasıl bağlamamız gerektiğini analiz et. 
-* AI TANITIM DOSYALARI (llms.txt): Bu sitenin kök dizininde bulunması gereken bir llms.txt dosyasının önemini ve yapay zeka botlarına siteyi nasıl özetlemesi gerektiğini anlat.
+* AI TANITIM DOSYALARI (llms.txt): Bu sitenin kök dizininde bulunması gereken bir llms.txt dosyasının önemini anlat. Bu dosyanın içinde; işletmenin temel faaliyet alanlarının, önemli hizmet ve kategori sayfalarının listesinin ve teknik doküman, katalog, rehber içeriklerin (canonical) URL bağlantılarının yapay zeka botları için nasıl özetlenmesi gerektiğini detaylıca açıkla. Sadece 'ekleyin' deme, içeriğinde nelerin listelenmesi gerektiğini madde madde göster.
 * SENTEZ: Hangi içeriğin, hangi şemayla ve hangi linkleme (Topic Cluster) kurgusuyla BİRLİKTE canlıya alınması gerektiğini açıkla. Hiçbir kod üretme, sadece bu organik bağı analiz et.`;
   }
 
-          p += `\n\nÖNEMLİ: Yanıtının SONUNA, analizine dayanan şu verileri içeren, aşağıdaki YAPIDA KESİN bir JSON bloğu ekle (\`\`\`json ... \`\`\` içinde olsun):
+  // --- DİNAMİK METRİK MANTIĞI (ÇÖZÜM ADIMI İÇİN) ---
+  let stepMetricsJson = "";
+  if (step === 1) {
+     stepMetricsJson = `,\n  "step_metrics": { "crawl_health": "0-100 arası puan" }`;
+  } else if (step === 2) {
+     stepMetricsJson = `,\n  "step_metrics": { "faq_score": "0-100 arası puan" },\n  "tags": { "intent": "Kullanıcı Niyeti (Örn: Bilgi / Satın Alma)" }`;
+  } else if (step === 3) {
+     stepMetricsJson = `,\n  "step_metrics": { "content_depth": "0-100 arası puan" }`;
+  } else if (step === 4) {
+     stepMetricsJson = `,\n  "step_metrics": { "internal_link_power": "0-100 arası puan" }`;
+  } else if (step === 5) {
+     stepMetricsJson = `,\n  "step_metrics": { "schema_richness": "0-100 arası puan" },\n  "tags": { "entities": ["Varlık 1", "Varlık 2", "Varlık 3"] }`;
+  } else if (step === 6) {
+     stepMetricsJson = `,\n  "step_metrics": { "llm_readiness": "0-100 arası puan" }`;
+  }
+
+  prompt += `\n\nÖNEMLİ: Yanıtının SONUNA, analizine dayanan şu verileri içeren, aşağıdaki YAPIDA KESİN bir JSON bloğu ekle (\`\`\`json ... \`\`\` içinde olsun):
 {
 "overview_html": "<p>Sitenin genel özeti...</p>",
 "charts_data": {
@@ -1024,7 +1078,7 @@ Son olarak, LLM (SGE) dostu kusursuz hale getirilmiş YENİ BİR ÖRNEK METİN v
     "expertise": 0-100,
     "authoritativeness": 0-100,
     "trustworthiness": 0-100
-  }
+  }${stepMetricsJson}
 },
 "action_plan_table": [
   { "issue": "Aksiyon açıklaması", "category": "Kategori", "priority": "high/medium/low", "color": "red/orange/green" }
@@ -1036,40 +1090,17 @@ Son olarak, LLM (SGE) dostu kusursuz hale getirilmiş YENİ BİR ÖRNEK METİN v
     removeTypingIndicator();
     if (result.error) { addMessage(`Hata: ${result.error.message || result.error}`, 'ai'); copilotActions.style.display = 'flex'; return; }
     
-          let aiText = result.candidates[0].content.parts[0].text;
+    let aiText = result.candidates[0].content.parts[0].text;
+    const { cleanText, parsedData, rawJsonStr } = extractAndCleanJson(aiText);
     
-    // JSON Extraction
-    let cleanText = aiText;
-    let chartData = null;
-    let rawJsonStr = '';
-    
-    const jsonMatch = aiText.match(/```(?:json)?\s*(\{[\s\S]*?\})\s*```/i);
-    if (jsonMatch) {
-        cleanText = aiText.replace(jsonMatch[0], '').trim();
-        rawJsonStr = jsonMatch[0];
-        try {
-            chartData = JSON.parse(jsonMatch[1]);
-        } catch(e) { console.warn("JSON Parse Error:", e); }
-    } else {
-        const fallbackMatch = aiText.match(/\{[\s\S]*"trust_score"[\s\S]*\}$/);
-        if (fallbackMatch) {
-            cleanText = aiText.replace(fallbackMatch[0], '').trim();
-            rawJsonStr = fallbackMatch[0];
-            try { chartData = JSON.parse(fallbackMatch[0]); } catch(e){}
-        }
-    }
-    
-          if (chartData) {
-        initOrUpdateCharts(chartData);
-        if (chartData.overview_html) {
-            cleanText = chartData.overview_html + "\n\n" + cleanText;
-        }
+    if (parsedData) {
+        initOrUpdateCharts(parsedData);
     }
 
     let parsedHtml = (typeof marked !== 'undefined' ? marked.parse(cleanText) : cleanText);
     let htmlText = parsedHtml + (rawJsonStr ? '<div class="ai-raw-json" style="display:none;">' + rawJsonStr + '</div>' : '');
     addMessage(htmlText, 'ai', true);
-    
+
     reportData[step - 1] = parsedHtml; // Clean parsed text without hidden raw JSON
 
     completedSteps.add(step); if(step === 5) completedSteps.add(6);
@@ -1253,53 +1284,75 @@ async function saveChat() {
 }
 
 async function loadHistory() {
-  if (!historyList) return;
+  let historyList = document.getElementById('copilot-history-list');
+  let sidebarHistoryList = document.getElementById('copilot-sidebar-history-list');
+  
   try {
     const res = await fetch('ai_seo/api/save_chat.php?t=' + Date.now());
     const data = await res.json();
     window.agChatHistory = data.history || [];
     if(typeof window.renderDashboard === 'function') window.renderDashboard();
-    historyList.innerHTML = '';
+    
+    // dashboard render edildikten sonra tekrar al
+    historyList = document.getElementById('copilot-history-list');
+    
+    if (historyList) historyList.innerHTML = '';
+    if (sidebarHistoryList) sidebarHistoryList.innerHTML = '';
+    
     if (!data.history || data.history.length === 0) {
-      historyList.innerHTML = '<p class="empty-note">Henüz geçmiş sohbet yok.</p>';
+      if (historyList) historyList.innerHTML = '<p class="empty-note">Henüz geçmiş sohbet yok.</p>';
+      if (sidebarHistoryList) sidebarHistoryList.innerHTML = '<p class="empty-note">Henüz geçmiş sohbet yok.</p>';
       return;
     }
+    
     data.history.forEach(item => {
-      const div = document.createElement('div');
-      div.className = 'history-item';
-      div.setAttribute('data-chat-id', item.chatId || item.id);
-      div.style.padding = '12px';
-      div.style.background = '#f9fafb';
-      div.style.border = '1px solid var(--border)';
-      div.style.borderRadius = '6px';
-      div.style.display = 'flex';
-      div.style.justifyContent = 'space-between';
-      div.style.alignItems = 'center';
-      
-      const infoDiv = document.createElement('div');
-      infoDiv.style.cursor = 'pointer';
-      infoDiv.style.flex = '1';
-      infoDiv.innerHTML = `<div style="font-weight:600; font-size:13px; color:#111;">${item.url}</div><div style="font-size:12px; color:#666; margin-top:4px;">${item.date} • Adım: ${item.completedSteps ? item.completedSteps.length : 0}/5</div>`;
-      infoDiv.addEventListener('click', () => resetChat(item));
-      
-      const deleteBtn = document.createElement('button');
-      deleteBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" color="#ef4444"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`;
-      deleteBtn.style.background = 'none';
-      deleteBtn.style.border = 'none';
-      deleteBtn.style.cursor = 'pointer';
-      deleteBtn.style.padding = '8px';
-      deleteBtn.addEventListener('click', async (e) => {
-        e.stopPropagation();
-        await fetch(`save_chat.php?id=${item.chatId}`, { method: 'DELETE' });
-        loadHistory();
-      });
+      // Helper function to create history item DOM
+      const createItem = () => {
+          const div = document.createElement('div');
+          div.className = 'history-item';
+          div.setAttribute('data-chat-id', item.chatId || item.id);
+          div.style.padding = '12px';
+          div.style.background = '#f9fafb';
+          div.style.border = '1px solid var(--border)';
+          div.style.borderRadius = '6px';
+          div.style.display = 'flex';
+          div.style.justifyContent = 'space-between';
+          div.style.alignItems = 'center';
+          
+          const infoDiv = document.createElement('div');
+          infoDiv.style.cursor = 'pointer';
+          infoDiv.style.flex = '1';
+          infoDiv.innerHTML = `<div style="font-weight:600; font-size:13px; color:#111;">${item.url}</div><div style="font-size:12px; color:#666; margin-top:4px;">${item.date} • Adım: ${item.completedSteps ? item.completedSteps.length : 0}/5</div>`;
+          infoDiv.addEventListener('click', () => {
+              resetChat(item, true); // forceActionView=true
+              const hs = document.getElementById('ai-history-sidebar');
+              if (hs) hs.style.right = '-350px';
+          });
+          
+          const deleteBtn = document.createElement('button');
+          deleteBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" color="#ef4444"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`;
+          deleteBtn.style.background = 'none';
+          deleteBtn.style.border = 'none';
+          deleteBtn.style.cursor = 'pointer';
+          deleteBtn.style.padding = '8px';
+          deleteBtn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            if (confirm('Bu geçmiş sohbeti silmek istediğinize emin misiniz?')) {
+                await fetch(`ai_seo/api/save_chat.php?id=${item.chatId}`, { method: 'DELETE' });
+                loadHistory();
+            }
+          });
+    
+          div.appendChild(infoDiv);
+          div.appendChild(deleteBtn);
+          return div;
+      };
 
-      div.appendChild(infoDiv);
-      div.appendChild(deleteBtn);
-      historyList.appendChild(div);
+      if (historyList) historyList.appendChild(createItem());
+      if (sidebarHistoryList) sidebarHistoryList.appendChild(createItem());
     });
-    renderAiSeoActions();
-  if (typeof updateActiveHistoryItem === 'function') updateActiveHistoryItem();
+    
+    if (typeof updateActiveHistoryItem === 'function') updateActiveHistoryItem();
   } catch(e) {}
 }
 
@@ -1307,8 +1360,32 @@ if (copilotSaveBtn) {
   copilotSaveBtn.addEventListener('click', saveChat);
 }
 
-if (btnClearHistory) {
-  btnClearHistory.addEventListener('click', async () => { await fetch('save_chat.php?id=all', { method: 'DELETE' }); loadHistory(); resetChat(null); });
+
+
+// HISTORY SIDEBAR TOGGLE
+const btnToggleSidebar = document.getElementById('btn-toggle-history-sidebar');
+const btnCloseSidebar = document.getElementById('btn-close-history-sidebar');
+const historySidebar = document.getElementById('ai-history-sidebar');
+const btnClearSidebar = document.getElementById('btn-clear-history-sidebar');
+
+if (btnToggleSidebar && historySidebar) {
+  btnToggleSidebar.addEventListener('click', () => {
+    historySidebar.style.right = '0';
+  });
+}
+if (btnCloseSidebar && historySidebar) {
+  btnCloseSidebar.addEventListener('click', () => {
+    historySidebar.style.right = '-350px';
+  });
+}
+if (btnClearSidebar) {
+  btnClearSidebar.addEventListener('click', async () => {
+    if (confirm('Tüm geçmiş sohbetleri silmek istediğinize emin misiniz?')) {
+      await fetch('ai_seo/api/save_chat.php?id=all', { method: 'DELETE' });
+      window.agChatHistory = [];
+      loadHistory();
+    }
+  });
 }
 
 if (copilotResetBtn) {
@@ -1347,6 +1424,10 @@ for (let i = 1; i <= 6; i++) {
 
           observer.observe(targetMsg);
         }
+        // --- SİHİRLİ DOKUNUŞ: GRAFİKLERİ O ADIMA GERİ SAR! ---
+        if (typeof window.rebuildChartsForStep === 'function') {
+          window.rebuildChartsForStep(i);
+      }
       } else {
         if (!window.isAutoAnalyzing && !window.isAutoFixing && i <= 6) {
            currentStep = i;
@@ -1717,74 +1798,54 @@ Site A'nın rakibine göre eksiklerini analiz et ve YALNIZCA aşağıdaki JSON f
 
           let aiText = aiResult.candidates[0].content.parts[0].text;
           let htmlText = '';
-          try {
-              // Try to extract JSON if AI wrapped it in markdown code blocks
-              let cleanJsonStr = aiText.replace(/```json/g, '').replace(/```/g, '').trim();
-              // Sometimes AI returns markdown before/after the JSON. Just extract the first { ... } block.
-              const jsonMatch = cleanJsonStr.match(/\{[\s\S]*\}/);
-              if (jsonMatch) {
-                  const parsedData = JSON.parse(jsonMatch[0]);
-                  const analysis = parsedData.battle_mode_analysis || parsedData;
+          const { cleanText, parsedData } = extractAndCleanJson(aiText);
 
-                  if (typeof Chart !== 'undefined') {
-                      document.getElementById('battle-chart-container').style.display = 'block';
-                      const ctxB = document.getElementById('chart-battle');
-                      if (ctxB) {
-                          if (battleChart) battleChart.destroy();
-                          battleChart = new Chart(ctxB, {
-                              type: 'bar',
-                              data: {
-                                  labels: ['İçerik Derinliği', 'SEO Kalitesi', 'E-E-A-T'],
-                                  datasets: [
-                                      { label: 'Senin Siten', data: [analysis.charts_data?.site_a_skorlari?.icerik || 60, analysis.charts_data?.site_a_skorlari?.seo || 65, analysis.charts_data?.site_a_skorlari?.eeat || 50], backgroundColor: '#3b82f6' },
-                                      { label: 'Rakip', data: [analysis.charts_data?.site_b_skorlari?.icerik || 85, analysis.charts_data?.site_b_skorlari?.seo || 90, analysis.charts_data?.site_b_skorlari?.eeat || 88], backgroundColor: '#ef4444' }
-                                  ]
-                              }
-                          });
-                      }
-                  }
-                  
-                  const formatArray = (arr) => arr && arr.length ? `<ul>${arr.map(item => `<li>${item}</li>`).join('')}</ul>` : 'Veri yok.';
-                  
-                  let eksiklerHtml = '';
-                  if (analysis.action_plan_table) {
-                      eksiklerHtml = `
-                          <div class="compare-cols" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; margin-top:20px;">
-                              <div class="col-box" style="background:#fff; border:1px solid #e2e8f0; border-radius:8px; padding:16px;">
-                                  <h4 style="color:#2563eb; font-size:14px; margin-bottom:12px; border-bottom:1px solid #e2e8f0; padding-bottom:8px;">📚 İçerik Derinliği</h4>
-                                  <div style="font-size:13px; color:#475569; line-height:1.6;">${typeof marked !== 'undefined' ? marked.parse((analysis.action_plan_table.icerik_derinligi || []).join('\n\n')) : formatArray(analysis.action_plan_table.icerik_derinligi)}</div>
-                              </div>
-                              <div class="col-box" style="background:#fff; border:1px solid #e2e8f0; border-radius:8px; padding:16px;">
-                                  <h4 style="color:#10b981; font-size:14px; margin-bottom:12px; border-bottom:1px solid #e2e8f0; padding-bottom:8px;">🎯 SEO Kalitesi</h4>
-                                  <div style="font-size:13px; color:#475569; line-height:1.6;">${typeof marked !== 'undefined' ? marked.parse((analysis.action_plan_table.seo_kalitesi || []).join('\n\n')) : formatArray(analysis.action_plan_table.seo_kalitesi)}</div>
-                              </div>
-                              <div class="col-box" style="background:#fff; border:1px solid #e2e8f0; border-radius:8px; padding:16px;">
-                                  <h4 style="color:#f59e0b; font-size:14px; margin-bottom:12px; border-bottom:1px solid #e2e8f0; padding-bottom:8px;">🛡️ E-E-A-T Sinyalleri</h4>
-                                  <div style="font-size:13px; color:#475569; line-height:1.6;">${typeof marked !== 'undefined' ? marked.parse((analysis.action_plan_table.eeat_sinyalleri || []).join('\n\n')) : formatArray(analysis.action_plan_table.eeat_sinyalleri)}</div>
-                              </div>
+          if (parsedData) {
+              const analysis = parsedData.battle_mode_analysis || parsedData;
+              initOrUpdateCharts(analysis);
+
+              const formatArray = (arr) => arr && arr.length ? `<ul>${arr.map(item => `<li>${item}</li>`).join('')}</ul>` : 'Veri yok.';
+              
+              let eksiklerHtml = '';
+              if (analysis.action_plan_table) {
+                  const apt = analysis.action_plan_table;
+                  const icerikList = Array.isArray(apt.icerik_derinligi) ? apt.icerik_derinligi : [];
+                  const seoList = Array.isArray(apt.seo_kalitesi) ? apt.seo_kalitesi : [];
+                  const eeatList = Array.isArray(apt.eeat_sinyalleri) ? apt.eeat_sinyalleri : [];
+
+                  eksiklerHtml = `
+                      <div class="compare-cols" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; margin-top:20px;">
+                          <div class="col-box" style="background:#fff; border:1px solid #e2e8f0; border-radius:8px; padding:16px;">
+                              <h4 style="color:#2563eb; font-size:14px; margin-bottom:12px; border-bottom:1px solid #e2e8f0; padding-bottom:8px;">📚 İçerik Derinliği</h4>
+                              <div style="font-size:13px; color:#475569; line-height:1.6;">${typeof marked !== 'undefined' ? marked.parse(icerikList.join('\n\n')) : formatArray(icerikList)}</div>
                           </div>
-                      `;
-                  }
-                  
-                  htmlText = `
-                      <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:20px;">
-                          <h3 style="font-size:16px; color:#1e293b; margin-bottom:10px; display:flex; align-items:center; gap:8px;">
-                              <span style="background:#dc2626; color:white; padding:4px 8px; border-radius:6px; font-size:12px; font-weight:bold;">RAKİP ÜSTÜNLÜĞÜ</span> Neden Rakip Daha İyi?
-                          </h3>
-                          <div style="font-size:14px; color:#334155; line-height:1.7;">
-                              ${typeof marked !== 'undefined' ? marked.parse(analysis.rakip_ustunluk_nedenleri || '') : analysis.rakip_ustunluk_nedenleri}
+                          <div class="col-box" style="background:#fff; border:1px solid #e2e8f0; border-radius:8px; padding:16px;">
+                              <h4 style="color:#10b981; font-size:14px; margin-bottom:12px; border-bottom:1px solid #e2e8f0; padding-bottom:8px;">🎯 SEO Kalitesi</h4>
+                              <div style="font-size:13px; color:#475569; line-height:1.6;">${typeof marked !== 'undefined' ? marked.parse(seoList.join('\n\n')) : formatArray(seoList)}</div>
                           </div>
-                          
-                          ${eksiklerHtml}
+                          <div class="col-box" style="background:#fff; border:1px solid #e2e8f0; border-radius:8px; padding:16px;">
+                              <h4 style="color:#f59e0b; font-size:14px; margin-bottom:12px; border-bottom:1px solid #e2e8f0; padding-bottom:8px;">🛡️ E-E-A-T Sinyalleri</h4>
+                              <div style="font-size:13px; color:#475569; line-height:1.6;">${typeof marked !== 'undefined' ? marked.parse(eeatList.join('\n\n')) : formatArray(eeatList)}</div>
+                          </div>
                       </div>
                   `;
-              } else {
-                  throw new Error("JSON formatı bulunamadı.");
               }
-          } catch(e) {
-              // Fallback if not JSON or parsing failed
-              console.warn("Battle mode JSON parse failed, falling back to markdown", e);
-              htmlText = typeof marked !== 'undefined' ? marked.parse(aiText) : aiText;
+              
+              let ustunlukText = analysis.rakip_ustunluk_nedenleri || cleanText || '';
+              htmlText = `
+                  <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:20px;">
+                      <h3 style="font-size:16px; color:#1e293b; margin-bottom:10px; display:flex; align-items:center; gap:8px;">
+                          <span style="background:#dc2626; color:white; padding:4px 8px; border-radius:6px; font-size:12px; font-weight:bold;">RAKİP ÜSTÜNLÜĞÜ</span> Neden Rakip Daha İyi?
+                      </h3>
+                      <div style="font-size:14px; color:#334155; line-height:1.7;">
+                          ${typeof marked !== 'undefined' ? marked.parse(ustunlukText) : ustunlukText}
+                      </div>
+                      
+                      ${eksiklerHtml}
+                  </div>
+              `;
+          } else {
+              htmlText = typeof marked !== 'undefined' ? marked.parse(cleanText) : cleanText;
           }
 
           battleResults.innerHTML = htmlText;

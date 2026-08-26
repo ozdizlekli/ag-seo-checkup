@@ -71,7 +71,7 @@ if (empty($apiKey) || $apiKey === 'BURAYA_API_KEY_GELECEK') {
 }
 
 // Gemini API'ye istek at
-$url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=" . $apiKey;
+$url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=" . $apiKey;
 
 $ch = curl_init($url);
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);

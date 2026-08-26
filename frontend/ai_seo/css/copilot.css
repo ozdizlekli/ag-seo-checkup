@@ -348,8 +348,17 @@ body.client-presentation-mode .copilot-messages { font-size: 1.1em; }
 input:checked + .slider { background-color: #3b82f6; }
 input:checked + .slider:before { transform: translateX(14px); }
 
-.quick-actions { overflow-x: auto; padding-top: 45px; margin-top: -45px; }
 
+.quick-action-btn.has-tooltip:hover::after {
+  bottom: auto;
+  top: 120%;
+}
+.quick-action-btn.has-tooltip:hover::before {
+  bottom: auto;
+  top: 110%;
+  border-top-color: transparent;
+  border-bottom-color: #1e293b;
+}
 
 /* Info Tooltip */
 .info-tooltip {
