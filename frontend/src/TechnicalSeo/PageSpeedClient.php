@@ -212,6 +212,17 @@ final class PageSpeedClient
                     . ($fieldDataIsOriginLevel ? ', site geneli' : '') . ')';
             }
 
+            // TTFB (server-response-time) icin Lighthouse bazen audit hic
+            // uygulanamadiginda (notApplicable/error) bile numericValue'yu 0
+            // olarak dondurebiliyor - gercek bir sunucunun yanit suresi asla
+            // tam olarak 0ms olamayacagi icin bunu "veri yok" olarak
+            // yorumluyoruz, aksi halde arayuzde yaniltici sekilde "0 ms"
+            // (ve yesil basari cubugu) gosteriliyordu.
+            if ($key === 'ttfb' && $numericValue !== null && $numericValue <= 0) {
+                $numericValue = null;
+                $displayValue = null;
+            }
+
             $webVitals[$key] = [
                 'numeric_value' => $numericValue,
                 'display_value' => $displayValue,

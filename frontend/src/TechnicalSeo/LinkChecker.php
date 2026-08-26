@@ -40,23 +40,41 @@ final class LinkChecker
 
         $broken = [];
         $okCount = 0;
+        $suspects = [];
 
         foreach ($results as $url => $result) {
-            $status = $result['status_code'];
-            // 405 (Method Not Allowed) HEAD isteğini reddeden ama linki
-            // kırık olmayan sunucular için hariç tutulur (kızın ve senin
-            // kendi projendeki BrokenLinkChecker'da da aynı mantık vardı -
-            // pratikte doğru bir istisna).
-            $isBroken = ($status === 0 || $status >= 400) && $status !== 405;
-
-            if ($isBroken) {
-                $broken[] = [
-                    'url' => $url,
-                    'status_code' => $status,
-                    'error' => $result['error'],
-                ];
+            if ($this->isBrokenStatus($result['status_code'])) {
+                // Henuz kesin degil - HEAD'e gore "kirik gibi gorunuyor",
+                // ama asagida GET ile dogrulanacak (bkz. asagidaki blok).
+                $suspects[$url] = $result;
             } else {
                 $okCount++;
+            }
+        }
+
+        // Bazi sunucular/WAF'lar (bot korumasi, ya da sadece HEAD'i hic
+        // duzgun desteklememe) HEAD istegine, gercek bir tarayicinin
+        // yaptigi GET istegine gore FARKLI davranabiliyor - kullanicinin
+        // "kirik" diye isaretlenen bir linki tarayicida acinca sorunsuz
+        // yuklendigi gorulduğu icin (HEAD ile 403/
+        // baska bir hata donup GET ile 200 donen sunucular var), HEAD'e
+        // gore supheli cikan linkleri, tarayicinin yaptigi GIBI bir GET
+        // istegiyle IKINCI KEZ kontrol ediyoruz - performans icin butun
+        // listeyi degil, sadece supheli olanlari. Ikinci kontrolde de
+        // basarisiz olan bir link ARTIK gercekten kirik sayilir.
+        if (!empty($suspects)) {
+            $recheck = $this->crawler->fetchMultiple(array_keys($suspects), $this->concurrency, false);
+            foreach ($suspects as $url => $headResult) {
+                $getResult = $recheck[$url] ?? $headResult;
+                if ($this->isBrokenStatus($getResult['status_code'])) {
+                    $broken[] = [
+                        'url' => $url,
+                        'status_code' => $getResult['status_code'],
+                        'error' => $getResult['error'],
+                    ];
+                } else {
+                    $okCount++;
+                }
             }
         }
 
@@ -66,5 +84,15 @@ final class LinkChecker
             'ok_count' => $okCount,
             'truncated' => $truncated,
         ];
+    }
+
+    /**
+     * 405 (Method Not Allowed) HEAD isteğini reddeden ama linki kırık
+     * olmayan sunucular için hariç tutulur (pratikte doğru bir istisna -
+     * bu sunucular GET/normal ziyarette sorunsuz çalışır).
+     */
+    private function isBrokenStatus(int $status): bool
+    {
+        return ($status === 0 || $status >= 400) && $status !== 405;
     }
 }
