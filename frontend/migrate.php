@@ -1,8 +1,23 @@
 <?php
+/**
+ * migrate.php — Veritabanı kurulum ve veri taşıma aracı
+ * 
+ * GÜVENLİK: Bu script SADECE komut satırından (CLI) çalıştırılabilir.
+ * Web üzerinden erişim tamamen engellenmiştir.
+ * 
+ * Kullanım: php migrate.php
+ */
+
+// Web üzerinden doğrudan erişimi engelle
+if (php_sapi_name() !== 'cli') {
+    http_response_code(403);
+    exit("Bu betik yalnızca komut satırından çalıştırılabilir.\n");
+}
+
 require_once __DIR__ . '/db.php';
 
 try {
-    // db.php zaten $pdo'yu oluşturuyor (veritabanı adı ile). 
+    // db.php zaten $pdo'yu oluşturuyor (veritabanı adı ile).
     // Ancak veritabanı yoksa diye db.php'deki hatayı yoksayıp yeniden bağlanabiliriz:
     $pdo_setup = new PDO("mysql:host=$host;charset=utf8", $user, $pass);
     $pdo_setup->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
@@ -76,6 +91,13 @@ CREATE TABLE IF NOT EXISTS chat_history (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     UNIQUE KEY (username, chat_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ";
 
 try {
@@ -85,14 +107,14 @@ try {
     die("Tablo oluşturma hatası: " . $e->getMessage() . "\n");
 }
 
-echo "chat_history.json verileri MySQL'e aktarılıyor...\n";
-
+// chat_history.json varsa ve veri aktarımı isteniyorsa
 $jsonFile = __DIR__ . '/chat_history.json';
 if (file_exists($jsonFile)) {
+    echo "chat_history.json verileri MySQL'e aktarılıyor...\n";
     $data = json_decode(file_get_contents($jsonFile), true);
     if (is_array($data)) {
         $stmt = $pdo->prepare("INSERT IGNORE INTO chat_history (username, chat_id, url, type, messages, completed_steps, report_data, fixed_issues, date_str) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
-        
+
         $count = 0;
         foreach ($data as $username => $chats) {
             foreach ($chats as $chatId => $chatData) {
@@ -103,7 +125,7 @@ if (file_exists($jsonFile)) {
                 $report_data = json_encode($chatData['reportData'] ?? []);
                 $fixed_issues = json_encode($chatData['fixedIssues'] ?? []);
                 $date_str = $chatData['date'] ?? '';
-                
+
                 $stmt->execute([
                     $username,
                     (string)$chatId,
@@ -119,10 +141,10 @@ if (file_exists($jsonFile)) {
             }
         }
         echo "Toplam $count adet sohbet kaydı MySQL'e aktarıldı.\n";
+        echo "NOT: chat_history.json artık güvenli değil — repoya commit etmeyin ve silin.\n";
     }
 } else {
     echo "chat_history.json dosyası bulunamadı, aktarım atlandı.\n";
 }
 
 echo "Taşıma işlemi tamamlandı!\n";
-?>

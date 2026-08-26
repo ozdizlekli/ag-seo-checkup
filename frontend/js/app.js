@@ -68,7 +68,7 @@ function initGoogleAuth(){
 }
 window.addEventListener('load', initGoogleAuth);
 
-document.getElementById('google-connect-btn').addEventListener('click', () => {
+document.getElementById('google-connect-btn')?.addEventListener('click', () => {
   if(GOOGLE_CLIENT_ID.includes('YOUR_CLIENT_ID')){
     showToast('Önce GOOGLE_CLIENT_ID ayarlanmalı (bkz. GOOGLE-OAUTH-KURULUM.md).', 'error');
     return;
@@ -146,7 +146,7 @@ function renderClientSelect(){
   if(prev && state.clients.some(c => c.id === prev)) sel.value = prev;
 }
 
-document.getElementById('client-add-btn').addEventListener('click', async () => {
+document.getElementById('client-add-btn')?.addEventListener('click', async () => {
   const name = prompt('Yeni müşteri adı:');
   if(!name || !name.trim()) return;
   
@@ -177,7 +177,7 @@ document.getElementById('client-add-btn').addEventListener('click', async () => 
   }
 });
 
-document.getElementById('client-edit-btn').addEventListener('click', async () => {
+document.getElementById('client-edit-btn')?.addEventListener('click', async () => {
   if(!state.currentClientId) { showToast('Düzenlemek için önce bir müşteri seçin.', 'error'); return; }
   const newName = prompt('Müşteri adı:', state.currentClient.name);
   if(newName === null) return;
@@ -214,7 +214,7 @@ function resetAllForms() {
   document.getElementById('t4-master-llmstxt-wrap').classList.add('hidden');
 }
 
-document.getElementById('client-delete-btn').addEventListener('click', async () => {
+document.getElementById('client-delete-btn')?.addEventListener('click', async () => {
   if(!state.currentClientId) { showToast('Silmek için önce bir müşteri seçin.', 'error'); return; }
   const confirmDel = confirm(`"${state.currentClient.name}" müşterisini silmek istediğinize emin misiniz? (Bu işlem geri alınamaz)`);
   if(!confirmDel) return;
@@ -231,7 +231,7 @@ document.getElementById('client-delete-btn').addEventListener('click', async () 
   }
 });
 
-document.getElementById('client-select').addEventListener('change', async (e) => {
+document.getElementById('client-select')?.addEventListener('change', async (e) => {
   const id = e.target.value;
   state.currentClientId = id || null;
   state.currentClient = id ? state.clients.find(c => c.id === id) || null : null;
@@ -339,7 +339,7 @@ async function loadClientSitemap(domain) {
   }
 }
 
-document.getElementById('refresh-sitemap-btn').addEventListener('click', () => {
+document.getElementById('refresh-sitemap-btn')?.addEventListener('click', () => {
   if (state.currentClient && state.currentClient.domain_url) {
     loadClientSitemap(state.currentClient.domain_url);
   }
@@ -451,10 +451,10 @@ document.getElementById('t8-analyze-btn').click();
   }
 }
 
-document.getElementById('auto-pilot-btn').addEventListener('click', runEnterpriseAutoPilot);
+document.getElementById('auto-pilot-btn')?.addEventListener('click', runEnterpriseAutoPilot);
 
 let nightJobTimer = null;
-document.getElementById('schedule-night-btn').addEventListener('click', () => {
+document.getElementById('schedule-night-btn')?.addEventListener('click', () => {
   if(!state.selectedSitemapUrl) return;
   
   const schedBtn = document.getElementById('schedule-night-btn');
@@ -541,13 +541,13 @@ function routeUrlToActiveTab(url) {
   }
 }
 
-document.getElementById('sidebar-client-domain').addEventListener('click', () => {
+document.getElementById('sidebar-client-domain')?.addEventListener('click', () => {
   if (state.currentClient && state.currentClient.domain_url) {
     routeUrlToActiveTab(state.currentClient.domain_url);
   }
 });
 
-document.getElementById('t6-save-links-btn').addEventListener('click', async () => {
+document.getElementById('t6-save-links-btn')?.addEventListener('click', async () => {
   if(!state.currentClientId){ showToast('Önce sol menüden bir müşteri seçin.', 'error'); return; }
   const payload = {
     gsc_site_url: document.getElementById('t6-gsc-url').value.trim() || null,
@@ -683,7 +683,7 @@ function buildMockImprovedContent(originalText, keyword, blogUrlsRaw){
 }
 /* --- Sekme 1: Canlı URL'den Veri Çekme (Özel Sunucu ve Akıllı Çıkarım İle) --- */
 /* --- Sekme 1: Canlı URL'den Veri Çekme (Özel Sunucu ve YAPAY ZEKA Analizi İle) --- */
-document.getElementById('t1-fetch-btn').addEventListener('click', async () => {
+document.getElementById('t1-fetch-btn')?.addEventListener('click', async () => {
   const urlInput = document.getElementById('t1-fetch-url').value.trim();
   if(!urlInput) { showToast('Lütfen geçerli bir URL girin.', 'error'); return; }
   if(!/^https?:\/\//i.test(urlInput)){
@@ -864,13 +864,13 @@ ${content}`;
   }
 });
 
-document.getElementById('t1-toggle-text').addEventListener('click', function(){
+document.getElementById('t1-toggle-text')?.addEventListener('click', function(){
   this.classList.add('active');
   document.getElementById('t1-toggle-html').classList.remove('active');
   document.getElementById('t1-output-text').classList.remove('hidden');
   document.getElementById('t1-output-html').classList.add('hidden');
 });
-document.getElementById('t1-toggle-html').addEventListener('click', function(){
+document.getElementById('t1-toggle-html')?.addEventListener('click', function(){
   this.classList.add('active');
   document.getElementById('t1-toggle-text').classList.remove('active');
   document.getElementById('t1-output-html').classList.remove('hidden');
@@ -878,7 +878,7 @@ document.getElementById('t1-toggle-html').addEventListener('click', function(){
 });
 
 /* --- Sekme 1: Dönüşüm / Satın Alma Niyeti Skoru  --- */
-document.getElementById('t1-conversion-btn').addEventListener('click', async () => {
+document.getElementById('t1-conversion-btn')?.addEventListener('click', async () => {
   const content = document.getElementById('t1-content').value;
   if (!content.trim()) { 
     showToast('Lütfen önce içerik metni girin veya URL\'den çekin.', 'error'); 
@@ -1097,7 +1097,7 @@ t1SgeBtn.addEventListener('click', () => {
 
 
 /* --- Supabase: Arşive kaydet (content_history tablosuna insert) --- */
-document.getElementById('t1-save-archive').addEventListener('click', async () => {
+document.getElementById('t1-save-archive')?.addEventListener('click', async () => {
   if(!t1LastResult){
     showToast('Önce AI ile iyileştirme yapın.', 'error');
     return;
@@ -1435,7 +1435,7 @@ t2SaveBtn.addEventListener('click', async () => {
 /* ============================================================
    TAB 4 — SCHEMA ÜRETİCİ
 ============================================================ */
-document.getElementById('t4-schema-type').addEventListener('change', function(){
+document.getElementById('t4-schema-type')?.addEventListener('change', function(){
   const val = this.value;
   document.getElementById('t4-product-fields').classList.toggle('hidden', val !== 'product');
   document.getElementById('t4-local-fields').classList.toggle('hidden', val !== 'local');
@@ -1459,7 +1459,7 @@ document.getElementById('t4-schema-type').addEventListener('change', function(){
   }
 });
 
-document.getElementById('t4-generate-btn').addEventListener('click', () => {
+document.getElementById('t4-generate-btn')?.addEventListener('click', () => {
   const schemaType = document.getElementById('t4-schema-type').value;
   const name = document.getElementById('t4-name').value.trim();
   let schema;
@@ -1571,7 +1571,7 @@ document.getElementById('t4-generate-btn').addEventListener('click', () => {
   showToast('JSON-LD şeması üretildi.', 'success');
 });
 
-document.getElementById('t4-copy-btn').addEventListener('click', async () => {
+document.getElementById('t4-copy-btn')?.addEventListener('click', async () => {
   const text = document.getElementById('t4-output-code').textContent;
   try{
     await navigator.clipboard.writeText(text);
@@ -1586,7 +1586,7 @@ document.getElementById('t4-copy-btn').addEventListener('click', async () => {
 ============================================================ */
 
 // 1. NER Modeli ile Sekme 1'deki Metinden Şema Bilgilerini Çıkarma
-document.getElementById('t4-ai-extract-btn').addEventListener('click', async () => {
+document.getElementById('t4-ai-extract-btn')?.addEventListener('click', async () => {
   const content = document.getElementById('t1-content').value;
   if (!content.trim()) {
     showToast('Önce Sekme 1\'de bir içerik metni hazırlayın veya URL\'den veri çekin.', 'error');
@@ -1644,7 +1644,7 @@ document.getElementById('t4-ai-extract-btn').addEventListener('click', async () 
 });
 
 // 2. Yapay Zeka Tanıtım Dosyası (llms.txt) Üretici
-document.getElementById('t4-llmstxt-btn').addEventListener('click', async () => {
+document.getElementById('t4-llmstxt-btn')?.addEventListener('click', async () => {
   const content = document.getElementById('t1-content').value;
   const clientName = document.getElementById('t7-customer').value || 'Müşteri Web Sitesi';
 
@@ -1679,7 +1679,7 @@ document.getElementById('t4-llmstxt-btn').addEventListener('click', async () => 
 });
 
 // Kopyalama Butonu
-document.getElementById('t4-llmstxt-copy-btn').addEventListener('click', async () => {
+document.getElementById('t4-llmstxt-copy-btn')?.addEventListener('click', async () => {
   const text = document.getElementById('t4-llmstxt-output').value;
   if (!text) { showToast('Önce llms.txt dosyası üretin.', 'error'); return; }
   try {
@@ -1691,7 +1691,7 @@ document.getElementById('t4-llmstxt-copy-btn').addEventListener('click', async (
 });
 
 // Dosya Olarak İndirme Butonu
-document.getElementById('t4-llmstxt-download-btn').addEventListener('click', () => {
+document.getElementById('t4-llmstxt-download-btn')?.addEventListener('click', () => {
   const text = document.getElementById('t4-llmstxt-output').value;
   if (!text) { showToast('Önce llms.txt dosyası üretin.', 'error'); return; }
   const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
@@ -1709,7 +1709,7 @@ document.getElementById('t4-llmstxt-download-btn').addEventListener('click', () 
 // ============================================================
 //   MASTER LLMS.TXT (SITEMAP TABANLI)
 // ============================================================
-document.getElementById('t4-master-llmstxt-btn').addEventListener('click', async () => {
+document.getElementById('t4-master-llmstxt-btn')?.addEventListener('click', async () => {
   const sitemapUrl = document.getElementById('t4-sitemap-url').value.trim();
   if(!sitemapUrl) { showToast('Lütfen sitemap.xml adresi girin.', 'error'); return; }
   
@@ -1798,7 +1798,7 @@ document.getElementById('t4-master-llmstxt-btn').addEventListener('click', async
   }
 });
 
-document.getElementById('t4-master-llmstxt-copy-btn').addEventListener('click', async () => {
+document.getElementById('t4-master-llmstxt-copy-btn')?.addEventListener('click', async () => {
   const text = document.getElementById('t4-master-llmstxt-output').value;
   if(!text) return;
   try {
@@ -1807,7 +1807,7 @@ document.getElementById('t4-master-llmstxt-copy-btn').addEventListener('click', 
   } catch(e) { showToast('Kopyalama başarısız.', 'error'); }
 });
 
-document.getElementById('t4-master-llmstxt-download-btn').addEventListener('click', () => {
+document.getElementById('t4-master-llmstxt-download-btn')?.addEventListener('click', () => {
   const text = document.getElementById('t4-master-llmstxt-output').value;
   if(!text) return;
   const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
@@ -1823,7 +1823,7 @@ document.getElementById('t4-master-llmstxt-download-btn').addEventListener('clic
 // ============================================================
 //   ŞEMA DENETLEYİCİ VE ONARICI (TAB 03)
 // ============================================================
-document.getElementById('t3-schema-audit-btn').addEventListener('click', async () => {
+document.getElementById('t3-schema-audit-btn')?.addEventListener('click', async () => {
   let targetUrl = document.getElementById('t3-schema-url').value.trim();
   // Fallback to Quick Audit URL if available
   if(!targetUrl) {
@@ -2004,7 +2004,7 @@ document.getElementById('t3-schema-audit-btn').addEventListener('click', async (
        });
     }
     
-    document.getElementById('t3-schema-fixed-copy').addEventListener('click', async () => {
+    document.getElementById('t3-schema-fixed-copy')?.addEventListener('click', async () => {
        try {
           await navigator.clipboard.writeText(document.getElementById('t3-schema-fixed-output').value);
           showToast('Onarılmış kod kopyalandı.', 'success');
@@ -2159,13 +2159,13 @@ async function computeAndRenderScore(){
   };
 }
 
-document.getElementById('t6-refresh-btn').addEventListener('click', computeAndRenderScore);
+const t6Btn = document.getElementById('t6-refresh-btn'); if(t6Btn) t6Btn.addEventListener('click', computeAndRenderScore);
 computeAndRenderScore();
 
 /* ============================================================
    TAB 6 — SEARCH CONSOLE & GA4 (gerçek veri)
 ============================================================ */
-document.getElementById('t6-fetch-gsc-btn').addEventListener('click', async () => {
+document.getElementById('t6-fetch-gsc-btn')?.addEventListener('click', async () => {
   if(!requireGoogleAuth()) return;
   const siteUrl = document.getElementById('t6-gsc-url').value.trim();
   if(!siteUrl){ showToast('Önce Search Console Site URL alanını doldurup kaydedin.', 'error'); return; }
@@ -2266,7 +2266,7 @@ document.getElementById('t6-fetch-gsc-btn').addEventListener('click', async () =
   }
 });
 
-document.getElementById('t6-fetch-ga4-btn').addEventListener('click', async () => {
+document.getElementById('t6-fetch-ga4-btn')?.addEventListener('click', async () => {
   if(!requireGoogleAuth()) return;
   const propertyId = document.getElementById('t6-ga4-id').value.trim();
   if(!propertyId){ showToast('Önce GA4 Property ID alanını doldurup kaydedin.', 'error'); return; }
@@ -2323,7 +2323,7 @@ document.getElementById('t6-fetch-ga4-btn').addEventListener('click', async () =
 /* ============================================================
    TAB 6 — SKOR GEÇMİŞİ & TREND GRAFİĞİ
 ============================================================ */
-document.getElementById('t6-snapshot-btn').addEventListener('click', async () => {
+document.getElementById('t6-snapshot-btn')?.addEventListener('click', async () => {
   if(!state.currentClientId){ showToast('Önce sol menüden bir müşteri seçin.', 'error'); return; }
   if(!state.lastScores){ showToast('Önce "Skoru Hesapla / Yenile" ile bir skor üretin.', 'error'); return; }
 
@@ -2461,7 +2461,7 @@ const todoByPackage = {
   ]
 };
 
-document.getElementById('t7-package').addEventListener('change', function(){
+document.getElementById('t7-package')?.addEventListener('change', function(){
   const pkg = this.value;
   const wrap = document.getElementById('t7-todo-wrap');
   const list = document.getElementById('t7-todo-list');
@@ -2476,7 +2476,7 @@ document.getElementById('t7-package').addEventListener('change', function(){
   });
   wrap.classList.remove('hidden');
 });
-document.getElementById('t7-todo-list').addEventListener('change', (e) => {
+document.getElementById('t7-todo-list')?.addEventListener('change', (e) => {
   if(e.target.type === 'checkbox'){
     e.target.closest('.check-item').classList.toggle('checked', e.target.checked);
   }
@@ -2541,7 +2541,7 @@ function renderImageGrid(){
     grid.appendChild(div);
   });
 }
-document.getElementById('t7-image-grid').addEventListener('click', (e) => {
+document.getElementById('t7-image-grid')?.addEventListener('click', (e) => {
   const btn = e.target.closest('.rm');
   if(btn){
     state.t7Images = state.t7Images.filter(i => i.id !== btn.getAttribute('data-id'));
@@ -3060,7 +3060,7 @@ async function resolveClientDriveFolderId(){
   return clientFolderId;
 }
 
-document.getElementById('t7-export-drive').addEventListener('click', async () => {
+document.getElementById('t7-export-drive')?.addEventListener('click', async () => {
   if(!requireGoogleAuth()) return;
   if(!state.currentClientId){
     showToast('Önce sol menüden bir müşteri seçin.', 'error');
@@ -3123,7 +3123,7 @@ document.getElementById('t7-export-drive').addEventListener('click', async () =>
   }
 });
 
-document.getElementById('t7-export-word').addEventListener('click', () => {
+document.getElementById('t7-export-word')?.addEventListener('click', () => {
   const { blob, filename } = buildReportWordBlob();
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -3149,7 +3149,7 @@ fetchClients();
 /* ============================================================
    TAB 8 — AI SEO ANALİZİ
 ============================================================ */
-document.getElementById('t8-analyze-btn').addEventListener('click', async () => {
+document.getElementById('t8-analyze-btn')?.addEventListener('click', async () => {
   const url = document.getElementById('t8-url').value.trim();
   if(!url) { showToast('Lütfen geçerli bir domain veya URL girin.', 'error'); return; }
 
@@ -3241,10 +3241,10 @@ Yalnızca geçerli bir JSON döndür. Başka metin ekleme.`;
 
     if(aiParsed.contentOpportunities) {
        document.getElementById('t8-opportunities').innerHTML = aiParsed.contentOpportunities.map((o, i) => `
-         <div style="margin-bottom:12px; page-break-inside: avoid;">
-           <strong style="color:#333; font-size:14px;">${i+1}. ${escapeHtml(o.title || 'Fırsat')}</strong>
-           <p style="margin:4px 0 0 0; font-size:14px; color:#444;">${escapeHtml(o.desc || o)}</p>
-         </div>
+         <details class="seo-details">
+           <summary>${i+1}. ${escapeHtml(o.title || 'Fırsat')}</summary>
+           <div class="details-content">${escapeHtml(o.desc || o)}</div>
+         </details>
        `).join('');
     }
 
@@ -3280,7 +3280,7 @@ Yalnızca geçerli bir JSON döndür. Başka metin ekleme.`;
 });
 
 // PDF Export Event Listener
-document.getElementById('t8-pdf-btn').addEventListener('click', () => {
+document.getElementById('t8-pdf-btn')?.addEventListener('click', () => {
   const element = document.getElementById('t8-output-card');
   const opt = {
     margin:       10,

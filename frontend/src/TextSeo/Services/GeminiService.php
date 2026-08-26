@@ -61,7 +61,8 @@ class GeminiService {
         curl_setopt($ch, CURLOPT_HTTPHEADER, [
             'Content-Type: application/json'
         ]);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);  // SSL doğrulaması aktif — MITM koruması
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
 
         error_log("[CMD GEMINI] " . $this->model . " modeline istek atılıyor...");
         $response = curl_exec($ch);
