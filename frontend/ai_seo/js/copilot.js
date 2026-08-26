@@ -572,7 +572,9 @@ function resetChat(loadFromHistory = null, forceActionView = false) {
       copilotSaveBtn.style.opacity = '0.5';
       copilotSaveBtn.style.pointerEvents = 'none';
     }
-    renderAiSeoActions();
+    if (completedSteps.size >= 6) {
+      setTimeout(() => { window.showFollowUpPrompt(); }, 200);
+    }
   if (typeof updateActiveHistoryItem === 'function') updateActiveHistoryItem();
     window.scrollTo({ top: 0, behavior: 'smooth' });
     return;
