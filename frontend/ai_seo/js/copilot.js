@@ -41,7 +41,7 @@ const copilotChat = document.getElementById('copilot-chat-messages-container');
 const copilotResetBtn = document.getElementById('btn-clear-chat');
 const copilotSaveBtn = document.getElementById('copilot-manual-save-btn');
 const copilotProgress = document.getElementById('copilot-progress');
-const copilotActions = document.getElementById('copilot-actions');
+const copilotActions = document.getElementById('copilot-actions') || { style: {}, innerHTML: '', replaceChildren: function(){} };
 const copilotInputArea = document.getElementById('copilot-input-area-container');
 const copilotTextInput = document.getElementById('copilot-text-input');
 const copilotSendBtn = document.getElementById('btn-send-message');
@@ -195,9 +195,7 @@ async function fixAiSeoIssue(step) {
   // Instead of calling handleSend which might conflict with state, we process directly:
   addMessage(`${step}. Adımdaki Eksiklikler Gideriliyor (Otomatik Çözüm)...`, 'user');
   addTypingIndicator();
-  copilotActions.style.display = 'none';
-
-          p += `\n\nÖNEMLİ: Yanıtının SONUNA, analizine dayanan şu verileri içeren, aşağıdaki YAPIDA KESİN bir JSON bloğu ekle (\`\`\`json ... \`\`\` içinde olsun):
+  prompt += `\n\nÖNEMLİ: Yanıtının SONUNA, analizine dayanan şu verileri içeren, aşağıdaki YAPIDA KESİN bir JSON bloğu ekle (\`\`\`json ... \`\`\` içinde olsun):
 {
 "overview_html": "<p>Sitenin genel özeti...</p>",
 "charts_data": {
@@ -1770,8 +1768,10 @@ window.openLlmsGenerator = function() {
 };
 
 document.addEventListener('DOMContentLoaded', () => {
+    const btnReturn = document.getElementById('btn-return-dashboard');
     if (btnReturn) {
         btnReturn.addEventListener('click', () => {
+            const dbView = document.getElementById('ai-seo-dashboard-view');
             const actionView = document.getElementById('copilot-action-view');
             if(dbView && actionView) {
                 actionView.style.display = 'none';
@@ -1782,6 +1782,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 window.startFreshAnalysis = function() {
   try {
+      const dbView = document.getElementById('ai-seo-dashboard-view');
       const actionView = document.getElementById('copilot-action-view');
       if (dbView) dbView.style.display = 'none';
       if (actionView) actionView.style.display = 'flex';
