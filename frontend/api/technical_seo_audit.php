@@ -2,21 +2,6 @@
 
 declare(strict_types=1);
 
-session_start();
-
-if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
-    http_response_code(401);
-    header('Content-Type: application/x-ndjson; charset=utf-8');
-
-    echo json_encode([
-        'type' => 'result',
-        'success' => false,
-        'error' => 'Bu işlem için giriş yapmanız gerekiyor.'
-    ], JSON_UNESCAPED_UNICODE) . "\n";
-
-    exit;
-}
-
 /**
  * Teknik SEO Denetim API'si — stateless (veritabanısız) uç nokta.
  *
@@ -228,15 +213,14 @@ try {
     // 100 sayfa/derinlik 6 ile başlar; "tüm siteyi tara" isteğinde (resume_state
     // geldiyse) çok daha yüksek limitlerle kaldığı yerden devam eder.
     $crawlLabel = $isFullCrawl ? 'Sitenin tamamı taranıyor (bu biraz zaman alabilir)' : 'Site içi bağlantılar taranıyor';
-    runStep('crawl', $crawlLabel, function () use ($crawler, $config, $isFullCrawl, $resumeState, $finalUrl, $indexChecker, &$siteStructureAnalyzer, &$siteStructure, &$crawledUrls) {
+    runStep('crawl', $crawlLabel, function () use ($crawler, $config, $isFullCrawl, $resumeState, $finalUrl, &$siteStructureAnalyzer, &$siteStructure, &$crawledUrls) {
         if ($isFullCrawl) {
             $siteStructureAnalyzer = new SiteStructureAnalyzer(
                 $crawler,
                 (int) $config['crawl']['full_max_pages'],
                 (int) $config['crawl']['full_max_depth'],
                 (int) $config['crawl']['full_max_time_seconds'],
-                (int) $config['crawl']['concurrency'],
-                $indexChecker
+                (int) $config['crawl']['concurrency']
             );
             $siteStructure = $siteStructureAnalyzer->crawl($finalUrl, $resumeState);
         } else {
@@ -245,8 +229,7 @@ try {
                 (int) $config['crawl']['max_pages'],
                 (int) $config['crawl']['max_depth'],
                 (int) $config['crawl']['max_time_seconds'],
-                (int) $config['crawl']['concurrency'],
-                $indexChecker
+                (int) $config['crawl']['concurrency']
             );
             $siteStructure = $siteStructureAnalyzer->crawl($finalUrl);
         }
@@ -255,23 +238,16 @@ try {
 
     // 7b) Sayfa içeriği kalite kontrolleri: yinelenen title/meta description
     // ve H1-H6 başlık hiyerarşisi (eksik H1, birden fazla H1, seviye
-    // atlaması). Ana veri yukarıdaki crawl() adımında zaten her sayfa için
-    // çıkarılan title/meta_description/heading_structure alanlarından gelir
-    // (bkz. SiteStructureAnalyzer::extractMetaDescription / extractHeadingStructure).
-    // ASAMA 2 İSTİSNASI: yinelenen title/meta gruplarındaki canonical hedefi
-    // crawl dışında kalmışsa (sayfa/derinlik limiti), OnPageContentChecker
-    // bu hedefi CANLI olarak doğrulamak için ek (sınırlı sayıda) HTTP isteği
-    // atabilir - bkz. OnPageContentChecker::fetchLiveTarget().
-    $contentQuality = runStep('content_quality', 'Sayfa içeriği kontrol ediliyor (yinelenen title/meta, başlık hiyerarşisi)', function () use ($siteStructure, $crawler) {
-        // Asama 2: Crawler veriliyor ki, yinelenen title/meta gruplarindaki
-        // canonical hedefleri crawl disinda kalmissa (sayfa/derinlik limiti)
-        // canli olarak dogrulanabilsin (bkz. OnPageContentChecker::fetchLiveTarget()).
-        $contentChecker = new OnPageContentChecker($crawler);
+    // atlaması). Ek ağ isteği YAPMAZ - yukarıdaki crawl() adımında zaten her
+    // sayfa için çıkarılan title/meta_description/heading_structure
+    // alanlarını kullanır (bkz. SiteStructureAnalyzer::extractMetaDescription
+    // / extractHeadingStructure).
+    $contentQuality = runStep('content_quality', 'Sayfa içeriği kontrol ediliyor (yinelenen title/meta, başlık hiyerarşisi)', function () use ($siteStructure) {
+        $contentChecker = new OnPageContentChecker();
         return [
             'duplicate_titles' => $contentChecker->findDuplicateTitles($siteStructure['pages']),
             'duplicate_meta_descriptions' => $contentChecker->findDuplicateMetaDescriptions($siteStructure['pages']),
             'heading_hierarchy' => $contentChecker->analyzeHeadingHierarchy($siteStructure['pages']),
-            'canonical_structural_issues' => $contentChecker->findCanonicalIssues($siteStructure['pages']),
         ];
     });
 
@@ -379,12 +355,10 @@ try {
                 'canonical' => $canonical,
                 'orphan_page_ratio_percent' => $orphanRatio,
                 'orphan_pages' => $crossRef['orphan_pages'],
-                'sitemap_only_pages' => $crossRef['sitemap_only'],
                 'js_dependency' => $jsDependency,
                 'duplicate_titles' => $contentQuality['duplicate_titles'],
                 'duplicate_meta_descriptions' => $contentQuality['duplicate_meta_descriptions'],
                 'heading_hierarchy' => $contentQuality['heading_hierarchy'],
-                'canonical_structural_issues' => $contentQuality['canonical_structural_issues'],
             ],
             'psi' => $psi,
             'link_check' => $linkCheckResult,

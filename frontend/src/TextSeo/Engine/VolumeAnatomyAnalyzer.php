@@ -32,7 +32,7 @@ class VolumeAnatomyAnalyzer {
             preg_match_all('/\p{L}+[\p{L}\p{Mn}\p{Pd}\'\’\p{N}]*/u', $sentence, $sWords);
             $count = count($sWords[0] ?? []);
             $sentenceLengths[] = $count;
-            if ($count > 30) { // Increased from 25 to 30 for Turkish
+            if ($count > 25) { // Set back to 25
                 $sentencesOver25Words++;
                 $sentencesOver25WordsIndexes[] = $index;
             }

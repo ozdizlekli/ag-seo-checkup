@@ -44,7 +44,7 @@ class ReadabilityAnalyzer {
         // Transition Words
         $transitionMatches = 0;
         $sentencesWithTransitions = 0;
-        $transitionRegex = '/\b(çünkü|bu nedenle|örneğin|ancak|buna ek olarak|son olarak|öte yandan|dolayısıyla|ayrıca|bununla birlikte|bu yüzden|sonuç olarak|nitekim|oysa|halbuki|bundan dolayı|ilk olarak|özetle|kısacası|bilhassa|ne var ki|böylece|kısaca|başka bir deyişle|özellikle|üstelik|hatta|kaldı ki|aksi takdirde|bunun yanında|buna karşın|rağmen|yine de|oysaki)\b/ui';
+        $transitionRegex = '/\b(çünkü|bu nedenle|örneğin|ancak|buna ek olarak|son olarak|öte yandan|dolayısıyla|ayrıca|bununla birlikte|bu yüzden|sonuç olarak|nitekim|oysa|halbuki|bundan dolayı|ilk olarak|özetle|kısacası|bilhassa|ne var ki|böylece|kısaca|başka bir deyişle|özellikle|üstelik|hatta|kaldı ki|aksi takdirde|bunun yanında|buna karşın|rağmen|yine de|oysaki|bunun sonucunda|buna bağlı olarak|öte taraftan|bununla beraber|zira|yani|aksine|bilakis|netice itibariyle|ayriyeten|özetlemek gerekirse)\b/ui';
         
         foreach ($sentences as $sentence) {
             $count = preg_match_all($transitionRegex, $sentence, $matches);
@@ -67,7 +67,7 @@ class ReadabilityAnalyzer {
         $passiveSentenceIndexes = [];
         
         // Exclude common non-passive words ending in similar patterns
-        $excludePassiveRegex = '/\b(kadındı|yarındı|altındı|bütündü|yakındı|kendindi|senindi|onundu)\b/ui';
+        $excludePassiveRegex = '/\b(kadın|yarın|altın|bütün|yakın|kendin|senin|onun|bizim|sizin|onların|kimin|benim|bugün|dün|oyun|sorun|uzun|kalın|serin|derin|gün|yön|son|on|bun|şun|gül|kıl|bil|sil|bul|yan|dön|bin|in|sön|yen|sun|kan|yıl|inan|uyan|dayan|kullan|davran|öğren|beğen|güven|düşün)(?:dı|di|du|dü|tı|ti|tu|tü|mış|miş|muş|müş)(?:dır|dir|dur|dür|tır|tir|tur|tür)?\b/ui';
 
         foreach ($sentences as $index => $sentence) {
             if (preg_match($passiveRegexDoc, $sentence) && !preg_match($excludePassiveRegex, $sentence)) {
@@ -107,13 +107,13 @@ class ReadabilityAnalyzer {
 
     private function getAtesmanFeedback(float $score): array {
         if ($score >= 70) {
-            return ["status" => "success", "label" => "Çok Kolay", "advice" => "Oldukça Akıcı: Metniniz son derece sade ve anlaşılır. Her yaştan okuyucu tarafından tek nefeste kolayca okunabilir."];
+            return ["status" => "success", "label" => "Çok Kolay", "advice" => "Oldukça Akıcı: Metniniz son derece sade ve anlaşılır. Her yaştan okuyucu tarafından kolayca okunabilir."];
         } elseif ($score >= 50) {
-            return ["status" => "success", "label" => "İdeal Web SEO", "advice" => "İdeal Denge: Mükemmel! İnternet okuyucuları için en verimli aralıkta; hem bilgilendirici hem de yormayan bir akıcılığa sahip."];
+            return ["status" => "success", "label" => "İdeal Web SEO", "advice" => "İdeal Denge: Mükemmel! İnternet okuyucuları için en verimli aralıkta; okuyucuyu yormayan bir akıcılığa sahip."];
         } elseif ($score >= 35) {
-            return ["status" => "warning", "label" => "Orta / Ağır", "advice" => "Biraz Dikkat Gerektiriyor: Cümleler genel olarak uzun. 30 kelimeyi aşan uzun cümleleri ikiye bölerek (örn. '...yaptığından dolayı şöyle oldu' yerine '...yaptı. Bu yüzden şöyle oldu') okumayı kolaylaştırabilirsiniz."];
+            return ["status" => "warning", "label" => "Orta / Ağır", "advice" => "Biraz Dikkat Gerektiriyor: Puanın orta çıkmasının nedeni uzun cümleler (20+ kelime) veya çok heceli kelimelerin sık kullanımı olabilir. Uzun cümleleri bölüp kelimeleri sadeleştirerek akıcılığı artırabilirsiniz."];
         } else {
-            return ["status" => "danger", "label" => "Zor / Yoğun Metin", "advice" => "Cümleler Ağır ve Uzun: Metin takip etmesi güç ve yoğun bir dille yazılmış. Okuyucunun sıkılıp sayfayı terk etmemesi için 30 kelimeyi aşan uzun cümleleri kısaltıp daha doğrudan ifadeler kullanmanız önerilir."];
+            return ["status" => "danger", "label" => "Zor / Yoğun Metin", "advice" => "Metin Ağır ve Yorucu: Çok heceli kelime yoğunluğu yüksek ve/veya cümleler fazla uzun. Okuyucunun sayfayı terk etmemesi için cümleleri kısaltıp daha yalın sözcükler kullanmalısınız."];
         }
     }
 
@@ -143,11 +143,11 @@ class ReadabilityAnalyzer {
 
     private function getPassiveVoiceFeedback(float $ratio): array {
         if ($ratio <= 15) {
-            return ["status" => "success", "label" => "Canlı ve Dinamik", "advice" => "Canlı ve İkna Edici: Mükemmel! Doğrudan okuyucuya seslenen, aktif ve eyleme geçiren güçlü bir anlatım kullanılmış."];
+            return ["status" => "success", "label" => "İdeal / Başarılı", "advice" => "Canlı ve İkna Edici: Mükemmel! Doğrudan okuyucuya seslenen, aktif ve eyleme geçiren güçlü bir anlatım kullanılmış."];
         } elseif ($ratio <= 25) {
-            return ["status" => "warning", "label" => "Hafif Edilgen", "advice" => "Daha Doğrudan Olabilir: Bazı cümlelerde edilgen fiiller kullanılmış. Cümleleri özne odaklı aktif ifadelere çevirin (örn. 'Analizler uzmanlarca yapılır' yerine 'Uzmanlar analiz yapar')."];
+            return ["status" => "warning", "label" => "Orta / Geliştirilmeli", "advice" => "Daha Doğrudan Olabilir: Bazı cümlelerde edilgen fiiller kullanılmış. Cümleleri özne odaklı aktif ifadelere çevirerek anlatımı güçlendirebilirsiniz."];
         } else {
-            return ["status" => "danger", "label" => "Resmi Dil", "advice" => "Resmi ve Edilgen Anlatım: Metin resmi evrak gibi çok fazla '-il, -in, -ılmıştır' eki içeriyor. 'Hedeflenmektedir / tamamlanır' yerine 'hedefliyoruz / tamamlar' gibi canlı fiiller tercih edin."];
+            return ["status" => "danger", "label" => "Ağır / Resmi Dil", "advice" => "Resmi ve Edilgen Anlatım: Metin resmi evrak gibi çok fazla edilgen çatı ('-il, -in, -ılmıştır') içeriyor. Canlı fiiller tercih edin."];
         }
     }
 }

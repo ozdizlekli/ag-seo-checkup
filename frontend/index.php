@@ -107,12 +107,8 @@ require_once __DIR__ . '/db.php';
   ============================================================ -->
   <aside class="sidebar">
     <div class="sidebar__brand">
-      <div class="brand-mark">
-        <svg viewBox="0 0 36 36" width="36" height="36">
-          <circle class="pulse" cx="18" cy="18" r="15"/>
-          <circle class="pulse pulse2" cx="18" cy="18" r="10"/>
-          <circle class="dot" cx="18" cy="18" r="3"/>
-        </svg>
+      <div class="brand-mark" style="width: 64px; height: 64px;">
+        <img src="image.png" alt="AG SEO Check Up" style="width: 100%; height: 100%; object-fit: contain; border-radius: 8px;">
       </div>
       <div class="brand-text">
         <div class="name">AG_seo_check_up</div>
@@ -214,57 +210,17 @@ require_once __DIR__ . '/db.php';
       =========================================================== -->
       
 <section class="tab-panel" id="tab-2">
-        <div class="toggle-group" id="t3-subview-toggle" style="margin-bottom:16px;">
-          <button type="button" class="toggle-btn active" data-subview="live">Canlı Denetim</button>
-          <button type="button" class="toggle-btn" data-subview="history">Skor Geçmişi</button>
-        </div>
-
-        <div id="t3-live-view">
         <div class="card">
-          <div class="card__head">
-            <div class="card__title">Yeni Teknik Denetim</div>
-            <!-- Rapor, html2pdf.js/jsPDF gibi harici bir kutuphane KULLANMADAN,
-                 ayri bir onizleme sekmesi olarak olusturulur; o sekmedeki
-                 "PDF Olarak Kaydet" butonu sadece window.print() cagirir
-                 (bkz. js/technical-seo.js generateT3Report). Denetim
-                 TAMAMLANANA kadar disabled - bkz. updateScoreHistoryUI. -->
-            <button class="btn btn--dark btn--sm" id="t3-report-btn" type="button" disabled title="Rapor oluşturmak için önce bir denetim tamamlanmalı">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-              <span>Rapor Oluştur (PDF)</span>
-            </button>
-          </div>
-          <div class="small muted mt-8">Web sitesi adresini girin; kayıtlı bir müşteriyle eşleşirse otomatik bağlanır.</div>
-
-          <div class="t3-audit-row mt-16">
-            <div class="field" style="margin-bottom:0;">
-              <input class="input" id="t3-url" type="text" placeholder="https://www.musterisitesi.com" aria-label="Web Sitesi URL'si">
+          <div class="card__title">Canlı Denetim</div>
+          <div class="flex gap-12 mt-16" style="align-items:flex-end;">
+            <div class="field" style="flex:1; margin-bottom:0;">
+              <label for="t3-url">Web Sitesi URL'si</label>
+              <input class="input" id="t3-url" type="text" placeholder="https://www.musterisitesi.com">
             </div>
             <button class="btn btn--primary" id="t3-audit-btn">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-              <span id="t3-audit-label">Denetimi Başlat</span>
+              <span id="t3-audit-label">Canlı Denetim Yap</span>
             </button>
-          </div>
-
-          <!-- Kompakt musteri otomatik-eslesme durumu - JS (renderClientMatchStatus)
-               tarafindan doldurulur. Yesil = domain kayitli bir musteriyle
-               eslesti, notr = eslesme yok + manuel secim linki. -->
-          <div class="t3-client-match mt-12" id="t3-client-match-status"></div>
-
-          <!-- Manuel musteri secici - varsayilan gizli, "değiştir"/"Müşteri seç"
-               linkine tiklaninca aciliyor (bkz. js/technical-seo.js). Ayni
-               search-select bileseni Skor Gecmisi sekmesinde de kullaniliyor. -->
-          <div class="search-select hidden mt-8" id="t3-history-client-searchselect" style="position:relative; max-width:320px;">
-            <input type="text" class="input" id="t3-history-client-select-input" placeholder="Müşteri ara..." autocomplete="off">
-            <input type="hidden" id="t3-history-client-select" value="">
-            <div class="search-select__list hidden" id="t3-history-client-select-list"></div>
-          </div>
-
-          <div class="t3-autosave-row mt-16">
-            <label class="t3-autosave-toggle" for="t3-history-autosave-checkbox">
-              <input type="checkbox" id="t3-history-autosave-checkbox">
-              Analiz tamamlandığında geçmişe kaydet
-            </label>
-            <button class="btn btn--ghost btn--sm" id="t3-history-save-btn" disabled title="Kaydetmek için önce bir denetim tamamlanmalı">Şimdi Kaydet</button>
           </div>
         </div>
 
@@ -436,69 +392,10 @@ require_once __DIR__ . '/db.php';
         <div class="card mt-20 hidden" id="t3-findings-card">
           <div class="card__head">
             <div class="card__title">Önceliklendirilmiş Teknik SEO Bulguları</div>
-            <span class="small muted" id="t3-findings-subtitle">önce önem derecesi (yüksek → orta → düşük), sonra aynı derece içinde etkilenen sayfa oranı × güven seviyesine göre sıralanmıştır</span>
+            <span class="small muted">önce önem derecesi (yüksek → orta → düşük), sonra aynı derece içinde etkilenen sayfa oranı × güven seviyesine göre sıralanmıştır</span>
           </div>
           <div class="mt-16" id="t3-findings-body"></div>
         </div>
-        </div><!-- /#t3-live-view -->
-
-        <div id="t3-history-view" class="hidden">
-          <div class="card">
-            <div class="card__head">
-              <div class="card__title">Skor Geçmişi ve Karşılaştırma</div>
-              <span class="small muted">Kaydedilmiş denetimleri URL'ye ya da müşteriye göre görüntüle</span>
-            </div>
-            <div class="toggle-group" id="t3-history-mode-toggle">
-              <button type="button" class="toggle-btn active" data-mode="url">URL ile Ara</button>
-              <button type="button" class="toggle-btn" data-mode="client">Müşteriye Göre</button>
-            </div>
-            <div class="flex gap-8 mt-16" id="t3-history-url-lookup" style="align-items:center; flex-wrap:wrap;">
-              <input class="input" id="t3-history-lookup-url" type="text" placeholder="https://www.musterisitesi.com" style="flex:1; min-width:240px;">
-              <button class="btn btn--primary btn--sm" id="t3-history-lookup-url-btn">Göster</button>
-            </div>
-            <div class="flex gap-8 mt-16 hidden" id="t3-history-client-lookup" style="align-items:center; flex-wrap:wrap;">
-              <div class="search-select" id="t3-history-lookup-client-searchselect" style="position:relative; flex:1; min-width:240px;">
-                <input type="text" class="input" id="t3-history-lookup-client-select-input" placeholder="Müşteri ara..." autocomplete="off" style="width:100%;">
-                <input type="hidden" id="t3-history-lookup-client-select" value="">
-                <div class="search-select__list hidden" id="t3-history-lookup-client-select-list"></div>
-              </div>
-              <button class="btn btn--primary btn--sm" id="t3-history-lookup-client-btn">Göster</button>
-            </div>
-          </div>
-
-          <div class="card mt-20 hidden" id="t3-history-card">
-            <div class="card__head">
-              <div class="card__title" id="t3-history-result-title">Skor Geçmişi</div>
-              <button class="btn btn--danger btn--sm hidden" id="t3-history-delete-btn">Geçmişi Temizle</button>
-            </div>
-            <div class="mt-16" id="t3-history-chart-wrap"></div>
-            <div class="mt-16" id="t3-history-category-tables"></div>
-          </div>
-
-          <!-- "Tum Denetim Gecmisi" - varsayilan kapali acilir/kapanir
-               bolum. Kayitli TUM denetimleri musteri/domain'e gore
-               gruplayip listeler (bkz. js/technical-seo.js
-               initAuditLogSection). Satira tiklaninca yukaridaki mevcut
-               #t3-history-card grafigi o musteri/domain icin yeniden
-               doldurulur - ayri bir grafik/detay alani EKLEMIYORUZ. -->
-          <div class="card mt-20 t3-audit-log" id="t3-audit-log-card">
-            <button type="button" class="t3-audit-log__header" id="t3-audit-log-toggle" aria-expanded="false">
-              <span class="t3-audit-log__title">Tüm Denetim Geçmişi <span class="t3-audit-log__count" id="t3-audit-log-count">(0)</span></span>
-              <svg class="t3-audit-log__chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-            </button>
-            <div class="t3-audit-log__body hidden" id="t3-audit-log-body">
-              <div class="field mt-16" style="margin-bottom:0;">
-                <input class="input" id="t3-audit-log-search" type="text" placeholder="Müşteri adı veya alan adına göre ara...">
-              </div>
-              <div class="mt-16" id="t3-audit-log-list">
-                <p class="small muted t3-audit-log__empty">Yükleniyor…</p>
-              </div>
-              <div class="mt-16 t3-audit-log__more-wrap">
-                <button type="button" class="finding-card__toggle-btn hidden" id="t3-audit-log-more">Daha fazla göster</button>
-              </div>
-            </div>
-          </div>
-        </div><!-- /#t3-history-view -->
 
         <!-- Bu kart kullanicidan gizlendi: localhost:3000/api/... adresine
              istek atiyor, bu proje pure-PHP oldugu icin boyle bir servis hic
