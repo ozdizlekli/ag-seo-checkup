@@ -107,12 +107,8 @@ require_once __DIR__ . '/db.php';
   ============================================================ -->
   <aside class="sidebar">
     <div class="sidebar__brand">
-      <div class="brand-mark">
-        <svg viewBox="0 0 36 36" width="36" height="36">
-          <circle class="pulse" cx="18" cy="18" r="15"/>
-          <circle class="pulse pulse2" cx="18" cy="18" r="10"/>
-          <circle class="dot" cx="18" cy="18" r="3"/>
-        </svg>
+      <div class="brand-mark" style="width: 64px; height: 64px;">
+        <img src="image.png" alt="AG SEO Check Up" style="width: 100%; height: 100%; object-fit: contain; border-radius: 8px;">
       </div>
       <div class="brand-text">
         <div class="name">AG_seo_check_up</div>
