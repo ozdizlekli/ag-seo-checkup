@@ -572,7 +572,7 @@ const navItems = document.querySelectorAll('.nav__item');
 const panels = document.querySelectorAll('.tab-panel');
 const topbarMeta = {
   1:{ eyebrow:'01 · İÇERİK', title:'Metin Bazlı SEO', desc:'Metni hedef kelimeye göre optimize edin, mevcut blog yazılarınıza otomatik iç linkler önerin.' },
-  2:{ eyebrow:'02 · TEKNİK', title:'Teknik SEO', desc:'Site performansını PageSpeed Insights ve teknik SEO kontrolleri üzerinden analiz edin.' },
+  2:{ eyebrow:'02 · TEKNİK', title:'Teknik SEO', desc:'Site performansını Core Web Vitals metrikleri üzerinden canlı olarak denetleyin.' },
   3:{ eyebrow:'03 · AI SEO', title:'AI SEO Analizi', desc:'Hedef sitenin içerik kalitesini, otoritesini ve dönüşüm yeteneğini yapay zeka ile denetleyin.' },
   4:{ eyebrow:'04 · AKSİYON', title:'Yapılacaklar / Eksiklikler', desc:'Yapay zeka analizleri sonucunda siteniz için önerilen teknik ve metin bazlı iyileştirme tavsiyeleri.' },
 };

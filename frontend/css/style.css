@@ -244,7 +244,6 @@ textarea.tall{ min-height:180px; }
 .btn--ghost:hover{ border-color:#C7CCD6; background:#FAFBFC; }
 .btn--dark{ background:var(--ink); color:#fff; }
 .btn--dark:hover{ background:var(--ink-soft); }
-.btn--dark:disabled{ background:#C6CAD3; color:#fff; cursor:not-allowed; }
 .btn--danger{ background:var(--danger-soft); color:var(--danger); }
 .btn--danger:hover{ background:#F7D9DA; }
 .btn--sm{ padding:7px 11px; font-size:12.5px; border-radius:7px; }
@@ -292,93 +291,6 @@ textarea.tall{ min-height:180px; }
 .finding-card--critical{ border-left-color:var(--danger); }
 .finding-card--major{ border-left-color:var(--warn); }
 .finding-card--minor{ border-left-color:var(--border-soft); }
-.finding-card--info{ border-left-color:var(--accent); }
-
-/* Aranabilir musteri secici (search-select) - native <select> yerine, cok
-   sayida musteri oldugunda yazarak filtrelemeyi destekleyen hafif, framework'suz
-   bir bilesen. Input + altinda mutlak konumlu, filtrelenmis bir liste. */
-.search-select__list{
-  position:absolute; top:calc(100% + 4px); left:0; right:0; z-index:30;
-  max-height:220px; overflow-y:auto; background:#fff; border:1px solid var(--border-soft);
-  border-radius:var(--radius-sm); box-shadow:var(--shadow-md); padding:4px;
-}
-.search-select__item{
-  padding:8px 10px; border-radius:7px; font-size:13.5px; color:var(--ink); cursor:pointer;
-}
-.search-select__item:hover{ background:var(--paper); }
-.search-select__item--empty{ color:var(--muted-2); cursor:default; }
-.search-select__item--empty:hover{ background:transparent; }
-
-/* Teknik SEO - "Yeni Teknik Denetim" kompakt karti: URL + buton ayni satirda
-   (masaustu), musteri otomatik-eslesme durumu ince bir satirda, "kaydet"
-   artik buyuk bir buton degil kucuk bir checkbox+link. */
-.t3-audit-row{ display:flex; gap:12px; align-items:flex-start; }
-.t3-audit-row .field{ flex:1; min-width:0; }
-@media (max-width:640px){
-  .t3-audit-row{ flex-direction:column; }
-  .t3-audit-row .btn{ width:100%; justify-content:center; }
-}
-
-.t3-client-match{
-  display:flex; align-items:center; gap:8px; flex-wrap:wrap;
-  font-size:12.5px; color:var(--muted); min-height:18px;
-}
-.t3-client-match__dot{
-  width:7px; height:7px; border-radius:50%; background:var(--muted-2); flex:none;
-}
-.t3-client-match--ok{ color:var(--success); }
-.t3-client-match--ok .t3-client-match__dot{ background:var(--success); }
-.t3-client-match__link{
-  margin-left:auto; font-size:12px; color:var(--accent); text-decoration:none; cursor:pointer;
-}
-.t3-client-match__link:hover{ text-decoration:underline; }
-
-.t3-autosave-row{ display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
-.t3-autosave-toggle{
-  display:flex; align-items:center; gap:7px; font-size:12.5px; color:var(--muted); cursor:pointer;
-}
-.t3-autosave-toggle input[type="checkbox"]{ width:14px; height:14px; accent-color:var(--accent); cursor:pointer; }
-
-/* "Tum Denetim Gecmisi" - acilir/kapanir, musteri/domain'e gore
-   gruplanmis liste (bkz. js/technical-seo.js initAuditLogSection). */
-.t3-audit-log__header{
-  display:flex; align-items:center; gap:8px; width:100%;
-  background:none; border:none; padding:0; margin:0; cursor:pointer; text-align:left;
-  font-size:15px; font-weight:700; color:var(--ink); font-family:inherit;
-}
-.t3-audit-log__title{ display:flex; align-items:center; gap:8px; }
-.t3-audit-log__count{ font-weight:600; color:var(--muted); font-size:13px; }
-.t3-audit-log__chevron{ margin-left:auto; color:var(--muted); transition:transform .15s; flex:none; }
-.t3-audit-log__header[aria-expanded="true"] .t3-audit-log__chevron{ transform:rotate(180deg); }
-
-.t3-audit-log__row{
-  display:flex; align-items:center; gap:12px; padding:11px 4px;
-  border-bottom:1px solid var(--border-soft); cursor:pointer; transition:background .12s;
-}
-.t3-audit-log__row:last-child{ border-bottom:none; }
-.t3-audit-log__row:hover{ background:var(--paper, #FAFBFC); }
-.t3-audit-log__cell{ font-size:12.5px; min-width:0; }
-.t3-audit-log__cell--name{ flex:1 1 200px; min-width:0; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.t3-audit-log__domain{ display:block; font-weight:400; color:var(--muted-2); font-size:11.5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.t3-audit-log__cell--score{ width:44px; flex:none; text-align:center; font-weight:700; font-size:14px; }
-.t3-audit-log__cell--date{ width:100px; flex:none; color:var(--muted); }
-.t3-audit-log__cell--crawl{ width:118px; flex:none; }
-.t3-audit-log__cell--delta{ width:64px; flex:none; text-align:right; font-weight:600; }
-.t3-audit-log__delta--up{ color:var(--success); }
-.t3-audit-log__delta--down{ color:var(--danger); }
-.t3-audit-log__delta--flat{ color:var(--muted-2); }
-.t3-audit-log__empty{ padding:16px 4px; }
-.t3-audit-log__more-wrap{ text-align:center; }
-
-@media (max-width:640px){
-  .t3-audit-log__row{ flex-direction:column; align-items:stretch; gap:6px; padding:12px 12px; border-radius:8px; border:1px solid var(--border-soft); margin-bottom:8px; }
-  .t3-audit-log__row:last-child{ margin-bottom:0; }
-  .t3-audit-log__cell{ width:auto !important; text-align:left !important; display:flex; justify-content:space-between; align-items:center; gap:8px; white-space:normal; }
-  .t3-audit-log__cell::before{ content:attr(data-label); font-weight:600; color:var(--muted-2); font-size:11px; text-transform:uppercase; letter-spacing:.03em; flex:none; }
-  .t3-audit-log__cell--name{ flex-direction:column; align-items:flex-start; gap:2px; overflow:visible; white-space:normal; }
-  .t3-audit-log__cell--name::before{ content:none; }
-  .t3-audit-log__domain{ white-space:normal; }
-}
 .finding-card__meta{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
 .finding-card__title{ font-weight:700; margin-top:10px; font-size:14px; }
 .finding-card__detail{ margin-top:4px; }
