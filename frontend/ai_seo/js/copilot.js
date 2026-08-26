@@ -361,8 +361,16 @@ async function fixAiSeoIssue(step) {
          </div>
 
          <div style="background: #fff; border-radius: 12px; border: 1px solid var(--border); overflow: hidden; margin-bottom: 32px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
-            <div style="padding: 16px; background: #f8fafc; border-bottom: 1px solid var(--border); font-weight: 600; font-size: 14px; color: var(--text);">Son Taranan 5 Site</div>
-            ${recentHtml}
+            <div style="padding: 16px; background: #f8fafc; border-bottom: 1px solid var(--border); font-weight: 600; font-size: 14px; color: var(--text); display:flex; justify-content:space-between; align-items:center;">
+               <div>Geçmiş Sohbetler</div>
+               <button class="btn btn--ghost btn--sm" id="btn-clear-history" style="font-size:12px; padding:4px 8px;">Tümünü Temizle</button>
+            </div>
+            <div style="padding: 12px 16px; font-size:13px; color:var(--muted); background:#fafafa; border-bottom: 1px solid var(--border);">
+               Önceki URL analizleriniz burada listelenir. Tıklayarak sohbeti geri yükleyebilirsiniz.
+            </div>
+            <div id="copilot-history-list" style="display:flex; flex-direction:column; padding:16px; gap:8px;">
+               <p class="empty-note">Henüz geçmiş sohbet yok.</p>
+            </div>
          </div>
 
          <div style="text-align: center;">
@@ -378,6 +386,20 @@ async function fixAiSeoIssue(step) {
         btnFresh.addEventListener('click', () => {
             if (typeof window.startFreshAnalysis === 'function') {
                 window.startFreshAnalysis();
+            }
+        });
+    }
+
+    const btnClearDashboardHistory = document.getElementById('btn-clear-history');
+    if (btnClearDashboardHistory) {
+        btnClearDashboardHistory.addEventListener('click', async () => {
+            if (confirm('Tüm geçmiş sohbetleri silmek istediğinize emin misiniz?')) {
+                await fetch('ai_seo/api/save_chat.php?id=all', { method: 'DELETE' });
+                window.agChatHistory = [];
+                loadHistory(); 
+                if (typeof window.startFreshAnalysis === 'function') {
+                    window.startFreshAnalysis();
+                }
             }
         });
     }
@@ -1253,12 +1275,17 @@ async function saveChat() {
 }
 
 async function loadHistory() {
-  if (!historyList) return;
+  let historyList = document.getElementById('copilot-history-list');
   try {
     const res = await fetch('ai_seo/api/save_chat.php?t=' + Date.now());
     const data = await res.json();
     window.agChatHistory = data.history || [];
     if(typeof window.renderDashboard === 'function') window.renderDashboard();
+    
+    // dashboard render edildikten sonra tekrar al
+    historyList = document.getElementById('copilot-history-list');
+    if (!historyList) return;
+    
     historyList.innerHTML = '';
     if (!data.history || data.history.length === 0) {
       historyList.innerHTML = '<p class="empty-note">Henüz geçmiş sohbet yok.</p>';
@@ -1307,9 +1334,7 @@ if (copilotSaveBtn) {
   copilotSaveBtn.addEventListener('click', saveChat);
 }
 
-if (btnClearHistory) {
-  btnClearHistory.addEventListener('click', async () => { await fetch('save_chat.php?id=all', { method: 'DELETE' }); loadHistory(); resetChat(null); });
-}
+
 
 if (copilotResetBtn) {
   copilotResetBtn.addEventListener('click', () => {
