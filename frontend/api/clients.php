@@ -1,8 +1,11 @@
 <?php
+require_once __DIR__ . '/../auth.php';
+require_login();
 require_once __DIR__ . '/../db.php';
 header('Content-Type: application/json');
 
 if (!$pdo) {
+    http_response_code(503);
     echo json_encode(['error' => 'No database connection']);
     exit;
 }
@@ -18,22 +21,23 @@ if ($method === 'GET') {
     if (isset($data['name'])) {
         $stmt = $pdo->prepare("INSERT INTO clients (name, domain_url, drive_folder_id) VALUES (?, ?, ?)");
         $stmt->execute([
-            $data['name'], 
+            $data['name'],
             $data['domain_url'] ?? null,
             $data['drive_folder_id'] ?? null
         ]);
         $id = $pdo->lastInsertId();
-        
+
         $stmt = $pdo->prepare("SELECT * FROM clients WHERE id = ?");
         $stmt->execute([$id]);
         $client = $stmt->fetch(PDO::FETCH_ASSOC);
         echo json_encode(['data' => [$client]]);
     } else {
+        http_response_code(400);
         echo json_encode(['error' => 'Missing name']);
     }
 } elseif ($method === 'PUT') {
     if (isset($_GET['id'])) {
-        $id = $_GET['id'];
+        $id = (int)$_GET['id'];
         $updates = [];
         $params = [];
         foreach (['name', 'domain_url', 'drive_folder_id'] as $field) {
@@ -49,15 +53,19 @@ if ($method === 'GET') {
         }
         echo json_encode(['success' => true]);
     } else {
+        http_response_code(400);
         echo json_encode(['error' => 'Missing id']);
     }
 } elseif ($method === 'DELETE') {
     if (isset($_GET['id'])) {
         $stmt = $pdo->prepare("DELETE FROM clients WHERE id = ?");
-        $stmt->execute([$_GET['id']]);
+        $stmt->execute([(int)$_GET['id']]);
         echo json_encode(['success' => true]);
     } else {
+        http_response_code(400);
         echo json_encode(['error' => 'Missing id']);
     }
+} else {
+    http_response_code(405);
+    echo json_encode(['error' => 'Method not allowed']);
 }
-?>

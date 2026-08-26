@@ -1,9 +1,11 @@
 <?php
+define('AGSEO_INTERNAL', true);
 session_start();
 if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
     header('Location: login.php');
     exit;
 }
+require_once __DIR__ . '/db.php';
 ?>
 <!DOCTYPE html>
 <html lang="tr">
@@ -18,9 +20,9 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script src="js/keyword-engine.js"></script>
-<script src="js/copilot.js?v=<?= time() ?>"></script>
+<script src="ai_seo/js/copilot.js?v=<?php echo time(); ?>"></script>
 <link rel="stylesheet" href="css/style.css">
-<link rel="stylesheet" href="css/copilot.css?v=<?= time() ?>">
+<link rel="stylesheet" href="ai_seo/css/copilot.css?v=<?php echo time(); ?>">
 <link rel="stylesheet" href="css/welcome.css">
 
 <!-- Text SEO Module Dependencies -->
@@ -44,8 +46,8 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://unpkg.com/@phosphor-icons/web"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jsdiff/7.0.0/diff.min.js"></script>
-<link rel="stylesheet" href="css/text-seo.css">
-<link rel="stylesheet" href="css/text-seo-pdf.css">
+<link rel="stylesheet" href="src/TextSeo/css/text-seo.css">
+<link rel="stylesheet" href="src/TextSeo/css/text-seo-pdf.css">
 </head>
 <body>
 
@@ -186,10 +188,10 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
 
     <div class="sidebar__footer">
       
-      <a href="logout.php" onclick="sessionStorage.removeItem('ag_welcome_seen');" class="btn btn--sidebar btn--sm" style="text-decoration:none; text-align:center; display:block;">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
-        Çıkış Yap
-      </a>
+      <a href="logout.php" onclick="sessionStorage.removeItem('ag_welcome_seen');" class="btn btn--sidebar btn--sm logout-btn" style="text-decoration:none; display:flex; align-items:center; justify-content:center; gap:8px; padding:12px 16px; border-radius:8px; transition:all 0.2s;">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+        <span style="font-weight: 500;">Çıkış Yap</span>
+    </a>
 <!-- 
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20Z"/><line x1="2" y1="12" x2="22" y2="12"/></svg>
         -->
@@ -567,105 +569,13 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
            TAB 4 — SCHEMA ÜRETİCİ
       =========================================================== -->
       
-<section class="tab-panel" id="tab-3">
-        <!-- GEO Content Copilot UI -->
-        <div class="card" id="copilot-card" style="border-top: 4px solid var(--accent); padding:0;">
-          <div style="padding: 24px 24px 0 24px;">
-            <div class="card__title">GEO AI Bot (URL Tabanlı)</div>
-            <div class="card__hint">Web sitenizin SEO ve Yapay Zeka (SGE) görünürlüğünü sohbet asistanı ile adım adım analiz edin.</div>
-          </div>
-          
-          <div class="copilot-container" style="border:none; margin-top:0; border-radius:0;">
-            <div class="copilot-header" style="position:relative; z-index:50;">
-              <div class="copilot-progress" id="copilot-progress" style="display:none;">
-                <div class="copilot-step" data-step="1" id="cp-step-1">
-                  <div class="copilot-step-circle"><span class="num">1</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
-                  <div class="step-label-wrapper has-tooltip" data-tooltip="Sitenizin sektörü, hitap ettiği kitle ve anahtar kelime varlıkları yapay zeka gözüyle analiz edilir.&#10;&#10;Sohbette bu adıma gitmek için tıklayın"><span>İş Bağlamı</span><svg class="info-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 4px; color: #94a3b8;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg></div>
-                  <button class="btn-fix-issue" data-step="1" id="btn-fix-1" style="position: absolute; top: 100%; left: 50%; transform: translateX(-50%); margin-top: 6px; display: none; background: transparent; color: #2563eb; border: none; padding: 2px; box-shadow: none; font-size: 16px; cursor: pointer; z-index: 10;" title="1. Adımı Çöz">🔧</button>
-                </div>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" color="var(--border)"><path d="M9 18l6-6-6-6"/></svg>
-                <div class="copilot-step" data-step="2" id="cp-step-2">
-                  <div class="copilot-step-circle"><span class="num">2</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
-                  <div class="step-label-wrapper has-tooltip" data-tooltip="Kullanıcıların bu sayfa bağlamında sorabileceği en kritik sorular ve sitenizin bunlara verdiği cevapların kalitesi ölçülür.&#10;&#10;Sohbette bu adıma gitmek için tıklayın"><span>Etkililik</span><svg class="info-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 4px; color: #94a3b8;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg></div>
-                  <button class="btn-fix-issue" data-step="2" id="btn-fix-2" style="position: absolute; top: 100%; left: 50%; transform: translateX(-50%); margin-top: 6px; display: none; background: transparent; color: #2563eb; border: none; padding: 2px; box-shadow: none; font-size: 16px; cursor: pointer; z-index: 10;" title="2. Adımı Çöz">🔧</button>
-                </div>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" color="var(--border)"><path d="M9 18l6-6-6-6"/></svg>
-                <div class="copilot-step" data-step="3" id="cp-step-3">
-                  <div class="copilot-step-circle"><span class="num">3</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
-                  <div class="step-label-wrapper has-tooltip" data-tooltip="Sektördeki en güçlü rakiplere kıyasla sitenizin içerik açısından hangi noktalarda eksik kaldığı tespit edilir.&#10;&#10;Sohbette bu adıma gitmek için tıklayın"><span>Rakip Analizi</span><svg class="info-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 4px; color: #94a3b8;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg></div>
-                  <button class="btn-fix-issue" data-step="3" id="btn-fix-3" style="position: absolute; top: 100%; left: 50%; transform: translateX(-50%); margin-top: 6px; display: none; background: transparent; color: #2563eb; border: none; padding: 2px; box-shadow: none; font-size: 16px; cursor: pointer; z-index: 10;" title="3. Adımı Çöz">🔧</button>
-                </div>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" color="var(--border)"><path d="M9 18l6-6-6-6"/></svg>
-                <div class="copilot-step" data-step="4" id="cp-step-4">
-                  <div class="copilot-step-circle"><span class="num">4</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
-                  <div class="step-label-wrapper has-tooltip" data-tooltip="E-E-A-T (Deneyim, Uzmanlık, Otoriterlik, Güvenilirlik) kurallarına göre sitenizin yapay zekaya ne kadar güven verdiği puanlanır.&#10;&#10;Sohbette bu adıma gitmek için tıklayın"><span>AI Güveni</span><svg class="info-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 4px; color: #94a3b8;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg></div>
-                  <button class="btn-fix-issue" data-step="4" id="btn-fix-4" style="position: absolute; top: 100%; left: 50%; transform: translateX(-50%); margin-top: 6px; display: none; background: transparent; color: #2563eb; border: none; padding: 2px; box-shadow: none; font-size: 16px; cursor: pointer; z-index: 10;" title="4. Adımı Çöz">🔧</button>
-                </div>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" color="var(--border)"><path d="M9 18l6-6-6-6"/></svg>
-                <div class="copilot-step" data-step="5" id="cp-step-5">
-                  <div class="copilot-step-circle"><span class="num">5</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
-                  <div class="step-label-wrapper has-tooltip" data-tooltip="SGE (Search Generative Experience) ile uyumlu, okunabilirliği yüksek yepyeni bir içerik taslağı sunulur.&#10;&#10;Sohbette bu adıma gitmek için tıklayın"><span>Optimizasyon</span><svg class="info-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 4px; color: #94a3b8;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg></div>
-                  <button class="btn-fix-issue" data-step="5" id="btn-fix-5" style="position: absolute; top: 100%; left: 50%; transform: translateX(-50%); margin-top: 6px; display: none; background: transparent; color: #2563eb; border: none; padding: 2px; box-shadow: none; font-size: 16px; cursor: pointer; z-index: 10;" title="5. Adımı Çöz">🔧</button>
-                </div>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" color="var(--border)"><path d="M9 18l6-6-6-6"/></svg>
-                <div class="copilot-step" data-step="6" id="cp-step-6">
-                  <div class="copilot-step-circle"><span class="num">6</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
-                  <div class="step-label-wrapper has-tooltip" data-tooltip="Yapay zekanın sitenizi sadece kelime kelime değil, anlamsal bir bütün (Semantik ve Şema) olarak nasıl algıladığı özetlenir.&#10;&#10;Sohbette bu adıma gitmek için tıklayın"><span>Entegrasyon</span><svg class="info-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 4px; color: #94a3b8;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg></div>
-                  <button class="btn-fix-issue" data-step="6" id="btn-fix-6" style="position: absolute; top: 100%; left: 50%; transform: translateX(-50%); margin-top: 6px; display: none; background: transparent; color: #2563eb; border: none; padding: 2px; box-shadow: none; font-size: 16px; cursor: pointer; z-index: 10;" title="6. Adımı Çöz">🔧</button>
-                </div>
-              </div>
-              <button class="btn btn--danger btn--sm" id="btn-open-battle-mode" style="margin-left:auto; display:inline-flex; align-items:center; background:#dc2626; color:white; border:none; box-shadow:0 2px 8px rgba(220,38,38,0.4); border-radius:20px;">
-                 Rakip Karşılaştırma
-              </button>
-              <button class="btn btn--secondary btn--sm" id="btn-download-pdf" title="Önce tüm analiz ve çözümleri bitirin" style="margin-left:4px; display:inline-flex; align-items:center; background:#ef4444; color:white; border:none; opacity:0.5; cursor:not-allowed;">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                Rapor İndir
-              </button>
-              <button class="btn btn--primary btn--sm" id="btn-send-to-todos" title="Önce tüm analiz ve çözümleri bitirin" style="margin-left:4px; display:inline-flex; align-items:center; opacity:0.5; cursor:not-allowed;">
-                📋 Gönder
-              </button>
-              <button class="btn btn--primary btn--sm" id="copilot-manual-save-btn" title="Sohbeti Kaydet" style="margin-left:4px; display:inline-flex; align-items:center;">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
-                Kaydet
-              </button>
-              <button class="btn btn--ghost" id="copilot-reset-btn" title="Baştan Başla" style="margin-left:4px; padding: 0.5rem;">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
-              </button>
-            </div>
-            
-            
-
-            <div class="copilot-chat" id="copilot-chat" style="height: 40vh; min-height: 300px; max-height: 500px; overflow-y: auto;">
-              <div id="copilot-chat-messages-container" style="display: flex; flex-direction: column; gap: 16px;"><div class="empty-state" id="copilot-empty-state"><svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg><p>Burada henüz bir analiz yok. Hemen yukarıya bir URL yapıştırarak sitenizin Google SGE (Yapay Zeka Aramaları) uyumluluğunu test etmeye başlayın!</p></div></div>
-            </div>
-            
-            <div class="copilot-actions" id="copilot-actions">
-            </div>
-
-            <div class="quick-actions" id="copilot-quick-actions" style="display:none;"><button class="quick-action-btn" onclick="document.getElementById('copilot-text-input').value=this.textContent; document.getElementById('copilot-send-btn').click();">Bana içerik eksiklerimi söyle</button><button class="quick-action-btn" onclick="document.getElementById('copilot-text-input').value=this.textContent; document.getElementById('copilot-send-btn').click();">Rakiplerimden neden gerideyim?</button><button class="quick-action-btn" onclick="document.getElementById('copilot-text-input').value=this.textContent; document.getElementById('copilot-send-btn').click();">Bu sayfa için SSS (FAQ) hazırla</button></div><div class="copilot-input-area" id="copilot-input-area" style="padding: 16px; border-top: 1px solid var(--border); display: flex; gap: 8px; background: #fff;">
-              <input type="text" id="copilot-text-input" class="input" style="flex:1; margin-bottom:0;" placeholder="Hedef URL (Örn: https://adresgezgini.com)">
-              <button class="btn btn--primary" id="copilot-send-btn">Gönder</button>
-            </div>
-          </div>
-        </div>
-        <div class="card mt-20" id="copilot-history-card">
-          <div class="card__head">
-            <div class="card__title">Geçmiş Sohbetler</div>
-            <button class="btn btn--ghost btn--sm" id="btn-clear-history">Temizle</button>
-          </div>
-          <div class="card__hint">Önceki URL analizleriniz burada listelenir. Tıklayarak sohbeti geri yükleyebilirsiniz.</div>
-          <div id="copilot-history-list" class="mt-16" style="display:flex; flex-direction:column; gap:8px;">
-            <p class="empty-note">Henüz geçmiş sohbet yok.</p>
-          </div>
-        </div>
-        </section>
-
-        <!-- YENİ 4. SEKME: YAPILACAKLAR / EKSİKLİKLER -->
+<?php include __DIR__ . '/ai_seo/views/tab_ai_seo.php'; ?>
+<!-- YENİ 4. SEKME: YAPILACAKLAR / EKSİKLİKLER -->
         <section class="tab-panel" id="tab-4">
           <div class="card" style="margin-bottom: 20px;">
             <div class="card__head">
-              <div class="card__title">Yapılacaklar & Eksiklikler</div>
-              <button class="btn btn--ghost btn--sm" id="btn-clear-todos">Listeyi Temizle</button>
+              <div class="card__title has-tooltip" style="display:inline-flex; align-items:center;" data-tooltip="AI tarafından tespit edilen tüm eksiklikleri tek bir listede takip edin.">Yapılacaklar & Eksiklikler</div>
+              <button class="btn btn--ghost btn--sm has-tooltip" data-tooltip="Yapılacaklar listesini kalıcı olarak siler." id="btn-clear-todos">Listeyi Temizle</button>
             </div>
             <div class="card__hint">AI SEO Analizi (3. Sekme) sırasında sistemin tespit ettiği "Metin Bazlı SEO Gereksinimleri" ve "Teknik SEO Gereksinimleri" burada toplanır. Bir maddeye tıklayarak analiz edildiği noktaya (3. Sekmeye) geri dönebilirsiniz.</div>
             
@@ -722,6 +632,7 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
     </div>
     <div style="display:flex; gap:12px; margin-bottom:16px;">
       <input type="url" id="battle-target-url" class="input" placeholder="Sizin URL'niz (Örn: https://adresgezgini.com/)" style="flex:1; border:2px solid #e2e8f0; padding:12px; border-radius:8px;">
+      <div style="background: #dc2626; color: white; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 14px; box-shadow: 0 4px 10px rgba(220,38,38,0.3); flex-shrink: 0; margin-top: 2px;">VS</div>
       <input type="url" id="battle-comp-url" class="input" placeholder="Rakip URL (Örn: https://reklamvermek.com/)" style="flex:1; border:2px solid #e2e8f0; padding:12px; border-radius:8px;">
       <button id="battle-start-btn" class="btn btn--primary" style="background:#dc2626; color:white; border:none; padding:0 24px; font-weight:bold; border-radius:8px; font-size:15px;">Savaşı Başlat</button>
     </div>
@@ -735,12 +646,12 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-<script src="js/technical-seo.js?v=<?= time() ?>.0"></script>
+<script src="js/technical-seo.js?v=<?php echo time(); ?>.0"></script>
 
-<script src="js/app.js?v=<?= time() ?>"></script>
+<script src="js/app.js?v=<?php echo time(); ?>"></script>
 <script src="js/welcome.js"></script>
 <!-- Text SEO Scripts -->
-<script src="js/text-seo-pdf.js"></script>
-<script src="js/text-seo.js"></script>
+<script src="src/TextSeo/js/text-seo-pdf.js"></script>
+<script src="src/TextSeo/js/text-seo.js"></script>
 </body>
 </html>

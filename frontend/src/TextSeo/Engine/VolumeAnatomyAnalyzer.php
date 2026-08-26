@@ -32,7 +32,7 @@ class VolumeAnatomyAnalyzer {
             preg_match_all('/\p{L}+[\p{L}\p{Mn}\p{Pd}\'\’\p{N}]*/u', $sentence, $sWords);
             $count = count($sWords[0] ?? []);
             $sentenceLengths[] = $count;
-            if ($count > 25) {
+            if ($count > 30) { // Increased from 25 to 30 for Turkish
                 $sentencesOver25Words++;
                 $sentencesOver25WordsIndexes[] = $index;
             }
@@ -57,7 +57,7 @@ class VolumeAnatomyAnalyzer {
         $monolithicParagraphsIndexes = [];
         foreach ($paragraphs as $index => $p) {
             $totalParagraphWords += $p['word_count'];
-            if ($p['word_count'] > 100 || $p['sentence_count'] > 6) {
+            if ($p['word_count'] > 120 || $p['sentence_count'] > 8) { // Increased from 100/6 to 120/8
                 $monolithicParagraphsCount++;
                 $monolithicParagraphsIndexes[] = $index;
             }
@@ -87,7 +87,7 @@ class VolumeAnatomyAnalyzer {
                 "burstiness_score" => round($burstinessScore, 2),
                 "sentences_over_25_words" => $sentencesOver25Words,
                 "sentences_over_25_words_indexes" => $sentencesOver25WordsIndexes,
-                "monotonous_flow_detected" => $stdDev < 6.5
+                "monotonous_flow_detected" => $stdDev < 4.5
             ],
             "paragraph_metrics" => [
                 "avg_words_per_paragraph" => round($avgWordsPerParagraph, 2),

@@ -159,6 +159,13 @@
 .chat-msg { word-wrap: break-word; word-break: break-word; overflow-wrap: break-word; } .chat-msg pre { white-space: pre-wrap; overflow-x: auto; max-width: 100%; }
 
 
+/* Geçmiş Sohbetler kartındaki boş durum yazısının üst/alt boşluğunu daralt
+   (global .empty-note diğer yerlerde 18px padding ile kalsın diye scoped) */
+#copilot-history-list.empty-note,
+#copilot-history-list .empty-note {
+  padding: 4px 0;
+}
+
 /* 1. Tooltip & Interactive Steps */
 .step-label-wrapper {
   display: flex;
@@ -217,7 +224,7 @@
 }
 
 .info-icon {
-  opacity: 0.6;
+  opacity: 1; color: #64748b;
   transition: opacity 0.2s, color 0.2s;
 }
 .step-label-wrapper:hover .info-icon {
@@ -308,4 +315,79 @@ details.seo-details .details-content {
 .quick-action-btn:hover {
   background: #eff6ff;
   border-color: #bfdbfe;
+}
+.has-tooltip { position: relative; cursor: pointer; }
+
+
+.quick-action-btn { display: inline-flex; align-items: center; justify-content: center; white-space: nowrap; flex-shrink: 0; }
+.logout-btn:hover { background-color: #fee2e2; color: #dc2626; }
+
+
+.copilot-step.has-tooltip { position: relative; }
+
+
+/* Client Presentation Mode */
+body.client-presentation-mode .sidebar { display: none !important; }
+body.client-presentation-mode .main-content { margin-left: 0 !important; max-width: 100% !important; }
+body.client-presentation-mode .copilot-input-area,
+body.client-presentation-mode .quick-actions,
+body.client-presentation-mode #btn-open-battle-mode,
+body.client-presentation-mode #btn-send-to-todos,
+body.client-presentation-mode #copilot-manual-save-btn,
+body.client-presentation-mode #copilot-reset-btn,
+body.client-presentation-mode .card__hint,
+body.client-presentation-mode .copilot-step-nav { display: none !important; }
+body.client-presentation-mode .copilot-container { height: auto; min-height: 100vh; }
+body.client-presentation-mode .copilot-messages { font-size: 1.1em; }
+
+
+.switch { position: relative; display: inline-block; width: 34px; height: 20px; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .4s; border-radius: 20px; }
+.slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 2px; bottom: 2px; background-color: white; transition: .4s; border-radius: 50%; }
+input:checked + .slider { background-color: #3b82f6; }
+input:checked + .slider:before { transform: translateX(14px); }
+
+.quick-actions { overflow-x: auto; padding-top: 45px; margin-top: -45px; }
+
+
+/* Info Tooltip */
+.info-tooltip {
+  position: relative;
+}
+.info-tooltip .tooltip-text {
+  visibility: hidden;
+  opacity: 0;
+  position: absolute;
+  bottom: 120%;
+  left: 50%;
+  transform: translateX(-50%) translateY(10px);
+  background: #1e293b;
+  color: #f8fafc;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.5;
+  white-space: normal;
+  width: 250px;
+  text-align: center;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  z-index: 100;
+  transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease;
+  pointer-events: none;
+}
+.info-tooltip .tooltip-text::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -6px;
+  border-width: 6px;
+  border-style: solid;
+  border-color: #1e293b transparent transparent transparent;
+}
+.info-tooltip:hover .tooltip-text {
+  visibility: visible;
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
 }

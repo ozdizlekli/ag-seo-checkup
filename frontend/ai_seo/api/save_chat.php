@@ -1,18 +1,29 @@
 <?php
+/**
+ * save_chat.php — Chat geçmişi kayıt/okuma API'si
+ * 
+ * GÜVENLİK: Oturum açmış kullanıcılar ile sınırlı.
+ * "anonymous" fallback kaldırıldı — giriş zorunlu.
+ */
+
 error_reporting(0);
 ini_set("display_errors", 0);
-session_start();
+
+require_once __DIR__ . '/../../auth.php';
+require_login();
+
 header("Content-Type: application/json");
 header("Cache-Control: no-cache, must-revalidate");
-require_once __DIR__ . '/db.php';
+require_once __DIR__ . '/../../db.php';
 
-$username = $_SESSION["username"] ?? "anonymous";
+// Kimlik doğrulandı, kullanıcı adı session'dan alınır
+$username = $_SESSION['username'];
 $data = json_decode(file_get_contents("php://input"), true);
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     if ($data && isset($data["url"])) {
         $chatId = (string)($data["chatId"] ?? time());
-        
+
         $url = $data["url"];
         $type = $data["type"] ?? '';
         $messages = json_encode($data["messages"] ?? []);
@@ -33,9 +44,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             ]);
             echo json_encode(["success" => true, "chatId" => $chatId]);
         } else {
+            http_response_code(503);
             echo json_encode(["error" => "Veritabanı bağlantısı yok"]);
         }
     } else {
+        http_response_code(400);
         echo json_encode(["error" => "Geçersiz veri"]);
     }
 } elseif ($_SERVER["REQUEST_METHOD"] === "GET") {
@@ -43,7 +56,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $stmt = $pdo->prepare("SELECT * FROM chat_history WHERE username = ? ORDER BY chat_id DESC");
         $stmt->execute([$username]);
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        
+
         $history = [];
         foreach ($rows as $row) {
             $history[] = [
@@ -72,7 +85,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         }
         echo json_encode(["success" => true]);
     } else {
+        http_response_code(503);
         echo json_encode(["error" => "Veritabanı bağlantısı yok"]);
     }
+} else {
+    http_response_code(405);
+    echo json_encode(["error" => "Method not allowed"]);
 }
-?>

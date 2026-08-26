@@ -11,21 +11,17 @@ $error = "";
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $username = trim($_POST['username'] ?? '');
     $password = $_POST['password'] ?? '';
-    
-    // Default admin override for quick test
-    if ($username === 'admin' && $password === 'admin123') {
-        $_SESSION['loggedin'] = true;
-        $_SESSION['username'] = 'admin';
-        header("Location: index.php");
-        exit;
-    }
-    
+
+    // ❌ KALDIRILDI: Hard-coded admin/admin123 backdoor
+    // Tüm kimlik doğrulama DB veya JSON fallback üzerinden yapılır.
+
     if ($pdo) {
         try {
             $stmt = $pdo->prepare("SELECT id, password FROM users WHERE username = ?");
             $stmt->execute([$username]);
             $user = $stmt->fetch(PDO::FETCH_ASSOC);
             if ($user && password_verify($password, $user['password'])) {
+                session_regenerate_id(true); // Session fixation koruması
                 $_SESSION['loggedin'] = true;
                 $_SESSION['username'] = $username;
                 header("Location: index.php");
@@ -34,16 +30,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $error = "Geçersiz kullanıcı adı veya şifre.";
             }
         } catch (PDOException $e) {
-            $error = "Veritabanı hatası: " . $e->getMessage();
+            // Hata ayrıntısı kullanıcıya gösterilmez, sadece loglanır
+            error_log("login.php PDO hatası: " . $e->getMessage());
+            $error = "Giriş sırasında bir hata oluştu. Lütfen tekrar deneyin.";
         }
     } else {
-        // No DB connection, use JSON fallback
+        // DB bağlantısı yoksa JSON fallback
         $users = [];
         $users_file = __DIR__ . '/users.json';
         if (file_exists($users_file)) {
-            $users = json_decode(file_get_contents($users_file), true);
+            $users = json_decode(file_get_contents($users_file), true) ?? [];
         }
         if (isset($users[$username]) && password_verify($password, $users[$username])) {
+            session_regenerate_id(true);
             $_SESSION['loggedin'] = true;
             $_SESSION['username'] = $username;
             header("Location: index.php");
@@ -114,15 +113,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             </svg>
             <h1>AG_seo_check_up</h1>
         </div>
-        <?php if($error): ?><div class="error"><?php echo $error; ?></div><?php endif; ?>
+        <?php if($error): ?><div class="error"><?php echo htmlspecialchars($error, ENT_QUOTES, 'UTF-8'); ?></div><?php endif; ?>
         <form method="POST" action="">
             <div class="form-group">
                 <label>Kullanıcı Adı</label>
-                <input type="text" name="username" required>
+                <input type="text" name="username" required autocomplete="username">
             </div>
             <div class="form-group">
                 <label>Şifre</label>
-                <input type="password" name="password" required>
+                <input type="password" name="password" required autocomplete="current-password">
             </div>
             <button type="submit" class="btn-login">Giriş Yap</button>
             <a href="register.php" class="link">Hesabınız yok mu? Yeni kayıt olun.</a>

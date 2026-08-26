@@ -115,7 +115,7 @@ class TextCleaner {
     }
 
     public function countSyllables(string $word): int {
-        preg_match_all('/[aeıioöuüAEIİOÖUÜ]/u', $word, $matches);
+        preg_match_all('/[aeıioöuüâîûAEIİOÖUÜÂÎÛ]/u', $word, $matches);
         $count = count($matches[0] ?? []);
         return $count > 0 ? $count : 1;
     }
