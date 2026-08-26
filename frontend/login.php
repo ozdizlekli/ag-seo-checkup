@@ -15,42 +15,39 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // ❌ KALDIRILDI: Hard-coded admin/admin123 backdoor
     // Tüm kimlik doğrulama DB veya JSON fallback üzerinden yapılır.
 
+    $loggedIn = false;
     if ($pdo) {
         try {
             $stmt = $pdo->prepare("SELECT id, password FROM users WHERE username = ?");
             $stmt->execute([$username]);
             $user = $stmt->fetch(PDO::FETCH_ASSOC);
             if ($user && password_verify($password, $user['password'])) {
-                session_regenerate_id(true); // Session fixation koruması
+                session_regenerate_id(true);
                 $_SESSION['loggedin'] = true;
                 $_SESSION['username'] = $username;
                 header("Location: index.php");
                 exit;
-            } else {
-                $error = "Geçersiz kullanıcı adı veya şifre.";
             }
         } catch (PDOException $e) {
-            // Hata ayrıntısı kullanıcıya gösterilmez, sadece loglanır
-            error_log("login.php PDO hatası: " . $e->getMessage());
-            $error = "Giriş sırasında bir hata oluştu. Lütfen tekrar deneyin.";
+            error_log("login.php PDO hatası (JSON kontrolüne geçiliyor): " . $e->getMessage());
         }
-    } else {
-        // DB bağlantısı yoksa JSON fallback
-        $users = [];
-        $users_file = __DIR__ . '/users.json';
-        if (file_exists($users_file)) {
-            $users = json_decode(file_get_contents($users_file), true) ?? [];
-        }
+    }
+
+    // DB'de bulunamadıysa veya DB hatası varsa JSON fallback kontrol et
+    $users_file = __DIR__ . '/users.json';
+    if (file_exists($users_file)) {
+        $content = @file_get_contents($users_file);
+        $users = $content ? (json_decode($content, true) ?? []) : [];
         if (isset($users[$username]) && password_verify($password, $users[$username])) {
             session_regenerate_id(true);
             $_SESSION['loggedin'] = true;
             $_SESSION['username'] = $username;
             header("Location: index.php");
             exit;
-        } else {
-            $error = "Geçersiz kullanıcı adı veya şifre.";
         }
     }
+
+    $error = "Geçersiz kullanıcı adı veya şifre.";
 }
 ?>
 <!DOCTYPE html>

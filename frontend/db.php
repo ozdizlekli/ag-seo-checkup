@@ -45,6 +45,31 @@ try {
             PDO::ATTR_EMULATE_PREPARES   => false,
         ]
     );
+
+    // Tablolar yoksa otomatik oluştur
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS users (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            username VARCHAR(50) NOT NULL UNIQUE,
+            password VARCHAR(255) NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+        CREATE TABLE IF NOT EXISTS chat_history (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            username VARCHAR(100) NOT NULL,
+            chat_id VARCHAR(50) NOT NULL,
+            url VARCHAR(500),
+            type VARCHAR(100),
+            messages LONGTEXT,
+            completed_steps LONGTEXT,
+            report_data LONGTEXT,
+            fixed_issues LONGTEXT,
+            date_str VARCHAR(50),
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE KEY (username, chat_id)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    ");
 } catch (PDOException $e) {
     // Hata kullanıcıya gösterilmez — sunucu loguna yazılır
     error_log("db.php: Veritabanı bağlantısı kurulamadı — " . $e->getMessage());
