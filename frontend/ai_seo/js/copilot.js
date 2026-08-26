@@ -133,9 +133,10 @@ function renderIssuesUI() {
     if (completedSteps.has(i)) {
       btn.style.display = 'block';
       const isFixed = fixedIssues.has(i);
-      btn.style.background = 'transparent';
-      btn.style.color = isFixed ? '#10b981' : '#2563eb';
-      btn.style.borderColor = 'transparent';
+      // Badge stili: fixed=yeşil, unfixed=mavi — background/border badge konumunu korur
+      btn.style.background = isFixed ? '#10b981' : '#2563eb';
+      btn.style.color = '#fff';
+      btn.style.border = isFixed ? '1px solid #10b981' : '1px solid #2563eb';
       
       btn.innerHTML = isFixed ? '✓' : '🔧';
       btn.title = isFixed ? `${i}. Adım Çözüldü` : `${i}. Adımı Çöz (Manuel)`;
@@ -830,7 +831,9 @@ function renderAiSeoActions() {
     if (btnFix) btnFix.style.display = 'none';
   }
 
-  copilotActions.innerHTML = '';
+  const isCompleted = completedSteps.size >= 6 && fixedIssues.size >= 5;
+
+  if (copilotActions) copilotActions.innerHTML = '';
 
   const topPdfBtn = document.getElementById('btn-download-pdf');
   const topTodosBtn = document.getElementById('btn-send-to-todos');
