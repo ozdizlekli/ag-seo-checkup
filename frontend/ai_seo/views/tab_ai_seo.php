@@ -46,7 +46,7 @@
     </div>
     
     <!-- CHAT INTERFACE (Full width, top) -->
-    <div class="card" id="copilot-card" style="width:100%; border-top: 4px solid var(--accent); padding:0; display:flex; flex-direction:column; height: calc(100vh - 200px); overflow: hidden; border-radius: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.05);">
+    <div class="card" id="copilot-card" style="width:100%; border-top: 4px solid var(--accent); padding:0; display:flex; flex-direction:column; height: calc(100vh - 200px); overflow: hidden; border-radius: 28px; box-shadow: 0 4px 20px rgba(0,0,0,0.05);">
       <div style="padding: 24px 24px 0 24px;">
         <div class="card__title" style="display:inline-flex; align-items:center;">GEO AI Bot (URL Tabanlı)</div>
         <div class="card__hint">Web sitenizin SEO ve Yapay Zeka (SGE) görünürlüğünü sohbet asistanı ile adım adım analiz edin.</div>
@@ -56,7 +56,7 @@
         <div class="copilot-header" style="position:relative; z-index:2; display: flex; flex-direction: column; gap: 16px; border-bottom: 1px solid #e2e8f0; padding-bottom: 16px; background: #fff; flex-shrink: 0;">
           
           <!-- Progress Bar (NO overflow-x) -->
-          <div style="display:flex; justify-content:center; width:100%; border-top: 1px solid var(--border); padding-top:16px; margin-top:8px;">
+          <div style="display:flex; justify-content:center; width:calc(100% - 40px); margin: 8px auto 0 auto; border-top: 1px solid var(--border); padding-top:16px;">
             <div class="copilot-progress" id="copilot-progress" style="display:flex; justify-content:center; align-items:center; gap:8px; width:100%; flex-wrap:wrap; padding:4px;">
               <div class="copilot-step active has-tooltip" data-step="1" id="cp-step-1" data-tooltip="İş Bağlamı (Bağlamsal Alaka) analizi.">
                 <div class="copilot-step-circle"><span class="num">1</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>

@@ -1,3 +1,22 @@
+# Ortam ve gizli dosyalar
 .env
+
+# Hassas veri dosyaları — repoya commit edilmemeli
+chat_history.json
+users.json
+
+# Debug/test dosyaları — üretimde bulunmamalı
+test_gemini.php
+test_google.php
+test_session.php
+
+# macOS
 .DS_Store
+
+# Log dosyaları
 *.log
+google_error.txt
+
+# IDE
+.idea/
+.vscode/

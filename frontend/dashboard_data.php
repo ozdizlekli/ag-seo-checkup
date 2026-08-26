@@ -1,7 +1,24 @@
 <?php
-require_once __DIR__ . '/db.php';
+/**
+ * dashboard_data.php
+ * 
+ * Dashboard için özet verisi hesaplar.
+ * Bu dosya index.php tarafından require ile dahil edilmeli (include edildiğinde session zaten açık olur).
+ * Doğrudan HTTP erişimi engellenmiştir.
+ */
 
-$username = $_SESSION["username"] ?? "anonymous";
+// Doğrudan HTTP erişimini engelle — sadece index.php içinden include ile çalışmalı
+if (!defined('AGSEO_INTERNAL')) {
+    http_response_code(403);
+    exit('Forbidden');
+}
+
+// Session ve giriş kontrolü
+if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
+    return; // include bağlamında sessizce çık
+}
+
+$username = $_SESSION['username'];
 $dashboardData = [
     'totalAnalyses' => 0,
     'battleCount' => 0,
@@ -28,7 +45,7 @@ if ($pdo) {
             $messages = $row['messages'] ?? '';
             $cSteps = json_decode($row['completed_steps'], true) ?? [];
             $fIssues = json_decode($row['fixed_issues'], true) ?? [];
-            
+
             if (stripos($messages, 'rakip') !== false || stripos($messages, 'battle') !== false) {
                 $dashboardData['battleCount']++;
             }
@@ -67,6 +84,7 @@ if ($pdo) {
             $dashboardData['avgEEAT'] = round($totalEeat / $eeatCount);
         }
 
-    } catch(PDOException $e) {}
+    } catch (PDOException $e) {
+        error_log("dashboard_data.php DB hatası: " . $e->getMessage());
+    }
 }
-?>

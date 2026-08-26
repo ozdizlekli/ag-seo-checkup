@@ -13,13 +13,16 @@ $success = "";
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $username = trim($_POST['username'] ?? '');
     $password = $_POST['password'] ?? '';
-    
+
     if (empty($username) || empty($password)) {
         $error = "Lütfen kullanıcı adı ve şifre girin.";
+    } elseif (strlen($username) < 3 || strlen($username) > 50) {
+        $error = "Kullanıcı adı 3-50 karakter arasında olmalıdır.";
+    } elseif (strlen($password) < 8) {
+        $error = "Şifre en az 8 karakter olmalıdır.";
     } else {
         if ($pdo) {
             try {
-                // Check if user exists
                 $stmt = $pdo->prepare("SELECT id FROM users WHERE username = ?");
                 $stmt->execute([$username]);
                 if ($stmt->rowCount() > 0) {
@@ -34,21 +37,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     }
                 }
             } catch (PDOException $e) {
-                // Fallback for demo if table doesn't exist
-                $error = "Veritabanı hatası: Tablolar oluşturulmamış olabilir. (" . $e->getMessage() . ")";
+                // Hata ayrıntısı kullanıcıya gösterilmez, sadece loglanır
+                error_log("register.php PDO hatası: " . $e->getMessage());
+                $error = "Kayıt sırasında bir hata oluştu. Lütfen tekrar deneyin.";
             }
         } else {
-            // No DB connection, use JSON fallback for demo
+            // DB bağlantısı yoksa JSON fallback
             $users = [];
             if (file_exists('users.json')) {
-                $users = json_decode(file_get_contents('users.json'), true);
+                $users = json_decode(file_get_contents('users.json'), true) ?? [];
             }
             if (isset($users[$username])) {
-                $error = "Bu kullanıcı adı zaten alınmış. (Demo Modu)";
+                $error = "Bu kullanıcı adı zaten alınmış.";
             } else {
                 $users[$username] = password_hash($password, PASSWORD_DEFAULT);
                 file_put_contents('users.json', json_encode($users));
-                $success = "Kayıt başarılı! Şimdi giriş yapabilirsiniz. (Demo Modu)";
+                $success = "Kayıt başarılı! Şimdi giriş yapabilirsiniz.";
             }
         }
     }
@@ -115,16 +119,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             </svg>
             <h1>AG_seo_check_up</h1>
         </div>
-        <?php if($error): ?><div class="error"><?php echo $error; ?></div><?php endif; ?>
-        <?php if($success): ?><div class="success"><?php echo $success; ?></div><?php endif; ?>
+        <?php if($error): ?><div class="error"><?php echo htmlspecialchars($error, ENT_QUOTES, 'UTF-8'); ?></div><?php endif; ?>
+        <?php if($success): ?><div class="success"><?php echo htmlspecialchars($success, ENT_QUOTES, 'UTF-8'); ?></div><?php endif; ?>
         <form method="POST" action="">
             <div class="form-group">
                 <label>Kullanıcı Adı Seçin</label>
-                <input type="text" name="username" required>
+                <input type="text" name="username" required autocomplete="username" minlength="3" maxlength="50">
             </div>
             <div class="form-group">
-                <label>Şifre Belirleyin</label>
-                <input type="password" name="password" required>
+                <label>Şifre Belirleyin (en az 8 karakter)</label>
+                <input type="password" name="password" required autocomplete="new-password" minlength="8">
             </div>
             <button type="submit" class="btn-login">Kayıt Ol</button>
             <a href="login.php" class="link">Zaten hesabınız var mı? Giriş yapın.</a>
