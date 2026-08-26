@@ -28,6 +28,8 @@ document.addEventListener('DOMContentLoaded', () => {
   let currentChatId = Date.now().toString();
 
   function addMessage(text, sender, isHtml = false, doPush = true) {
+    const emptyState = document.getElementById("copilot-empty-state");
+    if(emptyState) emptyState.style.display = "none";
     const div = document.createElement('div');
     div.className = `chat-msg ${sender}`;
     const msgId = 'msg-' + document.querySelectorAll('.chat-msg').length;
@@ -239,13 +241,14 @@ document.addEventListener('DOMContentLoaded', () => {
       if (msgContainer) msgContainer.innerHTML = '';
       chatMessages.forEach(msg => { addMessage(msg.text, msg.sender, msg.isHtml, false); });
       
-      copilotInputArea.style.display = 'none';
+      copilotInputArea.style.display = "none"; const cqa = document.getElementById("copilot-quick-actions"); if(cqa) cqa.style.display = "none";
       renderAiSeoActions();
       
       if (copilotSaveBtn) {
         copilotSaveBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg> Kaydet`;
       }
-      if (typeof updateActiveHistoryItem === 'function') updateActiveHistoryItem();
+      renderAiSeoActions();
+    if (typeof updateActiveHistoryItem === 'function') updateActiveHistoryItem();
       return;
     }
 
@@ -274,7 +277,7 @@ document.addEventListener('DOMContentLoaded', () => {
     addMessage(`👋 Merhaba! Ben <strong>GEO SEO Asistanı</strong>.<br><br>Web siteni tarayıp yapay zeka (LLM) arama motorları için optimize edelim. Lütfen analiz etmemi istediğin sayfanın <strong>URL'sini</strong> aşağıya yaz.`, 'ai', true, false);
     
     copilotActions.innerHTML = '';
-    copilotInputArea.style.display = 'flex';
+    copilotInputArea.style.display = "flex"; const cqa = document.getElementById("copilot-quick-actions"); if(cqa) cqa.style.display = "flex";
     copilotTextInput.value = '';
     copilotTextInput.placeholder = 'Örn: https://www.site.com/hizmet';
     copilotTextInput.focus();
@@ -282,6 +285,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (copilotSaveBtn) {
       copilotSaveBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg> Kaydet`;
     }
+    renderAiSeoActions();
     if (typeof updateActiveHistoryItem === 'function') updateActiveHistoryItem();
   }
 
@@ -296,7 +300,7 @@ document.addEventListener('DOMContentLoaded', () => {
       
       targetUrl = val;
       currentState = 'WAITING_FOR_TYPE';
-      copilotInputArea.style.display = 'none';
+      copilotInputArea.style.display = "none"; const cqa = document.getElementById("copilot-quick-actions"); if(cqa) cqa.style.display = "none";
       addMessage("Harika! Bu sayfa hangi kategoride yer alıyor? (Hizmet mi, yoksa ürün sattığınız bir E-Ticaret sayfası mı?)", 'ai');
       
       copilotActions.innerHTML = `
@@ -474,7 +478,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // PDF listener moved to topBtn
 
     currentState = 'CHAT_MODE';
-    copilotInputArea.style.display = 'flex';
+    copilotInputArea.style.display = "flex"; const cqa = document.getElementById("copilot-quick-actions"); if(cqa) cqa.style.display = "flex";
     copilotTextInput.placeholder = "Başka sormak istediğiniz bir şey var mı?";
   }
 
@@ -795,7 +799,8 @@ Son olarak, önceki 4 adımda çıkardığın tüm analizleri (İş bağlamı, k
         div.appendChild(deleteBtn);
         historyList.appendChild(div);
       });
-      if (typeof updateActiveHistoryItem === 'function') updateActiveHistoryItem();
+      renderAiSeoActions();
+    if (typeof updateActiveHistoryItem === 'function') updateActiveHistoryItem();
     } catch(e) {}
   }
 
