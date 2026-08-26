@@ -229,37 +229,14 @@ async function fixAiSeoIssue(step) {
     }
 
           let aiText = result.candidates[0].content.parts[0].text;
-    
-    // JSON Extraction
-    let cleanText = aiText;
-    let chartData = null;
-    let rawJsonStr = '';
-    
-    const jsonMatch = aiText.match(/```(?:json)?\s*(\{[\s\S]*?\})\s*```/i);
-    if (jsonMatch) {
-        cleanText = aiText.replace(jsonMatch[0], '').trim();
-        rawJsonStr = jsonMatch[0];
-        try {
-            chartData = JSON.parse(jsonMatch[1]);
-        } catch(e) { console.warn("JSON Parse Error:", e); }
-    } else {
-        const fallbackMatch = aiText.match(/\{[\s\S]*"trust_score"[\s\S]*\}$/);
-        if (fallbackMatch) {
-            cleanText = aiText.replace(fallbackMatch[0], '').trim();
-            rawJsonStr = fallbackMatch[0];
-            try { chartData = JSON.parse(fallbackMatch[0]); } catch(e){}
-        }
-    }
-    
-          if (chartData) {
-        initOrUpdateCharts(chartData);
-        if (chartData.overview_html) {
-            cleanText = chartData.overview_html + "\n\n" + cleanText;
-        }
-    }
+          const { cleanText, parsedData, rawJsonStr } = extractAndCleanJson(aiText);
+          
+          if (parsedData) {
+              initOrUpdateCharts(parsedData);
+          }
 
-    let htmlText = (typeof marked !== 'undefined' ? marked.parse(cleanText) : cleanText) + (rawJsonStr ? '<div class="ai-raw-json" style="display:none;">' + rawJsonStr + '</div>' : '');
-    addMessage(htmlText, 'ai', true);
+          let htmlText = (typeof marked !== 'undefined' ? marked.parse(cleanText) : cleanText) + (rawJsonStr ? '<div class="ai-raw-json" style="display:none;">' + rawJsonStr + '</div>' : '');
+          addMessage(htmlText, 'ai', true);
 
     fixedIssues.add(step);
     renderIssuesUI();
@@ -278,117 +255,217 @@ async function fixAiSeoIssue(step) {
 }
 
 
+window.liveActionPlanItems = window.liveActionPlanItems || [];
+
+function extractAndCleanJson(aiText) {
+  let cleanText = aiText || '';
+  let parsedData = null;
+  let rawJsonStr = '';
+
+  if (!cleanText) return { cleanText: '', parsedData: null, rawJsonStr: '' };
+
+  // 1. ```json ... ``` veya ``` ... ``` kontrolü
+  const codeBlockMatch = cleanText.match(/```(?:json)?\s*(\{[\s\S]*?\})\s*```/i);
+  if (codeBlockMatch) {
+    cleanText = cleanText.replace(codeBlockMatch[0], '').trim();
+    rawJsonStr = codeBlockMatch[0];
+    try { parsedData = JSON.parse(codeBlockMatch[1]); } catch(e){}
+  }
+
+  // 2. Ham JSON objesi { ... } kontrolü
+  if (!parsedData) {
+    const rawJsonMatch = cleanText.match(/\{[\s\S]*\}/);
+    if (rawJsonMatch) {
+      try {
+        parsedData = JSON.parse(rawJsonMatch[0]);
+        cleanText = cleanText.replace(rawJsonMatch[0], '').trim();
+        rawJsonStr = rawJsonMatch[0];
+      } catch(e){}
+    }
+  }
+
+  // 3. Metin boş kaldıysa fakat JSON varsa okunabilir metin üret
+  if (!cleanText && parsedData) {
+    if (parsedData.overview_html) {
+      cleanText = parsedData.overview_html;
+    } else if (parsedData.rakip_ustunluk_nedenleri) {
+      cleanText = `### 🎯 Rakip Üstünlük Nedenleri\n\n${parsedData.rakip_ustunluk_nedenleri}`;
+    }
+  }
+
+  return { cleanText, parsedData, rawJsonStr };
+}
+
 // --- CHART.JS LOGIC START ---
 let overallHealthChart = null;
 let eeatChart = null;
 let battleChart = null;
 
 function initOrUpdateCharts(data) {
-  if (typeof Chart === 'undefined') return;
+  if (!data || typeof Chart === 'undefined') return;
 
-  let chartsData = data.charts_data || data; // Fallback if AI skips wrapper
+  let chartsData = data.charts_data || data; 
   let trustScore = chartsData.trust_score || chartsData.genel_skor || 0;
   
-  // 1. Genel Sağlık (Doughnut)
-  const ctxOverall = document.getElementById('chart-overall-health');
-  if (ctxOverall) {
-      const placeholder = document.getElementById('chart-overall-health-placeholder');
-      if (placeholder) placeholder.style.display = 'none';
-      if (overallHealthChart) overallHealthChart.destroy();
-      overallHealthChart = new Chart(ctxOverall, {
-          type: 'doughnut',
-          data: {
-              labels: ['Güven Skoru', 'Eksik'],
-              datasets: [{
-                  data: [trustScore, 100 - trustScore],
-                  backgroundColor: ['#475569', '#e2e8f0'],
-                  borderWidth: 0
+  // 1. Genel Sağlık (Doughnut Chart)
+  if (trustScore > 0) {
+      const ctxOverall = document.getElementById('chart-overall-health');
+      if (ctxOverall) {
+          const placeholder = document.getElementById('chart-overall-health-placeholder');
+          if (placeholder) placeholder.style.display = 'none';
+          if (overallHealthChart) overallHealthChart.destroy();
+          overallHealthChart = new Chart(ctxOverall, {
+              type: 'doughnut',
+              data: {
+                  labels: ['Güven Skoru', 'Eksik'],
+                  datasets: [{
+                      data: [trustScore, 100 - trustScore],
+                      backgroundColor: ['#2563eb', '#e2e8f0'],
+                      borderWidth: 0
+                  }]
+              },
+              options: { cutout: '75%' },
+              plugins: [{
+                  id: 'textCenter',
+                  beforeDraw: function(chart) {
+                      var width = chart.width, height = chart.height, ctx = chart.ctx;
+                      ctx.restore();
+                      var fontSize = (height / 100).toFixed(2);
+                      ctx.font = 'bold ' + (fontSize * 1.4) + 'em sans-serif';
+                      ctx.textBaseline = 'middle';
+                      ctx.fillStyle = '#0f172a';
+                      var text = trustScore + '%',
+                          textX = Math.round((width - ctx.measureText(text).width) / 2),
+                          textY = height / 2;
+                      ctx.fillText(text, textX, textY);
+                      ctx.save();
+                  }
               }]
-          },
-          options: { cutout: '80%' }, plugins: [{ id: 'textCenter', beforeDraw: function(chart) { var width = chart.width, height = chart.height, ctx = chart.ctx; ctx.restore(); var fontSize = (height / 100).toFixed(2); ctx.font = 'bold ' + (fontSize * 1.5) + 'em sans-serif'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#0f172a'; var text = trustScore + '%', textX = Math.round((width - ctx.measureText(text).width) / 2), textY = height / 2; ctx.fillText(text, textX, textY); ctx.save(); } }]
-      });
-      
-      // Update the centered text inside doughnut (I had a plugin for this, but let's just use absolute div if they prefer)
-      let textDiv = document.getElementById('chart-overall-health-text');
-      if (textDiv) textDiv.innerHTML = trustScore + '%';
+          });
+      }
   }
 
-  // 2. E-E-A-T Radar
-  const ctxEeat = document.getElementById('chart-eeat');
-  if (ctxEeat && chartsData.eeat_radar) {
-      const eeatPlaceholder = document.getElementById('chart-eeat-placeholder');
-      if (eeatPlaceholder) eeatPlaceholder.style.display = 'none';
-      if (eeatChart) eeatChart.destroy();
-      
-      let eeat = chartsData.eeat_radar;
-      // fallback to old turkish keys just in case AI messes up
-      let exp = eeat.experience || eeat.deneyim || 0;
-      let exp_t = eeat.expertise || eeat.uzmanlik || 0;
-      let auth = eeat.authoritativeness || eeat.otorite || 0;
-      let trust = eeat.trustworthiness || eeat.guvenilirlik || 0;
+  // 2. E-E-A-T Radar Chart
+  if (chartsData.eeat_radar) {
+      const ctxEeat = document.getElementById('chart-eeat');
+      if (ctxEeat) {
+          const eeatPlaceholder = document.getElementById('chart-eeat-placeholder');
+          if (eeatPlaceholder) eeatPlaceholder.style.display = 'none';
+          if (eeatChart) eeatChart.destroy();
+          
+          let eeat = chartsData.eeat_radar;
+          let exp = eeat.experience || eeat.deneyim || 60;
+          let exp_t = eeat.expertise || eeat.uzmanlik || 65;
+          let auth = eeat.authoritativeness || eeat.otorite || 70;
+          let trust = eeat.trustworthiness || eeat.guvenilirlik || 75;
 
-      eeatChart = new Chart(ctxEeat, {
-          type: 'radar',
-          data: {
-              labels: ['Deneyim', 'Uzmanlık', 'Otorite', 'Güvenilirlik'],
-              datasets: [{
-                  label: 'E-E-A-T Profili',
-                  data: [exp, exp_t, auth, trust],
-                  backgroundColor: 'rgba(59, 130, 235, 0.2)',
-                  borderColor: '#2563eb',
-                  pointBackgroundColor: '#2563eb'
-              }]
-          },
-          options: { scales: { r: { min: 0, max: 100 } } }
-      });
+          eeatChart = new Chart(ctxEeat, {
+              type: 'radar',
+              data: {
+                  labels: ['Deneyim', 'Uzmanlık', 'Otorite', 'Güvenilirlik'],
+                  datasets: [{
+                      label: 'E-E-A-T Profili',
+                      data: [exp, exp_t, auth, trust],
+                      backgroundColor: 'rgba(37, 99, 235, 0.2)',
+                      borderColor: '#2563eb',
+                      pointBackgroundColor: '#2563eb'
+                  }]
+              },
+              options: { scales: { r: { min: 0, max: 100 } } }
+          });
+      }
   }
 
-  // 3. Aksiyon Planı Tablosu
+  // 3. Rakip Kıyaslama Bar Chart (Battle Mode / Savaş Modu)
+  let siteA = chartsData.site_a_skorlari || (chartsData.competitor_comparison ? chartsData.competitor_comparison.main_scores : null);
+  let siteB = chartsData.site_b_skorlari || (chartsData.competitor_comparison ? chartsData.competitor_comparison.comp_scores : null);
+  if (siteA || siteB) {
+      const bContainer = document.getElementById('battle-chart-container');
+      if (bContainer) bContainer.style.display = 'block';
+      const ctxB = document.getElementById('chart-battle');
+      if (ctxB) {
+          const battlePlaceholder = document.getElementById('chart-battle-placeholder');
+          if (battlePlaceholder) battlePlaceholder.style.display = 'none';
+          if (battleChart) battleChart.destroy();
+          
+          let sa = siteA || [60, 65, 50];
+          let sb = siteB || [85, 90, 88];
+
+          battleChart = new Chart(ctxB, {
+              type: 'bar',
+              data: {
+                  labels: ['İçerik Derinliği', 'SEO Kalitesi', 'E-E-A-T'],
+                  datasets: [
+                      { label: 'Senin Siten', data: Array.isArray(sa) ? sa : [sa.icerik || 60, sa.seo || 65, sa.eeat || 50], backgroundColor: '#2563eb' },
+                      { label: 'Rakip', data: Array.isArray(sb) ? sb : [sb.icerik || 85, sb.seo || 90, sb.eeat || 88], backgroundColor: '#ef4444' }
+                  ]
+              },
+              options: { scales: { y: { min: 0, max: 100 } } }
+          });
+      }
+  }
+
+  // 4. Aksiyon Planı Tablosuna Tüm Adımlardan Gelen Verileri Ekle (Accumulate)
+  let rawPlan = data.action_plan_table || data.acil_aksiyon_plani;
+  if (rawPlan) {
+      if (Array.isArray(rawPlan)) {
+          rawPlan.forEach(item => {
+              const issueText = item.issue || item.sorun || '';
+              if (issueText && !window.liveActionPlanItems.some(existing => existing.issue === issueText)) {
+                  window.liveActionPlanItems.push({
+                      issue: issueText,
+                      category: item.category || item.kategori || 'Genel SEO',
+                      priority: item.priority || item.onem || 'MEDIUM',
+                      color: item.color || '#f59e0b'
+                  });
+              }
+          });
+      } else if (typeof rawPlan === 'object') {
+          const categories = [
+              { key: 'icerik_derinligi', label: 'İçerik Derinliği', color: '#2563eb', priority: 'HIGH' },
+              { key: 'seo_kalitesi', label: 'SEO Kalitesi', color: '#10b981', priority: 'MEDIUM' },
+              { key: 'eeat_sinyalleri', label: 'E-E-A-T Sinyalleri', color: '#f59e0b', priority: 'HIGH' }
+          ];
+          categories.forEach(cat => {
+              const list = rawPlan[cat.key];
+              if (Array.isArray(list)) {
+                  list.forEach(task => {
+                      if (task && !window.liveActionPlanItems.some(existing => existing.issue === task)) {
+                          window.liveActionPlanItems.push({
+                              issue: task,
+                              category: cat.label,
+                              priority: cat.priority,
+                              color: cat.color
+                          });
+                      }
+                  });
+              }
+          });
+      }
+  }
+
+  // Canlı Rapor Paneline Birikimli Tabloyu Yansıt
   const tableContainer = document.getElementById('action-plan-table-container');
-  let actionPlan = data.action_plan_table || data.acil_aksiyon_plani || [];
-  
-  if (tableContainer && actionPlan.length > 0) {
+  if (tableContainer && window.liveActionPlanItems.length > 0) {
       let tableHtml = '<table style="width:100%; border-collapse: collapse; text-align:left; font-size:13px;">';
-      tableHtml += '<tr style="border-bottom: 2px solid #e2e8f0; color: #475569;"><th>Tespit Edilen Sorun</th><th>Kategori</th><th>Önem</th></tr>';
+      tableHtml += '<tr style="border-bottom: 2px solid #e2e8f0; color: #475569;"><th style="padding:10px;">Tespit Edilen Aksiyon</th><th style="padding:10px;">Kategori</th><th style="padding:10px;">Önem</th></tr>';
 
-      actionPlan.forEach(item => {
-          let priorityText = item.priority || item.onem || 'Medium';
-          let color = item.color || (priorityText.toLowerCase().includes('high') || priorityText.toLowerCase().includes('yüksek') ? '#ef4444' : (priorityText.toLowerCase().includes('low') || priorityText.toLowerCase().includes('düşük') ? '#10b981' : '#f59e0b'));
+      window.liveActionPlanItems.forEach(item => {
+          let priorityText = (item.priority || 'MEDIUM').toString().toUpperCase();
+          let color = item.color || (priorityText.includes('HIGH') || priorityText.includes('YÜKSEK') ? '#ef4444' : (priorityText.includes('LOW') || priorityText.includes('DÜŞÜK') ? '#10b981' : '#f59e0b'));
           
           tableHtml += `<tr style="border-bottom: 1px solid #f1f5f9;">
-              <td style="padding: 10px;">${item.issue || item.sorun || '-'}</td>
-              <td style="padding: 10px; color: #64748b;">${item.category || item.kategori || '-'}</td>
+              <td style="padding: 10px; color: #0f172a; font-weight: 500;">${item.issue}</td>
+              <td style="padding: 10px; color: #64748b;">${item.category}</td>
               <td style="padding: 10px;">
-                  <span style="background: ${color}; color: white; padding: 4px 8px; border-radius: 12px; font-size: 11px;">
-                      ${priorityText.toUpperCase()}
+                  <span style="background: ${color}; color: white; padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;">
+                      ${priorityText}
                   </span>
               </td>
           </tr>`;
       });
       tableHtml += '</table>';
       tableContainer.innerHTML = tableHtml;
-  }
-  
-  // 4. Battle Mode Bar Chart
-  if (chartsData.competitor_comparison && chartsData.competitor_comparison.main_scores) {
-      const comp = chartsData.competitor_comparison;
-      document.getElementById('battle-chart-container').style.display = 'block';
-      const ctxB = document.getElementById('chart-battle');
-      const battlePlaceholder = document.getElementById('chart-battle-placeholder');
-      if (battlePlaceholder) battlePlaceholder.style.display = 'none';
-      if (ctxB) {
-          if (battleChart) battleChart.destroy();
-          battleChart = new Chart(ctxB, {
-              type: 'bar',
-              data: {
-                  labels: ['İçerik', 'SEO', 'E-E-A-T'],
-                  datasets: [
-                      { label: comp.main_site_name || 'Senin Siten', data: comp.main_scores, backgroundColor: '#3b82f6' },
-                      { label: comp.competitor_name || 'Rakip', data: comp.comp_scores, backgroundColor: '#ef4444' }
-                  ]
-              }
-          });
-      }
   }
 }
 // --- CHART.JS LOGIC END ---
@@ -480,6 +557,7 @@ function resetChat(loadFromHistory = null, forceActionView = false) {
   window.fetchedCompetitorData = null;
   chatMessages = [];
   reportData = [];
+  window.liveActionPlanItems = [];
   
   updateProgressUI(0);
   
@@ -948,39 +1026,18 @@ Son olarak, LLM (SGE) dostu kusursuz hale getirilmiş YENİ BİR ÖRNEK METİN v
     removeTypingIndicator();
     if (result.error) { addMessage(`Hata: ${result.error.message || result.error}`, 'ai'); copilotActions.style.display = 'flex'; return; }
     
-          let aiText = result.candidates[0].content.parts[0].text;
+    let aiText = result.candidates[0].content.parts[0].text;
+    const { cleanText, parsedData, rawJsonStr } = extractAndCleanJson(aiText);
     
-    // JSON Extraction
-    let cleanText = aiText;
-    let chartData = null;
-    let rawJsonStr = '';
-    
-    const jsonMatch = aiText.match(/```(?:json)?\s*(\{[\s\S]*?\})\s*```/i);
-    if (jsonMatch) {
-        cleanText = aiText.replace(jsonMatch[0], '').trim();
-        rawJsonStr = jsonMatch[0];
-        try {
-            chartData = JSON.parse(jsonMatch[1]);
-        } catch(e) { console.warn("JSON Parse Error:", e); }
-    } else {
-        const fallbackMatch = aiText.match(/\{[\s\S]*"trust_score"[\s\S]*\}$/);
-        if (fallbackMatch) {
-            cleanText = aiText.replace(fallbackMatch[0], '').trim();
-            rawJsonStr = fallbackMatch[0];
-            try { chartData = JSON.parse(fallbackMatch[0]); } catch(e){}
-        }
-    }
-    
-          if (chartData) {
-        initOrUpdateCharts(chartData);
-        if (chartData.overview_html) {
-            cleanText = chartData.overview_html + "\n\n" + cleanText;
-        }
+    if (parsedData) {
+        initOrUpdateCharts(parsedData);
     }
 
     let parsedHtml = (typeof marked !== 'undefined' ? marked.parse(cleanText) : cleanText);
     let htmlText = parsedHtml + (rawJsonStr ? '<div class="ai-raw-json" style="display:none;">' + rawJsonStr + '</div>' : '');
     addMessage(htmlText, 'ai', true);
+
+
     
     reportData[step - 1] = parsedHtml; // Clean parsed text without hidden raw JSON
 
@@ -1676,74 +1733,54 @@ Site A'nın rakibine göre eksiklerini analiz et ve YALNIZCA aşağıdaki JSON f
 
           let aiText = aiResult.candidates[0].content.parts[0].text;
           let htmlText = '';
-          try {
-              // Try to extract JSON if AI wrapped it in markdown code blocks
-              let cleanJsonStr = aiText.replace(/```json/g, '').replace(/```/g, '').trim();
-              // Sometimes AI returns markdown before/after the JSON. Just extract the first { ... } block.
-              const jsonMatch = cleanJsonStr.match(/\{[\s\S]*\}/);
-              if (jsonMatch) {
-                  const parsedData = JSON.parse(jsonMatch[0]);
-                  const analysis = parsedData.battle_mode_analysis || parsedData;
+          const { cleanText, parsedData } = extractAndCleanJson(aiText);
 
-                  if (typeof Chart !== 'undefined') {
-                      document.getElementById('battle-chart-container').style.display = 'block';
-                      const ctxB = document.getElementById('chart-battle');
-                      if (ctxB) {
-                          if (battleChart) battleChart.destroy();
-                          battleChart = new Chart(ctxB, {
-                              type: 'bar',
-                              data: {
-                                  labels: ['İçerik Derinliği', 'SEO Kalitesi', 'E-E-A-T'],
-                                  datasets: [
-                                      { label: 'Senin Siten', data: [analysis.charts_data?.site_a_skorlari?.icerik || 60, analysis.charts_data?.site_a_skorlari?.seo || 65, analysis.charts_data?.site_a_skorlari?.eeat || 50], backgroundColor: '#3b82f6' },
-                                      { label: 'Rakip', data: [analysis.charts_data?.site_b_skorlari?.icerik || 85, analysis.charts_data?.site_b_skorlari?.seo || 90, analysis.charts_data?.site_b_skorlari?.eeat || 88], backgroundColor: '#ef4444' }
-                                  ]
-                              }
-                          });
-                      }
-                  }
-                  
-                  const formatArray = (arr) => arr && arr.length ? `<ul>${arr.map(item => `<li>${item}</li>`).join('')}</ul>` : 'Veri yok.';
-                  
-                  let eksiklerHtml = '';
-                  if (analysis.action_plan_table) {
-                      eksiklerHtml = `
-                          <div class="compare-cols" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; margin-top:20px;">
-                              <div class="col-box" style="background:#fff; border:1px solid #e2e8f0; border-radius:8px; padding:16px;">
-                                  <h4 style="color:#2563eb; font-size:14px; margin-bottom:12px; border-bottom:1px solid #e2e8f0; padding-bottom:8px;">📚 İçerik Derinliği</h4>
-                                  <div style="font-size:13px; color:#475569; line-height:1.6;">${typeof marked !== 'undefined' ? marked.parse((analysis.action_plan_table.icerik_derinligi || []).join('\n\n')) : formatArray(analysis.action_plan_table.icerik_derinligi)}</div>
-                              </div>
-                              <div class="col-box" style="background:#fff; border:1px solid #e2e8f0; border-radius:8px; padding:16px;">
-                                  <h4 style="color:#10b981; font-size:14px; margin-bottom:12px; border-bottom:1px solid #e2e8f0; padding-bottom:8px;">🎯 SEO Kalitesi</h4>
-                                  <div style="font-size:13px; color:#475569; line-height:1.6;">${typeof marked !== 'undefined' ? marked.parse((analysis.action_plan_table.seo_kalitesi || []).join('\n\n')) : formatArray(analysis.action_plan_table.seo_kalitesi)}</div>
-                              </div>
-                              <div class="col-box" style="background:#fff; border:1px solid #e2e8f0; border-radius:8px; padding:16px;">
-                                  <h4 style="color:#f59e0b; font-size:14px; margin-bottom:12px; border-bottom:1px solid #e2e8f0; padding-bottom:8px;">🛡️ E-E-A-T Sinyalleri</h4>
-                                  <div style="font-size:13px; color:#475569; line-height:1.6;">${typeof marked !== 'undefined' ? marked.parse((analysis.action_plan_table.eeat_sinyalleri || []).join('\n\n')) : formatArray(analysis.action_plan_table.eeat_sinyalleri)}</div>
-                              </div>
+          if (parsedData) {
+              const analysis = parsedData.battle_mode_analysis || parsedData;
+              initOrUpdateCharts(analysis);
+
+              const formatArray = (arr) => arr && arr.length ? `<ul>${arr.map(item => `<li>${item}</li>`).join('')}</ul>` : 'Veri yok.';
+              
+              let eksiklerHtml = '';
+              if (analysis.action_plan_table) {
+                  const apt = analysis.action_plan_table;
+                  const icerikList = Array.isArray(apt.icerik_derinligi) ? apt.icerik_derinligi : [];
+                  const seoList = Array.isArray(apt.seo_kalitesi) ? apt.seo_kalitesi : [];
+                  const eeatList = Array.isArray(apt.eeat_sinyalleri) ? apt.eeat_sinyalleri : [];
+
+                  eksiklerHtml = `
+                      <div class="compare-cols" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; margin-top:20px;">
+                          <div class="col-box" style="background:#fff; border:1px solid #e2e8f0; border-radius:8px; padding:16px;">
+                              <h4 style="color:#2563eb; font-size:14px; margin-bottom:12px; border-bottom:1px solid #e2e8f0; padding-bottom:8px;">📚 İçerik Derinliği</h4>
+                              <div style="font-size:13px; color:#475569; line-height:1.6;">${typeof marked !== 'undefined' ? marked.parse(icerikList.join('\n\n')) : formatArray(icerikList)}</div>
                           </div>
-                      `;
-                  }
-                  
-                  htmlText = `
-                      <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:20px;">
-                          <h3 style="font-size:16px; color:#1e293b; margin-bottom:10px; display:flex; align-items:center; gap:8px;">
-                              <span style="background:#dc2626; color:white; padding:4px 8px; border-radius:6px; font-size:12px; font-weight:bold;">RAKİP ÜSTÜNLÜĞÜ</span> Neden Rakip Daha İyi?
-                          </h3>
-                          <div style="font-size:14px; color:#334155; line-height:1.7;">
-                              ${typeof marked !== 'undefined' ? marked.parse(analysis.rakip_ustunluk_nedenleri || '') : analysis.rakip_ustunluk_nedenleri}
+                          <div class="col-box" style="background:#fff; border:1px solid #e2e8f0; border-radius:8px; padding:16px;">
+                              <h4 style="color:#10b981; font-size:14px; margin-bottom:12px; border-bottom:1px solid #e2e8f0; padding-bottom:8px;">🎯 SEO Kalitesi</h4>
+                              <div style="font-size:13px; color:#475569; line-height:1.6;">${typeof marked !== 'undefined' ? marked.parse(seoList.join('\n\n')) : formatArray(seoList)}</div>
                           </div>
-                          
-                          ${eksiklerHtml}
+                          <div class="col-box" style="background:#fff; border:1px solid #e2e8f0; border-radius:8px; padding:16px;">
+                              <h4 style="color:#f59e0b; font-size:14px; margin-bottom:12px; border-bottom:1px solid #e2e8f0; padding-bottom:8px;">🛡️ E-E-A-T Sinyalleri</h4>
+                              <div style="font-size:13px; color:#475569; line-height:1.6;">${typeof marked !== 'undefined' ? marked.parse(eeatList.join('\n\n')) : formatArray(eeatList)}</div>
+                          </div>
                       </div>
                   `;
-              } else {
-                  throw new Error("JSON formatı bulunamadı.");
               }
-          } catch(e) {
-              // Fallback if not JSON or parsing failed
-              console.warn("Battle mode JSON parse failed, falling back to markdown", e);
-              htmlText = typeof marked !== 'undefined' ? marked.parse(aiText) : aiText;
+              
+              let ustunlukText = analysis.rakip_ustunluk_nedenleri || cleanText || '';
+              htmlText = `
+                  <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:20px;">
+                      <h3 style="font-size:16px; color:#1e293b; margin-bottom:10px; display:flex; align-items:center; gap:8px;">
+                          <span style="background:#dc2626; color:white; padding:4px 8px; border-radius:6px; font-size:12px; font-weight:bold;">RAKİP ÜSTÜNLÜĞÜ</span> Neden Rakip Daha İyi?
+                      </h3>
+                      <div style="font-size:14px; color:#334155; line-height:1.7;">
+                          ${typeof marked !== 'undefined' ? marked.parse(ustunlukText) : ustunlukText}
+                      </div>
+                      
+                      ${eksiklerHtml}
+                  </div>
+              `;
+          } else {
+              htmlText = typeof marked !== 'undefined' ? marked.parse(cleanText) : cleanText;
           }
 
           battleResults.innerHTML = htmlText;
