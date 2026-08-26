@@ -598,13 +598,14 @@ function resetChat(loadFromHistory = null, forceActionView = false) {
   const llmsC = document.getElementById('copilot-llms-container');
   if (llmsC) llmsC.style.display = 'none';
   const msgContainer = document.getElementById('copilot-chat-messages-container');
-  if (msgContainer) { 
-      msgContainer.style.display = 'flex'; 
-      msgContainer.style.flexDirection = 'column';
-      msgContainer.style.flex = '1'; 
-      msgContainer.style.overflowY = 'auto';
-      msgContainer.style.paddingTop = '16px';
-  }
+if (msgContainer) { 
+    msgContainer.style.display = 'flex'; 
+    msgContainer.style.flexDirection = 'column'; 
+    msgContainer.style.flex = '1'; 
+    msgContainer.style.overflowY = 'auto'; 
+    msgContainer.style.paddingTop = '16px'; 
+    msgContainer.style.minHeight = '0'; 
+}
 
 
   if (msgContainer) { 
@@ -772,9 +773,9 @@ async function startUrlFetch() {
 
 
     addMessage(`Şimdi ${targetType} sitenize özel 5 adımlı analiz sürecini başlatabiliriz.`, 'ai', true);
-    const cqa = document.getElementById('copilot-quick-actions'); 
-    if(cqa) cqa.style.display = 'flex';
-    renderAiSeoActions();
+const cqa = document.getElementById('copilot-quick-actions'); 
+if(cqa) cqa.style.display = 'flex';
+renderAiSeoActions();
   } catch (e) {
     removeTypingIndicator();
     addMessage(`Bağlantı hatası: ${e.message}`, 'ai');
