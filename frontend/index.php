@@ -48,7 +48,177 @@ require_once __DIR__ . '/db.php';
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jsdiff/7.0.0/diff.min.js"></script>
 <link rel="stylesheet" href="src/TextSeo/css/text-seo.css">
 <link rel="stylesheet" href="src/TextSeo/css/text-seo-pdf.css">
+
+<style>
+  /* Uygulama düzenini dikey (yan yana) yerine yatay (alt alta) yapıyoruz */
+  .app {
+    display: flex !important;
+    flex-direction: column !important;
+    min-height: 100vh;
+  }
+  .main {
+    width: 100% !important;
+    margin-left: 0 !important;
+  }
+
+  /* AdresGezgini Tarzı Top Header Tasarımı */
+  .ag-top-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #ffffff;
+    padding: 0 40px;
+    height: 75px;
+    border-bottom: 1px solid #e2e8f0;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    z-index: 1000;
+  }
+
+  .ag-header-left {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    gap: 12px;
+  }
+
+  .ag-header-left img {
+    width: 45px;
+    height: 45px;
+    border-radius: 8px;
+  }
+
+  .ag-header-left .brand-text .name {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: #1F1D30;
+    line-height: 1.2;
+  }
+
+  .ag-header-left .brand-text .sub {
+    font-size: 11px;
+    color: #6B6E82;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  /* Orta Menü (Sekmeler) */
+  .ag-header-center {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+  }
+
+  .ag-header-center ul {
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    gap: 30px;
+  }
+
+  .ag-header-center .nav__item {
+    background: none;
+    border: none;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: #475569;
+    text-transform: uppercase;
+    cursor: pointer;
+    padding: 28px 0; /* Çizginin tam alta oturması için */
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s;
+  }
+
+  .ag-header-center .nav__item:hover {
+    color: #1F1D30;
+  }
+
+  .ag-header-center .nav__item.active {
+    color: #312F4D;
+    border-bottom: 3px solid #FBBA00; /* AdresGezgini Sarısı */
+  }
+
+  /* Eski tasarımdaki numara ve ikonları gizleyip temiz bir görünüm veriyoruz */
+  .ag-header-center .nav__item svg,
+  .ag-header-center .nav__item .num {
+    display: none;
+  }
+
+  /* Sağ Taraf (Müşteri Seçimi ve Çıkış) */
+  .ag-header-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .ag-client-compact {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #f8fafc;
+    padding: 6px 10px;
+    border-radius: 6px;
+    border: 1px solid #e2e8f0;
+  }
+
+  .ag-client-compact select {
+    border: 1px solid #cbd5e1;
+    background: #fff;
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 12px;
+    outline: none;
+  }
+
+  .ag-client-compact .client-actions {
+    display: flex;
+    gap: 4px;
+  }
+
+  .ag-client-compact button {
+    background: #fff;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    padding: 4px 6px;
+    cursor: pointer;
+    color: #475569;
+  }
+
+  .ag-client-compact button:hover {
+    background: #e2e8f0;
+  }
+
+  .btn-panel {
+    background: #312F4D;
+    color: #fff;
+    border-radius: 6px;
+    padding: 8px 16px;
+    font-size: 12px;
+    font-weight: 700;
+    text-decoration: none;
+    text-transform: uppercase;
+    transition: background 0.2s;
+  }
+
+  .btn-panel:hover {
+    background: #1F1D30;
+  }
+
+  .btn-outline {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    color: #475569;
+    border-radius: 6px;
+    padding: 8px 16px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+</style>
 </head>
+
 <body>
 
 <!-- KARŞILAMA EKRANI (Welcome Overlay) -->
@@ -105,96 +275,60 @@ require_once __DIR__ . '/db.php';
   <!-- ============================================================
        SIDEBAR
   ============================================================ -->
-  <aside class="sidebar">
-    <div class="sidebar__brand">
-      <div class="brand-mark" style="width: 64px; height: 64px;">
-        <img src="image.png" alt="AG SEO Check Up" style="width: 100%; height: 100%; object-fit: contain; border-radius: 8px;">
-      </div>
-      <div class="brand-text">
-        <div class="name">AG_seo_check_up</div>
-        <div class="sub">Admin Paneli</div>
-      </div>
-    </div>
+  <header class="ag-top-header">
+      <!-- SOL: Logo ve Marka -->
+      <a href="#" class="ag-header-left">
+        <img src="image.png" alt="AG SEO Check Up">
+        <div class="brand-text">
+          <div class="name">AG Seo Check Up</div>
+          <div class="sub">Admin Paneli</div>
+        </div>
+      </a>
 
-    <div class="client-box">
-      <label for="client-select">Aktif Müşteri</label>
-      <select class="client-select-dark" id="client-select">
-        <option value="">— Müşteri seçin —</option>
-      </select>
-      <div id="sidebar-client-domain" style="font-size: 11px; color: var(--muted-2); margin-bottom: 8px; display: none; cursor: pointer;" title="Ana domaine git / kopyala"></div>
-      
-      <div style="display:flex; gap:4px;">
-        <button class="btn btn--sidebar btn--sm" id="client-add-btn" style="flex:1;">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          Ekle
-        </button>
-        <button class="btn btn--sidebar btn--sm" id="client-edit-btn" style="flex:1;" title="Müşteriyi Düzenle">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-        </button>
-        <button class="btn btn--sidebar btn--sm" id="client-delete-btn" style="flex:1;" title="Müşteriyi Sil">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-        </button>
+      <!-- ORTA: Navigasyon Menüsü -->
+      <nav class="ag-header-center">
+        <ul id="nav-list">
+          <li><button class="nav__item active" data-tab="1">Metin Bazlı SEO</button></li>
+          <li><button class="nav__item" data-tab="2">Teknik SEO</button></li>
+          <li><button class="nav__item" data-tab="3">AI SEO Hizmetleri</button></li>
+          <!-- <li><button class="nav__item" data-tab="4">Yapılacaklar</button></li> -->
+        </ul>
+      </nav>
+
+      <!-- SAĞ: Müşteri Seçimi ve İşlem Butonları -->
+      <div class="ag-header-right">
+        <!-- Müşteri Yönetimi -->
+        <div class="ag-client-compact">
+          <select id="client-select">
+            <option value="">— Müşteri seçin —</option>
+          </select>
+          <div class="client-actions">
+            <button id="client-add-btn" title="Ekle">+</button>
+            <button id="client-edit-btn" title="Düzenle">✎</button>
+            <button id="client-delete-btn" title="Sil">🗑</button>
+          </div>
+        </div>
+
+        <button id="btn-reopen-welcome" class="btn-outline">Hızlı Asistan</button>
+        <a href="logout.php" onclick="sessionStorage.removeItem('ag_welcome_seen');" class="btn-panel">Çıkış Yap</a>
       </div>
-    </div>
 
-    <div id="sidebar-site-explorer" style="display:none; margin: 0 20px 16px 20px; padding: 10px; background: rgba(0,0,0,0.15); border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
-      <div style="font-size: 10.5px; font-weight: bold; color: var(--muted-2); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em; display: flex; justify-content: space-between; align-items: center;">
-        Sitemap Explorer
-        <button id="refresh-sitemap-btn" style="background:none; border:none; color:var(--accent); cursor:pointer; font-size:10px;">Yenile</button>
+      <!-- JavaScript'in hata vermemesi için gizli tutulan eski sidebar elemanları -->
+      <div style="display:none;">
+        <div id="sidebar-client-domain"></div>
+        <div id="sidebar-site-explorer">
+          <button id="refresh-sitemap-btn"></button>
+          <div id="site-explorer-tree"></div>
+        </div>
+        <div id="google-auth-status"></div>
       </div>
-      <div id="site-explorer-tree" style="max-height: 180px; overflow-y: auto; font-size: 11px; line-height: 1.6; color: #E4E7EE;">
-         <span class="spinner" style="width:12px;height:12px;border-width:2px;display:inline-block;vertical-align:middle;margin-right:5px;"></span> Yükleniyor...
-      </div>
-      <!-- Auto-Pilot Başlat / Gece 3'te Çalıştır butonları kaldırıldı
-           (kullanıcı isteği). js/app.js'deki ilgili kod (runEnterpriseAutoPilot,
-           schedule-night-btn tıklama dinleyicisi, routeUrlToActiveTab'deki
-           apBtn/schedBtn referansları) hepsi ?.addEventListener veya if(el)
-           koruması kullandığı için bu elementler DOM'dan kalkınca güvenle
-           no-op oluyor, hiçbir yerde hata üretmiyor. -->
-    </div>
-
-    <div style="padding: 0 20px 16px 20px;">
-      <button class="btn btn--sidebar" id="btn-reopen-welcome" style="width: 100%; font-size:12px; justify-content:center;">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:6px;"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-        Hızlı Asistan'ı Aç
-      </button>
-    </div>
-
-    <ul class="nav" id="nav-list">
-      <li><button class="nav__item active" data-tab="1"><span class="num">01</span>
-        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h12l4 4v12H4z"/><path d="M16 4v4h4"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="16" x2="14" y2="16"/></svg>
-        Metin Bazlı SEO</button></li>
-      <li><button class="nav__item" data-tab="2"><span class="num">02</span>
-        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22a10 10 0 1 1 7.07-2.93"/><path d="M12 12l4-3"/><circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none"/></svg>
-        Teknik SEO</button></li>
-      <li><button class="nav__item" data-tab="3"><span class="num">03</span>
-        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-        AI SEO Hizmetleri</button></li>
-      <li><button class="nav__item" data-tab="4"><span class="num">04</span>
-        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-        Yapılacaklar</button></li>
-    </ul>
-
-    <div class="sidebar__footer">
-      
-      <a href="logout.php" onclick="sessionStorage.removeItem('ag_welcome_seen');" class="btn btn--sidebar btn--sm logout-btn" style="text-decoration:none; display:flex; align-items:center; justify-content:center; gap:8px; padding:12px 16px; border-radius:8px; transition:all 0.2s;">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
-        <span style="font-weight: 500;">Çıkış Yap</span>
-    </a>
-<!-- 
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20Z"/><line x1="2" y1="12" x2="22" y2="12"/></svg>
-        -->
-      <div class="google-status" id="google-auth-status"><span class="dot"></span> Bağlı değil</div>
-      <span class="env mt-8" style="display:flex;"><span class="led"></span> Prototip Ortamı</span>
-      <span>v1.0 — Agency OS</span>
-    </div>
-  </aside>
+    </header>
 
   <!-- ============================================================
        MAIN
   ============================================================ -->
   <main class="main">
-    <header class="topbar" id="topbar">
+    <header class="topbar" id="topbar" style="display:none;">
       <div class="topbar__eyebrow" id="topbar-eyebrow">01 · İÇERİK</div>
       <h1 id="topbar-title">İçerik &amp; İç Linkleme</h1>
       <p class="topbar__desc" id="topbar-desc">Metni hedef kelimeye göre optimize edin, mevcut blog yazılarınıza otomatik iç linkler önerin.</p>

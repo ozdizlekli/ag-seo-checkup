@@ -771,7 +771,7 @@ document.getElementById('t1-fetch-btn')?.addEventListener('click', async () => {
 
     const textForAnalysis = rawText.substring(0, 4000);
 
-    if(document.getElementById('t1-content')) { document.getElementById('t1-content').value = rawText; }
+    if(document.getElementById('t1-content')) { if(document.getElementById('t1-content')) { document.getElementById('t1-content').value = rawText; } }
     document.getElementById('t1-related-urls').value = Array.from(internalLinks).slice(0, 5).join('\n'); 
     
     // Temel verileri (Title ve Meta) hemen doldur
@@ -2143,8 +2143,9 @@ async function computeAndRenderScore(){
   }
 
   const wrap = document.getElementById('t6-sub-scores');
-  wrap.innerHTML = '';
-  subs.forEach(s => {
+  if (wrap) {
+    wrap.innerHTML = '';
+    subs.forEach(s => {
     const st = scoreStatusLabel(s.value);
     const row = document.createElement('div');
     row.className = 'meter-row';
@@ -2154,6 +2155,7 @@ async function computeAndRenderScore(){
       '<div class="meter-track"><div class="meter-fill fill-' + (s.value>=80?'good':s.value>=55?'mid':'bad') + '" style="width:' + s.value + '%;"></div></div>';
     wrap.appendChild(row);
   });
+  } // end if wrap
 
   // UPSELL (SATIŞ) BANNER GÖSTERİMİ
   const banner = document.getElementById('t6-upsell-banner');
@@ -3188,7 +3190,7 @@ document.getElementById('t7-export-word')?.addEventListener('click', () => {
 });
 
 /* Set default report date to today */
-if(document.getElementById('t7-date')) { document.getElementById('t7-date').value = new Date().toISOString().slice(0,10); }
+if(document.getElementById('t7-date')) { if(document.getElementById('t7-date')) { document.getElementById('t7-date').value = new Date().toISOString().slice(0,10); } }
 
 /* ============================================================
    İLK YÜKLEME — Supabase'den verileri çek

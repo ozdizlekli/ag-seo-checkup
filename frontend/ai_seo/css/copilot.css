@@ -305,11 +305,11 @@
 /* Kod kutusunun genel çerçevesi */
 .ai-code-block pre {
     position: relative;
-    background-color: #1F1D30; /* AdresGezgini koyu lacivert tonu */
-    color: #E4E3EC;
+    background-color: #dcd9ba; /* Saman sarısı (straw yellow) */
+    color: #1F2937; /* Koyu metin */
     padding: 36px 16px 16px 16px; /* Üstten buton için boşluk bıraktık */
     border-radius: 8px;
-    border: 1px solid #312F4D;
+    border: 1px solid #FDE047;
     overflow-x: auto;
     font-family: 'JetBrains Mono', monospace;
     font-size: 13px;
@@ -320,9 +320,9 @@
     position: absolute;
     top: 8px;
     right: 8px;
-    background-color: rgba(255, 255, 255, 0.1);
-    color: #fff;
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    background-color: #FFFFFF;
+    color: #374151;
+    border: 1px solid #D1D5DB;
     border-radius: 4px;
     padding: 4px 10px;
     font-size: 11px;
@@ -331,6 +331,6 @@
     transition: all 0.2s ease;
 }
 .ai-copy-btn:hover {
-    background-color: #10B981; /* Başarılı yeşili */
-    border-color: #10B981;
+    background-color: #F3F4F6;
+    border-color: #9CA3AF;
 }
