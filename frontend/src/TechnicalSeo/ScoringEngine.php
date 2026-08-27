@@ -213,8 +213,8 @@ final class ScoringEngine
         // oranına göre kesinti (orphan_page_ratio_percent ile aynı mantık).
         // Title yinelenmesi daha ağır (arama motorunun sayfaları ayırt etmesini
         // zorlaştırır); meta description yinelenmesi daha hafif (öncelikle CTR'ı etkiler).
-        $duplicateTitleAffected = $this->countDuplicateAffectedPages($indexability['duplicate_titles'] ?? []);
-        $duplicateMetaAffected = $this->countDuplicateAffectedPages($indexability['duplicate_meta_descriptions'] ?? []);
+        $duplicateTitleAffected = $this->countDuplicateAffectedPages($indexability['duplicate_titles'] ?? [], true);
+        $duplicateMetaAffected = $this->countDuplicateAffectedPages($indexability['duplicate_meta_descriptions'] ?? [], true);
         $score -= min(15, ($duplicateTitleAffected / $totalPages) * 100 * 0.5);
         $score -= min(10, ($duplicateMetaAffected / $totalPages) * 100 * 0.3);
 
@@ -232,10 +232,13 @@ final class ScoringEngine
     /**
      * @param list<array{value:string, urls:list<string>}> $duplicateGroups
      */
-    private function countDuplicateAffectedPages(array $duplicateGroups): int
+    private function countDuplicateAffectedPages(array $duplicateGroups, bool $onlyUnresolved = false): int
     {
         $count = 0;
         foreach ($duplicateGroups as $group) {
+            if ($onlyUnresolved && ($group['status'] ?? 'unresolved') === 'resolved') {
+                continue; // canonical ile temiz sekilde cozulmus gruplar puani dusurmemeli
+            }
             $count += count($group['urls'] ?? []);
         }
         return $count;
@@ -377,7 +380,7 @@ final class ScoringEngine
     private function buildFindings(array $input, int $totalPages): array
     {
         $findings = [];
-        $add = function (string $category, string $severity, string $confidence, string $title, string $detail, string $howToFix, int $affectedPages, array $items = []) use (&$findings, $totalPages): void {
+        $add = function (string $category, string $severity, string $confidence, string $title, string $detail, string $howToFix, int $affectedPages, array $items = [], string $itemNoun = 'sayfa') use (&$findings, $totalPages): void {
             $severityWeight = self::SEVERITY_WEIGHTS[$severity] ?? 25;
             $confidenceWeight = self::CONFIDENCE_WEIGHTS[$confidence] ?? 0.6;
             $prevalence = min(1.0, $affectedPages / $totalPages);
@@ -395,6 +398,11 @@ final class ScoringEngine
                 // taşıyabilir - arayüz bunu varsa tıklanınca açılan bir liste
                 // olarak gösterir. Yoksa boş dizi (arayüz tarafında tutarlı şema).
                 'items' => $items,
+                // 'items' listesindeki her satırın NE olduğunu (sayfa mı, link
+                // mi) arayüze bildiriyor - eskiden arayüz bunu hep "link" diye
+                // sabitlemişti, bu da ör. "319 link - göster" gibi (aslında
+                // sayfa olan) bulgularda yanlış/yanıltıcı görünüyordu.
+                'item_noun' => $itemNoun,
             ];
         };
 
@@ -453,34 +461,169 @@ final class ScoringEngine
                 $totalPages);
         }
 
+        // YENİ: yinelenen title/meta description bulguları artık canonical-farkında.
+        // Her grup OnPageContentChecker tarafından 'resolved' (canonical ile büyük
+        // çoğunluk aynı, geçerli, doğrudan bir hedefe işaret ediyor) veya 'unresolved'
+        // olarak etiketlenmiş geliyor. Sadece UNRESOLVED gruplar "gerçek" bir yinelenen
+        // içerik sorunu olarak raporlanır; resolved gruplar için ayrıca aşağıda 3 farklı
+        // canonical bulgusu (yapısal hata / bozuk-zincir-döngü / inceleme gerekli)
+        // üretiliyor - bkz. OnPageContentChecker sınıf docblock'u.
         $duplicateTitles = $indexability['duplicate_titles'] ?? [];
-        if (!empty($duplicateTitles)) {
+        $duplicateMetaDescriptions = $indexability['duplicate_meta_descriptions'] ?? [];
+
+        $canonicalReasonLabels = [
+            'conflicting_target' => 'farklı bir canonical hedefi belirtiyor (grup çoğunluğuyla uyuşmuyor)',
+            'cross_domain' => 'canonical başka bir alan adına (domain) işaret ediyor',
+            'unverified' => 'canonical hedefi taranan sayfalar arasında bulunamadı (doğrulanamadı)',
+            'no_majority' => 'gruptaki sayfaların çoğunluğu aynı canonical hedefinde anlaşamıyor',
+            'tied_targets' => 'gruptaki sayfalar farklı canonical hedeflerine işaret ediyor, net bir çoğunluk yok (sayfalar birbiriyle çelişiyor)',
+            'self_or_missing' => 'bu sayfada canonical etiketi yok',
+            'broken_target' => 'canonical hedefi geçersiz bir durum kodu (4xx/5xx) döndürüyor',
+            'target_redirects' => "canonical hedefi kendisi başka bir URL'e yönlendiriyor",
+            'target_noindex' => 'canonical hedefi noindex ile işaretli (arama motoru zaten indekslemeyecek)',
+            'chain' => "canonical zinciri var (hedefin canonical'i başka bir sayfayı gösteriyor)",
+            'loop' => 'canonical döngüsü tespit edildi (A → B → A)',
+            'structural_issue' => 'bu sayfanın canonical etiketinde yapısal bir hata var',
+        ];
+        $brokenCanonicalReasons = ['broken_target', 'target_redirects', 'target_noindex', 'chain', 'loop'];
+        // NOT: 'self_or_missing' bilerek bu listede DEĞİL - bir sayfada canonical
+        // etiketi hiç yoksa bu belirsiz/inceleme-gerektiren bir sinyal değildir,
+        // sadece sinyalin YOKLUĞUDUR; bu durum zaten yukarıdaki (1) numaralı
+        // klasik yinelenen title/meta bulgusunun kendi metninde (canonical eklemek
+        // bir çözüm seçeneği olarak) açıklanıyor - ayrı bir "inceleme gerekli"
+        // bulgusuyla tekrar etmek gürültü yaratır.
+        $reviewCanonicalReasons = ['cross_domain', 'unverified', 'no_majority', 'conflicting_target', 'tied_targets'];
+
+        $collectCanonicalItems = static function (array $groups, array $wantedReasons) use ($canonicalReasonLabels): array {
+            $items = [];
+            $seen = [];
+            foreach ($groups as $group) {
+                if (($group['status'] ?? 'unresolved') === 'resolved') {
+                    continue;
+                }
+                foreach (($group['unresolved_details'] ?? []) as $detail) {
+                    $reason = $detail['reason'] ?? '';
+                    if (!in_array($reason, $wantedReasons, true)) {
+                        continue;
+                    }
+                    $key = $detail['url'] . '|' . $reason;
+                    if (isset($seen[$key])) {
+                        continue;
+                    }
+                    $seen[$key] = true;
+                    $items[] = ['url' => $detail['url'], 'status' => $canonicalReasonLabels[$reason] ?? $reason];
+                }
+            }
+            return $items;
+        };
+
+        // 1) Klasik yinelenen title bulgusu - SADECE canonical ile çözülmemiş gruplar sayılır.
+        $unresolvedTitleGroups = array_values(array_filter(
+            $duplicateTitles,
+            static fn (array $g): bool => ($g['status'] ?? 'unresolved') !== 'resolved'
+        ));
+        if (!empty($unresolvedTitleGroups)) {
             $duplicateTitleItems = [];
-            foreach ($duplicateTitles as $group) {
+            foreach ($unresolvedTitleGroups as $group) {
                 foreach (($group['urls'] ?? []) as $url) {
                     $duplicateTitleItems[] = ['url' => $url, 'status' => 'paylaşılan title: "' . $group['value'] . '"'];
                 }
             }
-            $add('crawlability_indexability', 'major', 'kesin', count($duplicateTitles) . ' grup sayfa aynı title etiketini paylaşıyor',
-                'Birden fazla sayfa birebir aynı <title> içeriğine sahip - bu, arama motorlarının sayfaları birbirinden '
-                    . 'ayırt etmesini zorlaştırır ve arama sonuçlarında hangi sayfanın gösterileceğine dair belirsizlik yaratabilir.',
-                'Her sayfaya, o sayfanın içeriğini benzersiz şekilde özetleyen kendi title etiketini yazın.',
+            $add('crawlability_indexability', 'major', 'kesin',
+                count($unresolvedTitleGroups) . ' grup halinde yinelenen title (toplam ' . count($duplicateTitleItems) . ' sayfayı etkiliyor)',
+                'Birden fazla sayfa birebir aynı <title> içeriğine sahip ve bu durum geçerli bir canonical etiketiyle '
+                    . 'açıklanmıyor - bu, arama motorlarının sayfaları birbirinden ayırt etmesini zorlaştırır ve arama '
+                    . 'sonuçlarında hangi sayfanın gösterileceğine dair belirsizlik yaratabilir.',
+                'Bu sayfalar gerçekten farklı içerikler sunuyorsa her birine kendi title\'ını yazın. Eğer bunlar aynı '
+                    . 'içeriğin filtrelenmiş/parametreli varyasyonlarıysa (ör. ?sektor=... gibi facet\'ler), her birine '
+                    . 'ayrı title yazmak yerine birincil sayfaya <link rel="canonical"> ile işaret edin.',
                 count($duplicateTitleItems), $duplicateTitleItems);
         }
 
-        $duplicateMetaDescriptions = $indexability['duplicate_meta_descriptions'] ?? [];
-        if (!empty($duplicateMetaDescriptions)) {
+        $unresolvedMetaGroups = array_values(array_filter(
+            $duplicateMetaDescriptions,
+            static fn (array $g): bool => ($g['status'] ?? 'unresolved') !== 'resolved'
+        ));
+        if (!empty($unresolvedMetaGroups)) {
             $duplicateMetaItems = [];
-            foreach ($duplicateMetaDescriptions as $group) {
+            foreach ($unresolvedMetaGroups as $group) {
                 foreach (($group['urls'] ?? []) as $url) {
                     $duplicateMetaItems[] = ['url' => $url, 'status' => 'paylaşılan açıklama'];
                 }
             }
-            $add('crawlability_indexability', 'minor', 'kesin', count($duplicateMetaDescriptions) . ' grup sayfa aynı meta description\'ı paylaşıyor',
-                'Birden fazla sayfa birebir aynı meta description içeriğine sahip - bu sıralamayı doğrudan etkilemez '
-                    . 'ama arama sonuçlarındaki tıklama oranını (CTR) düşürebilir.',
-                'Her sayfaya, o sayfaya özel, tıklamaya teşvik eden bir meta description yazın.',
+            $add('crawlability_indexability', 'minor', 'kesin',
+                count($unresolvedMetaGroups) . ' grup halinde yinelenen meta description (toplam ' . count($duplicateMetaItems) . ' sayfayı etkiliyor)',
+                'Birden fazla sayfa birebir aynı meta description içeriğine sahip ve bu durum geçerli bir canonical '
+                    . 'etiketiyle açıklanmıyor - bu sıralamayı doğrudan etkilemez ama arama sonuçlarındaki tıklama '
+                    . 'oranını (CTR) düşürebilir.',
+                'Bu sayfalar gerçekten farklı içerikler sunuyorsa her birine özel bir açıklama yazın. Eğer bunlar aynı '
+                    . 'içeriğin varyasyonlarıysa, birincil sayfaya canonical ile işaret etmek de bu tekrarı meşrulaştırır.',
                 count($duplicateMetaItems), $duplicateMetaItems);
+        }
+
+        // 2) Sayfanın KENDİ canonical etiketindeki yapısal hatalar (çoklu/boş href/geçersiz protokol) -
+        // duplicate grubuna dahil olsun olmasın, HER ZAMAN ayrı bir bulgu.
+        $canonicalStructuralIssues = $indexability['canonical_structural_issues'] ?? [];
+        if (!empty($canonicalStructuralIssues)) {
+            $structuralIssueLabels = [
+                'multiple' => 'sayfada birden fazla canonical etiketi var',
+                'empty_href' => 'canonical etiketinin href değeri boş',
+                'invalid_scheme' => 'canonical hedefi http(s) dışında bir protokole çözümleniyor',
+            ];
+            $structuralItems = array_map(
+                static fn (array $i): array => ['url' => $i['url'], 'status' => $structuralIssueLabels[$i['issue']] ?? $i['issue']],
+                $canonicalStructuralIssues
+            );
+            $add('crawlability_indexability', 'major', 'kesin',
+                'Canonical etiketinde yapısal hata (' . count($canonicalStructuralIssues) . ' sayfa)',
+                'Bu sayfalardaki <link rel="canonical"> etiketi kendi içinde hatalı - birden fazla canonical etiketi, '
+                    . 'boş bir href, veya http(s) dışında bir protokol içeriyor. Bu durumda arama motorları canonical '
+                    . 'sinyalini güvenilir şekilde kullanamaz.',
+                'Her sayfada TEK bir <link rel="canonical" href="..."> etiketi bulunmalı; href değeri geçerli, dolu ve '
+                    . 'http:// veya https:// ile başlayan mutlak/göreli bir URL olmalı.',
+                count($canonicalStructuralIssues), $structuralItems);
+        }
+
+        // 3) Canonical HEDEFİ bozuk/yönlendiriyor/zincirleniyor/döngüde - "sitenin kendi beyanı"
+        // güvenilir değil. Hem title hem meta duplicate gruplarından toplanır, aynı url+sebep
+        // ikilisi tekrar sayılmaz.
+        $brokenCanonicalItems = $collectCanonicalItems(
+            array_merge($duplicateTitles, $duplicateMetaDescriptions),
+            $brokenCanonicalReasons
+        );
+        if (!empty($brokenCanonicalItems)) {
+            $add('crawlability_indexability', 'major', 'kesin',
+                'Canonical hedefi bozuk, yönlendiriyor veya döngüde (' . count($brokenCanonicalItems) . ' sayfa)',
+                'Bu sayfalar bir canonical hedefi belirtiyor ama o hedef ya çalışmıyor (4xx/5xx), ya kendisi başka bir '
+                    . "URL'e yönlendiriyor, ya NOINDEX ile işaretli (arama motoru zaten indekslemeyecek), ya bir canonical "
+                    . "ZİNCİRİ oluşturuyor (hedefin canonical'i yine başka bir sayfayı gösteriyor) ya da bir DÖNGÜ içinde "
+                    . "(A sayfası B'yi, B de A'yı gösteriyor). Bu durumların hepsinde arama motoru hangi sayfanın asil "
+                    . 'sayfa olduğuna kendi başına karar vermek zorunda kalır.',
+                'Canonical etiketlerinin doğrudan, çalışan (2xx) ve TEK bir gerçek/birincil sayfaya işaret ettiğinden '
+                    . 'emin olun - zincirleme canonical\'lardan kaçının, her sayfa doğrudan nihai hedefe işaret etsin.',
+                count($brokenCanonicalItems), $brokenCanonicalItems);
+        }
+
+        // 4) İnceleme gerektiren durumlar (çapraz domain, doğrulanamayan hedef, çelişkili/eksik
+        // canonical) - bunlar KESİN bir hata değil, bu yüzden severity daha düşük ve confidence 'olası'.
+        // NOT: canonical hedefinin İÇERİK düzeyinde gerçekten doğru sayfa olup olmadığı bu otomatik
+        // denetimin KAPSAMI DIŞINDADIR - burada sadece hedefin ulaşılabilir/tutarlı olup olmadığına bakılır.
+        $reviewCanonicalItems = $collectCanonicalItems(
+            array_merge($duplicateTitles, $duplicateMetaDescriptions),
+            $reviewCanonicalReasons
+        );
+        if (!empty($reviewCanonicalItems)) {
+            $add('crawlability_indexability', 'minor', 'olası',
+                'Canonical incelemesi gerekli (' . count($reviewCanonicalItems) . ' sayfa)',
+                'Bu sayfalar başka bir sayfayla aynı title/description\'ı paylaşıyor ve durum canonical etiketiyle '
+                    . 'KESİN olarak açıklığa kavuşturulamadı - hedef başka bir alan adında, taranan sayfalar arasında '
+                    . 'bulunamadı (crawl sayfa limitine takılmış olabilir), gruptaki sayfalar farklı hedeflere işaret '
+                    . "ediyor, ya da sayfada hiç canonical etiketi yok. Bu KESİN bir hata olmayabilir - manuel kontrol "
+                    . 'önerilir. (Not: canonical hedefinin İÇERİK olarak da doğru sayfa olduğu bu otomatik denetimle '
+                    . 'doğrulanamaz - sadece teknik ulaşılabilirlik/tutarlılık kontrol edilir.)',
+                'Her grubu elle kontrol edin: sayfalar gerçekten aynı içeriği mi gösteriyor? Öyleyse doğru, ulaşılabilir '
+                    . 've aynı alan adındaki bir birincil sayfaya canonical ekleyin/düzeltin.',
+                count($reviewCanonicalItems), $reviewCanonicalItems);
         }
 
         $headingHierarchy = $indexability['heading_hierarchy'] ?? [];
@@ -523,19 +666,40 @@ final class ScoringEngine
                 count($skippedLevelItems), $skippedLevelItems);
         }
 
-        $orphanPages = $indexability['orphan_pages'] ?? [];
-        if (!empty($orphanPages)) {
+        // NOT - iki farklı kavram burada kesişiyor, karıştırılmamalı:
+        //  - "sitemap dışı sayfa": tarama sırasında BULUNDU (yani en az bir iç
+        //    linkle erişilebilir) ama sitemap.xml'de YOK. Aşağıdaki finding.
+        //  - "yetim sayfa (orphan page)": sitemap.xml'de VAR ama tarama
+        //    sırasında hiçbir iç linkle ULAŞILAMADI. Bir sonraki finding.
+        // Önceden ikisi de yanlışlıkla "orphan page" diye etiketleniyordu.
+        $sitemapMissingPages = $indexability['orphan_pages'] ?? [];
+        if (!empty($sitemapMissingPages)) {
             // Kırık linklerdeki ile aynı desen: TAM liste 'items' üzerinden
             // gidiyor, kart tıklanınca açılıp hepsini gösteriyor - detay
             // metninde artık sadece ilk birkaçını saymaya gerek yok.
-            $orphanItems = array_map(
+            $sitemapMissingItems = array_map(
                 static fn (string $url): array => ['url' => $url, 'status' => "sitemap'te yok"],
+                $sitemapMissingPages
+            );
+            $add('crawlability_indexability', 'major', 'kesin', count($sitemapMissingPages) . ' sayfa sitemap dışı (sitemap.xml\'de eksik)',
+                'Site içinde en az bir iç linkle erişilebilen, ancak sitemap.xml\'de yer almayan sayfalar tespit edildi.',
+                'Bu sayfaları sitemap.xml\'e ekleyin ki arama motorları tarafından keşfedilme olasılığı artsın.',
+                count($sitemapMissingPages), $sitemapMissingItems);
+        }
+
+        $orphanPages = $indexability['sitemap_only_pages'] ?? [];
+        if (!empty($orphanPages)) {
+            $orphanItems = array_map(
+                static fn (string $url): array => ['url' => $url, 'status' => 'iç linkle ulaşılamadı'],
                 $orphanPages
             );
-            $add('crawlability_indexability', 'major', 'kesin', count($orphanPages) . ' sayfa sitemap\'te eksik (orphan pages)',
-                'Site içinde linklenen ancak sitemap.xml\'de yer almayan sayfalar tespit edildi.',
-                'Bu sayfaları sitemap.xml\'e ekleyin ki arama motorları tarafından keşfedilme olasılığı artsın.',
-                count($orphanPages), $orphanItems);
+            $add('crawlability_indexability', 'minor', 'olası', count($orphanPages) . ' yetim sayfa (orphan page) tespit edildi',
+                'Bu sayfalar sitemap.xml\'de listelenmiş ama tarama sırasında hiçbir sayfadan bunlara giden bir iç link '
+                    . 'bulunamadı - arama motorları sitemap üzerinden bu sayfaları bulsa bile, iç link olmadan sayfanın '
+                    . 'önem/otorite sinyali (internal PageRank) çok zayıf kalır.',
+                'Bu sayfalara ilgili içeriklerden en az bir iç link ekleyin (ör. menü, ilgili yazılar, footer) ki hem '
+                    . 'kullanıcılar hem arama motorları bunlara doğal bir gezinme yoluyla ulaşabilsin.',
+                count($orphanItems), $orphanItems);
         }
 
         $ssl = $input['ssl'] ?? [];
@@ -575,7 +739,7 @@ final class ScoringEngine
             $add('site_structure_links', 'major', 'kesin', count($brokenLinks) . ' kırık link tespit edildi',
                 'Taranan linkler arasında 4xx/5xx durum kodu dönen veya erişilemeyen linkler bulundu.',
                 'Kırık linkleri güncelleyin veya kaldırın; taşınan sayfalar için 301 yönlendirmesi ekleyin.',
-                count($brokenLinks), $brokenItems);
+                count($brokenLinks), $brokenItems, 'link');
         }
 
         $mobileParity = $input['mobile_parity'] ?? [];

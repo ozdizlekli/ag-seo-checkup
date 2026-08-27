@@ -39,6 +39,11 @@ final class SiteStructureAnalyzer
     private int $maxDepth;
     private int $maxTimeSeconds;
     private int $concurrency;
+    /** noindex tespiti icin (Asama 2) - homepage kontrolünde kullanılanla
+     *  AYNI mantığı (meta robots + X-Robots-Tag header) her taranan sayfada
+     *  da uygulayabilmek için OnPageIndexabilityChecker::checkNoindex() 'i
+     *  yeniden kullanıyoruz, regex'i burada tekrar yazmıyoruz. */
+    private OnPageIndexabilityChecker $indexabilityChecker;
 
     /**
      * Sayı/harf değiştirse de sayfa içeriğini DEĞİŞTİRMEYEN, yaygın izleme/
@@ -55,13 +60,20 @@ final class SiteStructureAnalyzer
         'phpsessid', 'jsessionid', 'sid', 'sessionid', 'aspsessionid',
     ];
 
-    public function __construct(Crawler $crawler, int $maxPages = 100, int $maxDepth = 6, int $maxTimeSeconds = 60, int $concurrency = 10)
-    {
+    public function __construct(
+        Crawler $crawler,
+        int $maxPages = 100,
+        int $maxDepth = 6,
+        int $maxTimeSeconds = 60,
+        int $concurrency = 10,
+        ?OnPageIndexabilityChecker $indexabilityChecker = null
+    ) {
         $this->crawler = $crawler;
         $this->maxPages = max(1, $maxPages);
         $this->maxDepth = max(0, $maxDepth);
         $this->maxTimeSeconds = max(1, $maxTimeSeconds);
         $this->concurrency = max(1, $concurrency);
+        $this->indexabilityChecker = $indexabilityChecker ?? new OnPageIndexabilityChecker();
     }
 
     /**
@@ -71,13 +83,13 @@ final class SiteStructureAnalyzer
      * durumda yalnızca host tespiti için kullanılır, kuyruk/ziyaret durumu
      * $resumeState'ten gelir.
      *
-     * @param array{visited:array<string,bool>, queue:list<array{url:string,depth:int}>, pages:list<array{url:string,status_code:int,internal_link_count:int,title:string|null,meta_description:string|null,heading_structure:list<int>}>, internal_links_found:list<string>}|null $resumeState
+     * @param array{visited:array<string,bool>, queue:list<array{url:string,depth:int}>, pages:list<array{url:string,status_code:int,internal_link_count:int,title:string|null,meta_description:string|null,heading_structure:list<int>,final_url:string,canonical:string|null,canonical_issue:string|null,noindex:bool|null}>, internal_links_found:list<string>}|null $resumeState
      * @return array{
-     *   pages: list<array{url:string, status_code:int, internal_link_count:int, title:string|null, meta_description:string|null, heading_structure:list<int>}>,
+     *   pages: list<array{url:string, status_code:int, internal_link_count:int, title:string|null, meta_description:string|null, heading_structure:list<int>, final_url:string, canonical:string|null, canonical_issue:string|null, noindex:bool|null}>,
      *   internal_links_found: list<string>,
      *   truncated: bool,
      *   truncated_reason: string|null,
-     *   resume_state?: array{visited:array<string,bool>, queue:list<array{url:string,depth:int}>, pages:list<array{url:string,status_code:int,internal_link_count:int,title:string|null,meta_description:string|null,heading_structure:list<int>}>, internal_links_found:list<string>}
+     *   resume_state?: array{visited:array<string,bool>, queue:list<array{url:string,depth:int}>, pages:list<array{url:string,status_code:int,internal_link_count:int,title:string|null,meta_description:string|null,heading_structure:list<int>,final_url:string,canonical:string|null,canonical_issue:string|null,noindex:bool|null}>, internal_links_found:list<string>}
      * }
      */
     public function crawl(string $startUrl, ?array $resumeState = null): array
@@ -142,6 +154,10 @@ final class SiteStructureAnalyzer
                         'title' => null,
                         'meta_description' => null,
                         'heading_structure' => [],
+                        'final_url' => $result['final_url'] ?? $url,
+                        'canonical' => null,
+                        'canonical_issue' => null,
+                        'noindex' => null,
                     ];
                     continue;
                 }
@@ -152,6 +168,8 @@ final class SiteStructureAnalyzer
                 $title = $this->extractTitle($body);
                 $metaDescription = $this->extractMetaDescription($body);
                 $headingStructure = $this->extractHeadingStructure($body);
+                $canonicalInfo = $this->extractCanonicalInfo($body, $effectiveUrl);
+                $noindexInfo = $this->indexabilityChecker->checkNoindex($body, $result['headers'] ?? []);
 
                 $pages[] = [
                     'url' => $url,
@@ -160,6 +178,10 @@ final class SiteStructureAnalyzer
                     'title' => $title,
                     'meta_description' => $metaDescription,
                     'heading_structure' => $headingStructure,
+                    'final_url' => $effectiveUrl,
+                    'canonical' => $canonicalInfo['value'],
+                    'canonical_issue' => $canonicalInfo['issue'],
+                    'noindex' => $noindexInfo['noindex'],
                 ];
 
                 foreach ($links as $link) {
@@ -363,7 +385,89 @@ final class SiteStructureAnalyzer
     }
 
     /**
-     * Sayfadaki H1-H6 etiketlerini DOKÜMAN SIRASINA göre seviye listesi
+     * <link rel="canonical" href="..."> etiketini bulur ve normalize eder.
+     * Donen 'issue' alani, canonical etiketinin KENDISINDEKI yapisal bir
+     * sorunu isaretler (OnPageContentChecker bunu ayri bir "canonical
+     * yapisal hatasi" bulgusuna donusturur):
+     *  - 'multiple'       : sayfada birden fazla rel="canonical" etiketi var
+     *  - 'empty_href'     : canonical etiketi var ama href bos/eksik
+     *  - 'invalid_scheme' : href http(s) disinda bir protokole cozumleniyor
+     * Hic canonical etiketi YOKSA bu bir hata degildir - value=null, issue=null
+     * doner (OnPageContentChecker bunu "kendi kendine/eksik" olarak ele alir).
+     *
+     * PUBLIC: Asama 2'de OnPageContentChecker, crawl disinda kalan canonical
+     * hedeflerini canli olarak getirip (Crawler ile) bu AYNI regex mantigiyla
+     * ayristirabilsin diye disariya acildi - mantigi ikinci kez yazmiyoruz.
+     *
+     * @return array{value:?string, issue:?string}
+     */
+    public function extractCanonicalInfo(string $html, string $baseUrl): array
+    {
+        if (!preg_match_all('/<link\s+[^>]*>/i', $html, $matches)) {
+            return ['value' => null, 'issue' => null];
+        }
+
+        $canonicalTags = [];
+        foreach ($matches[0] as $tag) {
+            if (preg_match('/rel\s*=\s*(["\'])(.*?)\1/i', $tag, $relM)) {
+                $relValue = $relM[2];
+            } elseif (preg_match('/rel\s*=\s*([^\s">]+)/i', $tag, $relM)) {
+                $relValue = $relM[1];
+            } else {
+                continue;
+            }
+
+            $relTokens = preg_split('/\s+/', mb_strtolower(trim($relValue))) ?: [];
+            if (in_array('canonical', $relTokens, true)) {
+                $canonicalTags[] = $tag;
+            }
+        }
+
+        if (count($canonicalTags) === 0) {
+            return ['value' => null, 'issue' => null];
+        }
+
+        if (count($canonicalTags) > 1) {
+            return ['value' => null, 'issue' => 'multiple'];
+        }
+
+        $tag = $canonicalTags[0];
+        if (preg_match('/href\s*=\s*(["\'])(.*?)\1/i', $tag, $hrefM)) {
+            $hrefValue = trim(html_entity_decode($hrefM[2]));
+        } elseif (preg_match('/href\s*=\s*([^\s">]+)/i', $tag, $hrefM)) {
+            $hrefValue = trim(html_entity_decode($hrefM[1]));
+        } else {
+            $hrefValue = '';
+        }
+
+        if ($hrefValue === '') {
+            return ['value' => null, 'issue' => 'empty_href'];
+        }
+
+        // resolveUrl() http(s) dışı bir şema önekini (ör. "ftp:", "mailto:",
+        // "javascript:", "tel:") fark etmeden bunu göreli bir YOL sanıp
+        // sitenin kendi alan adıyla birleştirebilir (RFC 3986 4.2 - göreli bir
+        // referansın ilk yol segmentinde ":" OLAMAZ, tam da bu belirsizliği
+        // önlemek için). Bu yüzden resolveUrl()'e gitmeden ÖNCE, href'in en
+        // başında http/https DIŞINDA açık bir şema var mı diye kontrol ediyoruz.
+        if (preg_match('/^([a-zA-Z][a-zA-Z0-9+.\-]*):/', $hrefValue, $schemeM)) {
+            $rawScheme = mb_strtolower($schemeM[1]);
+            if (!in_array($rawScheme, ['http', 'https'], true)) {
+                return ['value' => null, 'issue' => 'invalid_scheme'];
+            }
+        }
+
+        $resolved = $this->resolveUrl($baseUrl, $hrefValue);
+        $scheme = parse_url($resolved, PHP_URL_SCHEME);
+        if (!in_array(mb_strtolower((string) $scheme), ['http', 'https'], true)) {
+            return ['value' => null, 'issue' => 'invalid_scheme'];
+        }
+
+        return ['value' => $resolved, 'issue' => null];
+    }
+
+    /**
+     * Sayfadaki H1-H6 etiketlerini DOKUMAN SIRASINA gore seviye listesi
      * olarak çıkarır (ör. [1,2,2,3] = H1, sonra iki H2, sonra H3). Tüm
      * gövdeyi saklamak yerine sadece bu küçük listeyi tutuyoruz - yüzlerce
      * sayfa taranırken bellek dostu kalması için. <script>/<style> içindeki
