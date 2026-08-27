@@ -1,292 +1,336 @@
 /* ============================================================
    AdresGezgini — AI SEO Hizmetleri Stilleri
+   Kurumsal renk paleti (yalnızca bu sekmeye özel — global temayı etkilemez)
    ============================================================ */
-
-/* ── Typing indicator (URL tarama sırasında da kullanılıyor) ── */
-.typing-indicator {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 4px 8px;
+   #tab-3 {
+    --agseo-navy:        #312F4D; /* R:49  G:47  B:77  */
+    --agseo-navy-dark:   #24223A;
+    --agseo-navy-tint:   #F1F0F5; /* açık lacivert zemin */
+    --agseo-navy-ring:   rgba(49,47,77,0.14);
+    --agseo-gold:        #FBBA00; /* R:251 G:186 B:0   */
+    --agseo-gold-dark:   #D89F00;
+    --agseo-gold-tint:   #FFF6DF; /* açık altın zemin */
+    --agseo-ink:         #1F1D30;
+    --agseo-muted:       #6B6E82;
+    --agseo-line:        #E4E3EC;
+  }
+  
+  /* ── Typing indicator (URL tarama sırasında da kullanılıyor) ── */
+  .typing-indicator {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+  }
+  .typing-dot {
+    width: 7px;
+    height: 7px;
+    background: #94a3b8;
+    border-radius: 50%;
+    animation: typing 1.4s infinite ease-in-out both;
+  }
+  .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+  .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+  @keyframes typing {
+    0%, 80%, 100% { transform: scale(0); }
+    40% { transform: scale(1); }
+  }
+  
+  /* ── Tooltip (hizmet butonlarının üzerinde) ── */
+  .has-tooltip {
+    position: relative;
+  }
+  .has-tooltip:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: calc(100% + 10px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--agseo-navy);
+    color: #fff;
+    padding: 10px 14px;
+    border-radius: 6px;
+    font-size: 12px;
+    line-height: 1.5;
+    width: max-content;
+    max-width: 260px;
+    white-space: pre-wrap;
+    z-index: 200;
+    box-shadow: 0 4px 12px rgba(31,29,48,0.18);
+    text-align: center;
+    pointer-events: none;
+    font-weight: 400;
+  }
+  .has-tooltip:hover::before {
+    content: "";
+    position: absolute;
+    bottom: calc(100% + 4px);
+    left: 50%;
+    transform: translateX(-50%);
+    border: 6px solid transparent;
+    border-top-color: var(--agseo-navy);
+    z-index: 200;
+  }
+  
+  /* ── Hizmet butonları ── */
+  .aiseo-svc-btn {
+    transition: all 0.2s ease;
+  }
+  .aiseo-svc-btn:hover {
+    border-color: var(--agseo-gold) !important;
+    background: var(--agseo-gold-tint) !important;
+    color: var(--agseo-navy) !important;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px var(--agseo-navy-ring);
+  }
+  .aiseo-svc-btn:active {
+    transform: translateY(0);
+  }
+  
+  /* ── Accordion wrapper ── */
+  .aiseo-accordion {
+    animation: slideDown 0.3s ease;
+  }
+  @keyframes slideDown {
+    from { opacity: 0; transform: translateY(-8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  
+  /* ── Accordion header hover ── */
+  .aiseo-accordion-header:hover {
+    filter: brightness(0.97);
+  }
+  
+  /* ── Accordion body — markdown içerik stilleri ── */
+  .aiseo-accordion-content h1,
+  .aiseo-accordion-content h2 {
+    font-size: 16px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 20px 0 8px 0;
+    padding-bottom: 6px;
+    border-bottom: 1px solid #e2e8f0;
+  }
+  .aiseo-accordion-content h3 {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--agseo-navy);
+    margin: 16px 0 6px 0;
+  }
+  .aiseo-accordion-content h4 {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: #334155;
+    margin: 12px 0 4px 0;
+  }
+  .aiseo-accordion-content p {
+    margin-bottom: 10px;
+    color: #334155;
+  }
+  .aiseo-accordion-content ul,
+  .aiseo-accordion-content ol {
+    margin: 6px 0 12px 18px;
+  }
+  .aiseo-accordion-content li {
+    margin-bottom: 6px;
+    color: #475569;
+    line-height: 1.65;
+  }
+  .aiseo-accordion-content strong {
+    font-weight: 600;
+    color: #0f172a;
+  }
+  .aiseo-accordion-content em {
+    color: #64748b;
+  }
+  .aiseo-accordion-content code {
+    background: #f1f5f9;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 12.5px;
+    color: var(--agseo-navy);
+  }
+  .aiseo-accordion-content pre {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 14px 16px;
+    overflow-x: auto;
+    font-size: 12.5px;
+    line-height: 1.6;
+    margin: 12px 0;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .aiseo-accordion-content pre code {
+    background: none;
+    padding: 0;
+    color: #334155;
+  }
+  .aiseo-accordion-content blockquote {
+    border-left: 3px solid var(--agseo-gold);
+    margin: 10px 0;
+    padding: 6px 14px;
+    background: var(--agseo-navy-tint);
+    border-radius: 0 6px 6px 0;
+    color: var(--agseo-navy);
+    font-size: 13px;
+  }
+  .aiseo-accordion-content table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin: 12px 0;
+  }
+  .aiseo-accordion-content th {
+    background: #f1f5f9;
+    font-weight: 600;
+    padding: 10px 12px;
+    text-align: left;
+    border-bottom: 2px solid #e2e8f0;
+    color: #475569;
+  }
+  .aiseo-accordion-content td {
+    padding: 9px 12px;
+    border-bottom: 1px solid #f1f5f9;
+    color: #334155;
+    vertical-align: top;
+  }
+  
+  /* ── URL giriş input hover/focus ── */
+  #aiseo-url-input:focus {
+    outline: none;
+  }
+  #aiseo-url-submit:hover {
+    background: var(--agseo-navy-dark) !important;
+  }
+  #aiseo-url-submit:active {
+    opacity: 0.9;
+  }
+  
+  /* ── Geçmiş sidebar öğeleri ── */
+  .history-item:hover {
+    background: #f1f5f9 !important;
+    border-color: #94a3b8 !important;
+  }
+  .history-item.active {
+    background: var(--agseo-navy-tint) !important;
+    border-color: var(--agseo-navy) !important;
+  }
+  
+  /* ── Boş durum notu ── */
+  .empty-note {
+    color: #94a3b8;
+    font-size: 13px;
+    text-align: center;
+    padding: 20px;
+  }
+  
+  /* ── Tüm Hizmetleri Yap butonu hover ── */
+  #btn-run-all-services:not(:disabled):hover {
+    background: var(--agseo-navy-dark) !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px var(--agseo-navy-ring) !important;
+  }
+  
+  /* ── Sunum modu (dış kullanım için) ── */
+  body.client-presentation-mode .sidebar { display: none !important; }
+  body.client-presentation-mode .main-content { margin-left: 0 !important; max-width: 100% !important; }
+  
+  /* ── Toggle switch ── */
+  .switch { position: relative; display: inline-block; width: 34px; height: 20px; }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .4s; border-radius: 20px; }
+  .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 2px; bottom: 2px; background-color: white; transition: .4s; border-radius: 50%; }
+  input:checked + .slider { background-color: var(--agseo-navy); }
+  input:checked + .slider:before { transform: translateX(14px); }
+  
+  /* ── Spin animasyonu (servis yüklenirken) ── */
+  @keyframes spin360 {
+    to { transform: rotate(360deg); }
+  }
+  
+  /* ── Card genel ── */
+  .card {
+    background: #fff;
+    border: 1px solid var(--border);
+  }
+  
+  /* ── Özel hizmet + butonu ── */
+  #btn-add-custom-service {
+    transition: all 0.2s ease;
+  }
+  
+  /* ── Özel hizmet modal overlay ── */
+  #custom-svc-modal {
+    animation: fadeInOverlay 0.2s ease;
+  }
+  @keyframes fadeInOverlay {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+  
+  /* ── Modal içi input/textarea ortak stiller ── */
+  #csm-name,
+  #csm-desc {
+    width: 100%;
+    box-sizing: border-box;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  #csm-name:focus,
+  #csm-desc:focus {
+    border-color: var(--agseo-navy) !important;
+    box-shadow: 0 0 0 3px var(--agseo-navy-ring);
+  }
+  #csm-save:hover:not(:disabled) {
+    background: var(--agseo-navy-dark) !important;
+  }
+  #csm-cancel:hover {
+    background: #e5e4ec !important;
+  }
+  
+  /* ── Özel hizmet butonu (yıldızlı) stilleri ── */
+  .aiseo-svc-btn[data-service^="custom_"] {
+    border-color: var(--agseo-gold);
+    color: var(--agseo-navy);
+  }
+  .aiseo-svc-btn[data-service^="custom_"]:hover {
+    border-color: var(--agseo-gold-dark) !important;
+    background: var(--agseo-gold-tint) !important;
+    color: var(--agseo-navy) !important;
+  }
+/* Kod kutusunun genel çerçevesi */
+.ai-code-block pre {
+    position: relative;
+    background-color: #1F1D30; /* AdresGezgini koyu lacivert tonu */
+    color: #E4E3EC;
+    padding: 36px 16px 16px 16px; /* Üstten buton için boşluk bıraktık */
+    border-radius: 8px;
+    border: 1px solid #312F4D;
+    overflow-x: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    line-height: 1.5;
 }
-.typing-dot {
-  width: 7px;
-  height: 7px;
-  background: #94a3b8;
-  border-radius: 50%;
-  animation: typing 1.4s infinite ease-in-out both;
+/* Sağ üstteki kopyala butonu tasarımı */
+.ai-copy-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    padding: 4px 10px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
 }
-.typing-dot:nth-child(1) { animation-delay: -0.32s; }
-.typing-dot:nth-child(2) { animation-delay: -0.16s; }
-@keyframes typing {
-  0%, 80%, 100% { transform: scale(0); }
-  40% { transform: scale(1); }
-}
-
-/* ── Tooltip (hizmet butonlarının üzerinde) ── */
-.has-tooltip {
-  position: relative;
-}
-.has-tooltip:hover::after {
-  content: attr(data-tooltip);
-  position: absolute;
-  bottom: calc(100% + 10px);
-  left: 50%;
-  transform: translateX(-50%);
-  background: #1e293b;
-  color: #f8fafc;
-  padding: 10px 14px;
-  border-radius: 8px;
-  font-size: 12px;
-  line-height: 1.5;
-  width: max-content;
-  max-width: 260px;
-  white-space: pre-wrap;
-  z-index: 200;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-  text-align: center;
-  pointer-events: none;
-  font-weight: 400;
-}
-.has-tooltip:hover::before {
-  content: "";
-  position: absolute;
-  bottom: calc(100% + 4px);
-  left: 50%;
-  transform: translateX(-50%);
-  border: 6px solid transparent;
-  border-top-color: #1e293b;
-  z-index: 200;
-}
-
-/* ── Hizmet butonları ── */
-.aiseo-svc-btn {
-  transition: all 0.2s ease;
-}
-.aiseo-svc-btn:hover {
-  border-color: #2563eb !important;
-  background: #eff6ff !important;
-  color: #1d4ed8 !important;
-  transform: translateY(-1px);
-  box-shadow: 0 3px 10px rgba(37,99,235,0.12);
-}
-.aiseo-svc-btn:active {
-  transform: translateY(0);
-}
-
-/* ── Accordion wrapper ── */
-.aiseo-accordion {
-  animation: slideDown 0.3s ease;
-}
-@keyframes slideDown {
-  from { opacity: 0; transform: translateY(-8px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-/* ── Accordion header hover ── */
-.aiseo-accordion-header:hover {
-  filter: brightness(0.97);
-}
-
-/* ── Accordion body — markdown içerik stilleri ── */
-.aiseo-accordion-content h1,
-.aiseo-accordion-content h2 {
-  font-size: 16px;
-  font-weight: 700;
-  color: #0f172a;
-  margin: 20px 0 8px 0;
-  padding-bottom: 6px;
-  border-bottom: 1px solid #e2e8f0;
-}
-.aiseo-accordion-content h3 {
-  font-size: 14px;
-  font-weight: 700;
-  color: #1e40af;
-  margin: 16px 0 6px 0;
-}
-.aiseo-accordion-content h4 {
-  font-size: 13.5px;
-  font-weight: 600;
-  color: #334155;
-  margin: 12px 0 4px 0;
-}
-.aiseo-accordion-content p {
-  margin-bottom: 10px;
-  color: #334155;
-}
-.aiseo-accordion-content ul,
-.aiseo-accordion-content ol {
-  margin: 6px 0 12px 18px;
-}
-.aiseo-accordion-content li {
-  margin-bottom: 6px;
-  color: #475569;
-  line-height: 1.65;
-}
-.aiseo-accordion-content strong {
-  font-weight: 600;
-  color: #0f172a;
-}
-.aiseo-accordion-content em {
-  color: #64748b;
-}
-.aiseo-accordion-content code {
-  background: #f1f5f9;
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-family: monospace;
-  font-size: 12.5px;
-  color: #2563eb;
-}
-.aiseo-accordion-content pre {
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  padding: 14px 16px;
-  overflow-x: auto;
-  font-size: 12.5px;
-  line-height: 1.6;
-  margin: 12px 0;
-  white-space: pre-wrap;
-  word-break: break-word;
-}
-.aiseo-accordion-content pre code {
-  background: none;
-  padding: 0;
-  color: #334155;
-}
-.aiseo-accordion-content blockquote {
-  border-left: 3px solid #2563eb;
-  margin: 10px 0;
-  padding: 6px 14px;
-  background: #eff6ff;
-  border-radius: 0 6px 6px 0;
-  color: #1e40af;
-  font-size: 13px;
-}
-.aiseo-accordion-content table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 13px;
-  margin: 12px 0;
-}
-.aiseo-accordion-content th {
-  background: #f1f5f9;
-  font-weight: 600;
-  padding: 10px 12px;
-  text-align: left;
-  border-bottom: 2px solid #e2e8f0;
-  color: #475569;
-}
-.aiseo-accordion-content td {
-  padding: 9px 12px;
-  border-bottom: 1px solid #f1f5f9;
-  color: #334155;
-  vertical-align: top;
-}
-
-/* ── URL giriş input hover/focus ── */
-#aiseo-url-input:focus {
-  outline: none;
-}
-#aiseo-url-submit:hover {
-  background: #1d4ed8 !important;
-  transform: scale(1.02);
-}
-#aiseo-url-submit:active {
-  transform: scale(0.98);
-}
-
-/* ── Geçmiş sidebar öğeleri ── */
-.history-item:hover {
-  background: #f1f5f9 !important;
-  border-color: #94a3b8 !important;
-}
-.history-item.active {
-  background: #e0f2fe !important;
-  border-color: #2563eb !important;
-}
-
-/* ── Boş durum notu ── */
-.empty-note {
-  color: #94a3b8;
-  font-size: 13px;
-  text-align: center;
-  padding: 20px;
-}
-
-/* ── Tüm Hizmetleri Yap butonu hover ── */
-#btn-run-all-services:not(:disabled):hover {
-  background: #059669 !important;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(16,185,129,0.3) !important;
-}
-
-/* ── Sunum modu (dış kullanım için) ── */
-body.client-presentation-mode .sidebar { display: none !important; }
-body.client-presentation-mode .main-content { margin-left: 0 !important; max-width: 100% !important; }
-
-/* ── Toggle switch ── */
-.switch { position: relative; display: inline-block; width: 34px; height: 20px; }
-.switch input { opacity: 0; width: 0; height: 0; }
-.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .4s; border-radius: 20px; }
-.slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 2px; bottom: 2px; background-color: white; transition: .4s; border-radius: 50%; }
-input:checked + .slider { background-color: #3b82f6; }
-input:checked + .slider:before { transform: translateX(14px); }
-
-/* ── Spin animasyonu (servis yüklenirken) ── */
-@keyframes spin360 {
-  to { transform: rotate(360deg); }
-}
-
-/* ── Card genel ── */
-.card {
-  background: #fff;
-  border: 1px solid var(--border);
-}
-
-/* ── Özel hizmet + butonu ── */
-#btn-add-custom-service {
-  transition: all 0.2s ease;
-}
-
-/* ── Özel hizmet modal overlay ── */
-#custom-svc-modal {
-  animation: fadeInOverlay 0.2s ease;
-}
-@keyframes fadeInOverlay {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-
-/* ── Modal içi input/textarea ortak stiller ── */
-#custom-svc-name,
-#custom-svc-desc {
-  width: 100%;
-  box-sizing: border-box;
-  font-family: inherit;
-  outline: none;
-  transition: border-color 0.2s, box-shadow 0.2s;
-}
-#custom-svc-name:focus,
-#custom-svc-desc:focus {
-  border-color: #2563eb !important;
-  box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
-}
-#custom-svc-save:hover:not(:disabled) {
-  background: #1d4ed8 !important;
-}
-#custom-svc-cancel:hover {
-  background: #e2e8f0 !important;
-}
-
-/* ── Özel hizmet butonu (yıldızlı) stilleri ── */
-.aiseo-svc-btn[data-service^="custom_"] {
-  border-color: #a78bfa;
-  color: #5b21b6;
-}
-.aiseo-svc-btn[data-service^="custom_"]:hover {
-  border-color: #7c3aed !important;
-  background: #f5f3ff !important;
-  color: #4c1d95 !important;
+.ai-copy-btn:hover {
+    background-color: #10B981; /* Başarılı yeşili */
+    border-color: #10B981;
 }

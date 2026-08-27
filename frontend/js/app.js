@@ -1,27 +1,4 @@
 
-// --- POLYFILL FOR MISSING ELEMENTS ---
-(function() {
-  const originalGetElementById = document.getElementById.bind(document);
-  document.getElementById = function(id) {
-    const el = originalGetElementById(id);
-    if (el) return el;
-    const dummy = document.createElement('div');
-    dummy.id = id;
-    dummy.value = '';
-    dummy.click = function(){};
-    return dummy;
-  };
-  const originalQuerySelector = document.querySelector.bind(document);
-  document.querySelector = function(sel) {
-    const el = originalQuerySelector(sel);
-    if (el) return el;
-    const dummy = document.createElement('div');
-    dummy.value = '';
-    dummy.click = function(){};
-    return dummy;
-  };
-})();
-// -------------------------------------
 (function(){
 "use strict";
 
@@ -794,7 +771,7 @@ document.getElementById('t1-fetch-btn')?.addEventListener('click', async () => {
 
     const textForAnalysis = rawText.substring(0, 4000);
 
-    document.getElementById('t1-content').value = rawText;
+    if(document.getElementById('t1-content')) { document.getElementById('t1-content').value = rawText; }
     document.getElementById('t1-related-urls').value = Array.from(internalLinks).slice(0, 5).join('\n'); 
     
     // Temel verileri (Title ve Meta) hemen doldur
@@ -859,8 +836,8 @@ document.querySelectorAll('input[name="contentType"]').forEach(radio => {
 });
 
 /* --- Sekme 1: İyileştir Butonu (Yeni Prompt) --- */
-t1ImproveBtn.addEventListener('click', async () => {
-  const content = document.getElementById('t1-content').value;
+t1ImproveBtn?.addEventListener('click', async () => {
+  const content = (document.getElementById('t1-content')?.value || '');
   if(!content.trim()){ showToast('Lütfen önce içerik metni girin.', 'error'); return; }
   
   const keyword = document.getElementById('t1-keyword').value;
@@ -946,7 +923,7 @@ document.getElementById('t1-toggle-html')?.addEventListener('click', function(){
 
 /* --- Sekme 1: Dönüşüm / Satın Alma Niyeti Skoru  --- */
 document.getElementById('t1-conversion-btn')?.addEventListener('click', async () => {
-  const content = document.getElementById('t1-content').value;
+  const content = (document.getElementById('t1-content')?.value || '');
   if (!content.trim()) { 
     showToast('Lütfen önce içerik metni girin veya URL\'den çekin.', 'error'); 
     return; 
@@ -1075,8 +1052,8 @@ document.getElementById('t1-conversion-btn')?.addEventListener('click', async ()
 
 const t1SgeBtn = document.getElementById('t1-sge-btn');
 // Google AI Overviews (SGE) Uyumluluk Analizi Butonu
-t1SgeBtn.addEventListener('click', () => {
-  const content = document.getElementById('t1-content').value;
+t1SgeBtn?.addEventListener('click', () => {
+  const content = (document.getElementById('t1-content')?.value || '');
   if (!content.trim()) {
     showToast('Lütfen önce analiz edilecek bir içerik metni girin.', 'error');
     return;
@@ -1363,33 +1340,34 @@ function updateBucketCounts() {
 
 ['questions', 'similar', 'related', 'low_volume'].forEach(tab => {
   const btn = document.getElementById('btn-tab-' + tab);
-  btn.addEventListener('click', () => {
-    ['questions', 'similar', 'related', 'low_volume'].forEach(t => document.getElementById('btn-tab-' + t).classList.remove('active'));
+  btn?.addEventListener('click', () => {
+    ['questions', 'similar', 'related', 'low_volume'].forEach(t => document.getElementById('btn-tab-' + t)?.classList.remove('active'));
     btn.classList.add('active');
     activeBucket = tab;
     renderKeywordTable(tab);
-    t2SelectAll.checked = false;
+    if(t2SelectAll) t2SelectAll.checked = false;
   });
 });
 
-t2SelectAll.addEventListener('change', (e) => {
+t2SelectAll?.addEventListener('change', (e) => {
   const checkboxes = document.querySelectorAll('.t2-kw-checkbox');
   checkboxes.forEach(cb => cb.checked = e.target.checked);
 });
 
-t2ResultsTbody.addEventListener('click', (e) => {
+t2ResultsTbody?.addEventListener('click', (e) => {
   const btn = e.target.closest('.t2-import-btn');
   if(btn) {
     const kw = btn.getAttribute('data-kw');
-    document.getElementById('t1-keyword').value = kw;
+    const kwInput = document.getElementById('t1-keyword');
+    if(kwInput) kwInput.value = kw;
     // Switch to Tab 1
-    document.querySelector('.nav__item[data-tab="tab-1"]').click();
+    document.querySelector('.nav__item[data-tab="tab-1"]')?.click();
     showToast(`"${kw}" Tab 1 hedefine kopyalandı.`, 'success');
   }
 });
 
-t2Btn.addEventListener('click', async () => {
-  const seed = document.getElementById('t2-seed').value.trim();
+t2Btn?.addEventListener('click', async () => {
+  const seed = document.getElementById('t2-seed')?.value?.trim();
   if(!seed){
     showToast('Lütfen tohum kelime girin.', 'error');
     return;
@@ -1400,7 +1378,7 @@ t2Btn.addEventListener('click', async () => {
   }
 
   t2Btn.disabled = true;
-  t2Label.innerHTML = '<span class="spinner" style="width:12px;height:12px;border-width:2px;display:inline-block;vertical-align:middle;margin-right:5px;border-top-color:#fff;"></span> Toplanıyor...';
+  if(t2Label) t2Label.innerHTML = '<span class="spinner" style="width:12px;height:12px;border-width:2px;display:inline-block;vertical-align:middle;margin-right:5px;border-top-color:#fff;"></span> Toplanıyor...';
 
   try {
     const buckets = await window.KeywordEngine.analyzeKeywords(seed);
@@ -1409,14 +1387,14 @@ t2Btn.addEventListener('click', async () => {
     
     // Switch to first non-empty bucket if active is empty
     if(currentKeywordBuckets[activeBucket].length === 0) {
-      ['questions', 'similar', 'related', 'low_volume'].forEach(t => document.getElementById('btn-tab-' + t).classList.remove('active'));
+      ['questions', 'similar', 'related', 'low_volume'].forEach(t => document.getElementById('btn-tab-' + t)?.classList.remove('active'));
       const nextActive = ['questions', 'similar', 'related', 'low_volume'].find(t => currentKeywordBuckets[t].length > 0) || 'questions';
       activeBucket = nextActive;
-      document.getElementById('btn-tab-' + activeBucket).classList.add('active');
+      document.getElementById('btn-tab-' + activeBucket)?.classList.add('active');
     }
 
     renderKeywordTable(activeBucket);
-    document.getElementById('t2-output-card').classList.remove('hidden');
+    document.getElementById('t2-output-card')?.classList.remove('hidden');
     
     state.keywordScore = 80 + Math.round(Math.random()*15); 
     showToast('Google önerileri başarıyla toplandı ve skorlandı.', 'success');
@@ -1425,11 +1403,11 @@ t2Btn.addEventListener('click', async () => {
     showToast('Kelime analizi sırasında hata oluştu.', 'error');
   } finally {
     window.dispatchEvent(new Event('t2-generate-btn-done'));
-    t2Btn.disabled = false; t2Label.textContent = 'Kelimeleri Topla';
+    t2Btn.disabled = false; if(t2Label) t2Label.textContent = 'Kelimeleri Topla';
   }
 });
 
-t2SaveBtn.addEventListener('click', async () => {
+t2SaveBtn?.addEventListener('click', async () => {
   if(!state.currentClientId){
     showToast('Önce sol menüden bir müşteri seçin.', 'error');
     return;
@@ -1654,7 +1632,7 @@ document.getElementById('t4-copy-btn')?.addEventListener('click', async () => {
 
 // 1. NER Modeli ile Sekme 1'deki Metinden Şema Bilgilerini Çıkarma
 document.getElementById('t4-ai-extract-btn')?.addEventListener('click', async () => {
-  const content = document.getElementById('t1-content').value;
+  const content = (document.getElementById('t1-content')?.value || '');
   if (!content.trim()) {
     showToast('Önce Sekme 1\'de bir içerik metni hazırlayın veya URL\'den veri çekin.', 'error');
     return;
@@ -1712,7 +1690,7 @@ document.getElementById('t4-ai-extract-btn')?.addEventListener('click', async ()
 
 // 2. Yapay Zeka Tanıtım Dosyası (llms.txt) Üretici
 document.getElementById('t4-llmstxt-btn')?.addEventListener('click', async () => {
-  const content = document.getElementById('t1-content').value;
+  const content = (document.getElementById('t1-content')?.value || '');
   const clientName = document.getElementById('t7-customer').value || 'Müşteri Web Sitesi';
 
   const btn = document.getElementById('t4-llmstxt-btn');
@@ -2106,7 +2084,7 @@ function scoreStatusLabel(v){
 
 async function computeAndRenderScore(){
   // 1. İÇERİK SKORU (Kelime Sayısına göre)
-  const contentText = document.getElementById('t1-content').value.trim();
+  const contentText = (document.getElementById('t1-content')?.value || '').trim();
   const wordCount = contentText ? contentText.split(/\s+/).length : 0;
   // Kelime başına 0.2 puan (Max 100). Örn: 400 kelime = 80 puan
   let calculatedContentScore = Math.min(100, Math.floor(wordCount * 0.2));
@@ -2154,11 +2132,15 @@ async function computeAndRenderScore(){
   // DOM GÜNCELLEMESİ
   const numEl = document.getElementById('t6-score-num');
   const circle = document.getElementById('t6-gauge-circle');
-  numEl.textContent = overall;
-  numEl.style.color = scoreColor(overall);
-  circle.style.stroke = scoreColor(overall);
-  circle.style.strokeDasharray = GAUGE_CIRC;
-  circle.style.strokeDashoffset = GAUGE_CIRC * (1 - overall/100);
+  if (numEl) {
+      numEl.textContent = overall;
+      numEl.style.color = scoreColor(overall);
+  }
+  if (circle) {
+      circle.style.stroke = scoreColor(overall);
+      circle.style.strokeDasharray = GAUGE_CIRC;
+      circle.style.strokeDashoffset = GAUGE_CIRC * (1 - overall/100);
+  }
 
   const wrap = document.getElementById('t6-sub-scores');
   wrap.innerHTML = '';
@@ -2553,21 +2535,23 @@ document.getElementById('t7-todo-list')?.addEventListener('change', (e) => {
 const dz = document.getElementById('t7-dropzone');
 const fileInput = document.getElementById('t7-file-input');
 
-dz.addEventListener('click', () => fileInput.click());
-['dragenter','dragover'].forEach(evt => dz.addEventListener(evt, (e) => {
-  e.preventDefault(); e.stopPropagation(); dz.classList.add('dragover');
-}));
-['dragleave','drop'].forEach(evt => dz.addEventListener(evt, (e) => {
-  e.preventDefault(); e.stopPropagation(); dz.classList.remove('dragover');
-}));
-dz.addEventListener('drop', (e) => {
-  const files = e.dataTransfer.files;
-  handleFiles(files);
-});
-fileInput.addEventListener('change', (e) => {
-  handleFiles(e.target.files);
-  fileInput.value = '';
-});
+if (dz && fileInput) {
+  dz.addEventListener('click', () => fileInput.click());
+  ['dragenter','dragover'].forEach(evt => dz.addEventListener(evt, (e) => {
+    e.preventDefault(); e.stopPropagation(); dz.classList.add('dragover');
+  }));
+  ['dragleave','drop'].forEach(evt => dz.addEventListener(evt, (e) => {
+    e.preventDefault(); e.stopPropagation(); dz.classList.remove('dragover');
+  }));
+  dz.addEventListener('drop', (e) => {
+    const files = e.dataTransfer.files;
+    handleFiles(files);
+  });
+  fileInput.addEventListener('change', (e) => {
+    handleFiles(e.target.files);
+    fileInput.value = '';
+  });
+}
 
 function handleFiles(fileList){
   Array.from(fileList).forEach(file => {
@@ -2696,7 +2680,7 @@ function sectionTitleHtml(num, title){
       doğrudan gönderilir (bkz. t7-export-drive click handler) */
 function buildReportHtml(){
   const customer = document.getElementById('t7-customer').value.trim() || 'Müşteri';
-  const reportDateRaw = document.getElementById('t7-date').value || new Date().toISOString().slice(0,10);
+  const reportDateRaw = (document.getElementById('t7-date') ? document.getElementById('t7-date').value : '') || new Date().toISOString().slice(0,10);
   const reportDateDisplay = formatDateForFileName(reportDateRaw);
 
   const packageSel = document.getElementById('t7-package');
@@ -3150,7 +3134,7 @@ document.getElementById('t7-export-drive')?.addEventListener('click', async () =
 
   try{
     const clientFolderId = await resolveClientDriveFolderId();
-    const fileDate = formatDateForFileName(document.getElementById('t7-date').value);
+    const fileDate = formatDateForFileName(document.getElementById('t7-date') ? document.getElementById('t7-date').value : '');
     const sentItems = [];
 
     if(contentPair){
@@ -3204,7 +3188,7 @@ document.getElementById('t7-export-word')?.addEventListener('click', () => {
 });
 
 /* Set default report date to today */
-document.getElementById('t7-date').value = new Date().toISOString().slice(0,10);
+if(document.getElementById('t7-date')) { document.getElementById('t7-date').value = new Date().toISOString().slice(0,10); }
 
 /* ============================================================
    İLK YÜKLEME — Supabase'den verileri çek

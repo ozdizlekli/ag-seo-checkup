@@ -42,8 +42,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $url = $inputData["url"];
         $type = $inputData["type"] ?? '';
         $messages = $inputData["messages"] ?? [];
-        $completedSteps = $inputData["completedSteps"] ?? [];
-        $reportData = $inputData["reportData"] ?? [];
+        $completedSteps = $inputData["completedServices"] ?? ($inputData["completedSteps"] ?? []);
+        $reportData = $inputData["serviceResults"] ?? ($inputData["reportData"] ?? []);
         $fixedIssues = $inputData["fixedIssues"] ?? [];
         $date_str = date("d.m.Y H:i");
 
@@ -73,6 +73,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             'url' => $url,
             'type' => $type,
             'messages' => $messages,
+            'completedServices' => $completedSteps,
+            'serviceResults'    => $reportData,
             'completedSteps' => $completedSteps,
             'reportData' => $reportData,
             'fixedIssues' => $fixedIssues,
@@ -103,6 +105,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     'url' => $row['url'],
                     'type' => $row['type'],
                     'messages' => json_decode($row['messages'], true) ?? [],
+                    'completedServices' => json_decode($row['completed_steps'], true) ?? [],
+                    'serviceResults'    => json_decode($row['report_data'], true) ?? [],
                     'completedSteps' => json_decode($row['completed_steps'], true) ?? [],
                     'reportData' => json_decode($row['report_data'], true) ?? [],
                     'fixedIssues' => json_decode($row['fixed_issues'], true) ?? [],
@@ -126,6 +130,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         'url' => $item['url'] ?? '',
                         'type' => $item['type'] ?? '',
                         'messages' => $item['messages'] ?? [],
+                        'completedServices' => $item['completedServices'] ?? ($item['completedSteps'] ?? []),
+                        'serviceResults'    => $item['serviceResults']    ?? ($item['reportData']    ?? []),
                         'completedSteps' => $item['completedSteps'] ?? [],
                         'reportData' => $item['reportData'] ?? [],
                         'fixedIssues' => $item['fixedIssues'] ?? [],
