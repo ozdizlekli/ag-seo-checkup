@@ -385,7 +385,15 @@ final class ScoringEngine
             $confidenceWeight = self::CONFIDENCE_WEIGHTS[$confidence] ?? 0.6;
             $prevalence = min(1.0, $affectedPages / $totalPages);
 
+            $solutionType = 'manual_steps';
+            if (stripos($title, 'sitemap') !== false) $solutionType = 'generated_sitemap';
+            elseif (stripos($title, 'canonical') !== false) $solutionType = 'code_snippet';
+            elseif (stripos($title, 'robots') !== false) $solutionType = 'generated_robots';
+            elseif (stripos($title, 'şema') !== false || stripos($title, 'schema') !== false) $solutionType = 'json_ld';
+            elseif (stripos($title, 'PageSpeed') !== false || $category === 'performance') $solutionType = 'configuration_example';
+
             $findings[] = [
+                'id' => substr(hash('sha256', $category . '|' . $title), 0, 16),
                 'category' => $category,
                 'severity' => $severity,
                 'confidence' => $confidence,
@@ -403,6 +411,15 @@ final class ScoringEngine
                 // sabitlemişti, bu da ör. "319 link - göster" gibi (aslında
                 // sayfa olan) bulgularda yanlış/yanıltıcı görünüyordu.
                 'item_noun' => $itemNoun,
+                'why_it_matters' => $detail,
+                'source' => $category === 'performance' ? ['pagespeed'] : ['crawler'],
+                'solution_type' => $solutionType,
+                'solution_available' => $howToFix !== '',
+                'manual_review_required' => $confidence !== 'kesin',
+                'verification_steps' => [
+                    'Önerilen değişikliği önce test veya staging ortamında uygulayın.',
+                    'İlgili URL’yi yeniden denetleyin ve bulgunun kapanıp kapanmadığını doğrulayın.',
+                ],
             ];
         };
 

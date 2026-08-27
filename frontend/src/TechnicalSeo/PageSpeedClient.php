@@ -233,7 +233,61 @@ final class PageSpeedClient
             'category_scores' => $categoryScores,
             'web_vitals' => $webVitals,
             'field_data' => is_array($fieldData) ? $fieldData : null,
+            'field_data_scope' => is_array($fieldData) ? ($fieldDataIsOriginLevel ? 'origin' : 'url') : null,
+            'origin_data' => isset($raw['originLoadingExperience']['metrics']) && is_array($raw['originLoadingExperience']['metrics'])
+                ? $raw['originLoadingExperience']['metrics']
+                : null,
+            'audits' => $this->extractAudits($audits),
         ];
+    }
+
+    /**
+     * Lighthouse denetimlerini arayüz için güvenli, sınırlı ve geriye uyumlu
+     * bir özete dönüştürür. Ham JSON veya ekran görüntüsü/base64 verisi
+     * istemciye taşınmaz; ayrıntı satırları denetim başına 50 ile sınırlıdır.
+     *
+     * @param array<string,mixed> $audits
+     * @return list<array<string,mixed>>
+     */
+    private function extractAudits(array $audits): array
+    {
+        $result = [];
+        foreach ($audits as $id => $audit) {
+            if (!is_array($audit)) {
+                continue;
+            }
+            $mode = (string) ($audit['scoreDisplayMode'] ?? 'informative');
+            $score = isset($audit['score']) && is_numeric($audit['score']) ? (float) $audit['score'] : null;
+            $details = is_array($audit['details'] ?? null) ? $audit['details'] : [];
+            $items = [];
+            foreach (array_slice(is_array($details['items'] ?? null) ? $details['items'] : [], 0, 50) as $item) {
+                if (!is_array($item)) continue;
+                $safe = [];
+                foreach ($item as $key => $value) {
+                    if (is_scalar($value) || $value === null) {
+                        $safe[(string) $key] = is_string($value) ? mb_substr($value, 0, 1000) : $value;
+                    } elseif (is_array($value) && isset($value['url']) && is_string($value['url'])) {
+                        $safe[(string) $key] = ['url' => mb_substr($value['url'], 0, 2000)];
+                    }
+                }
+                if ($safe !== []) $items[] = $safe;
+            }
+            $result[] = [
+                'id' => (string) $id,
+                'title' => (string) ($audit['title'] ?? $id),
+                'description' => mb_substr(strip_tags((string) ($audit['description'] ?? '')), 0, 2000),
+                'score' => $score,
+                'score_display_mode' => $mode,
+                'display_value' => isset($audit['displayValue']) ? (string) $audit['displayValue'] : null,
+                'numeric_value' => isset($audit['numericValue']) && is_numeric($audit['numericValue']) ? (float) $audit['numericValue'] : null,
+                'numeric_unit' => isset($audit['numericUnit']) ? (string) $audit['numericUnit'] : null,
+                'savings_ms' => isset($details['overallSavingsMs']) && is_numeric($details['overallSavingsMs']) ? (float) $details['overallSavingsMs'] : null,
+                'savings_bytes' => isset($details['overallSavingsBytes']) && is_numeric($details['overallSavingsBytes']) ? (float) $details['overallSavingsBytes'] : null,
+                'details_type' => isset($details['type']) ? (string) $details['type'] : null,
+                'items' => $items,
+            ];
+        }
+        return $result;
     }
 
     /**

@@ -111,16 +111,18 @@ require_once __DIR__ . '/db.php';
         <img src="image.png" alt="AG SEO Check Up" style="width: 100%; height: 100%; object-fit: contain; border-radius: 8px;">
       </div>
       <div class="brand-text">
-        <div class="name">AG_seo_check_up</div>
+        <div class="name">AG SEO Check Up</div>
         <div class="sub">Admin Paneli</div>
       </div>
     </div>
 
     <div class="client-box">
-      <label for="client-select">Aktif Müşteri</label>
-      <select class="client-select-dark" id="client-select">
-        <option value="">— Müşteri seçin —</option>
-      </select>
+      <label for="client-select-input">Aktif Müşteri</label>
+      <div class="search-select" id="client-searchselect">
+        <input type="text" class="client-select-dark" id="client-select-input" placeholder="— Müşteri seçin —" autocomplete="off">
+        <input type="hidden" id="client-select" value="">
+        <div class="search-select__list search-select__list--dark hidden" id="client-select-list"></div>
+      </div>
       <div id="sidebar-client-domain" style="font-size: 11px; color: var(--muted-2); margin-bottom: 8px; display: none; cursor: pointer;" title="Ana domaine git / kopyala"></div>
       
       <div style="display:flex; gap:4px;">
@@ -137,14 +139,12 @@ require_once __DIR__ . '/db.php';
       </div>
     </div>
 
-    <div id="sidebar-site-explorer" style="display:none; margin: 0 20px 16px 20px; padding: 10px; background: rgba(0,0,0,0.15); border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
-      <div style="font-size: 10.5px; font-weight: bold; color: var(--muted-2); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em; display: flex; justify-content: space-between; align-items: center;">
-        Sitemap Explorer
-        <button id="refresh-sitemap-btn" style="background:none; border:none; color:var(--accent); cursor:pointer; font-size:10px;">Yenile</button>
+    <div id="sidebar-site-explorer" class="t3-sitemap" hidden>
+      <div class="t3-sitemap__head">
+        <span class="t3-sitemap__title">Sitemap Explorer <span class="t3-sitemap__badge" id="sitemap-url-count" hidden>0</span></span>
+        <button id="refresh-sitemap-btn" class="t3-sitemap__refresh" type="button" aria-label="Sitemap'i yenile" title="Sitemap'i yenile"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20 11a8 8 0 1 0 2 5"/><polyline points="20 4 20 11 13 11"/></svg><span class="sr-only">Yenile</span></button>
       </div>
-      <div id="site-explorer-tree" style="max-height: 180px; overflow-y: auto; font-size: 11px; line-height: 1.6; color: #E4E7EE;">
-         <span class="spinner" style="width:12px;height:12px;border-width:2px;display:inline-block;vertical-align:middle;margin-right:5px;"></span> Yükleniyor...
-      </div>
+      <div id="site-explorer-tree" class="t3-sitemap__body" aria-live="polite"><div class="t3-sitemap__empty">Müşteri seçiniz...</div></div>
       <!-- Auto-Pilot Başlat / Gece 3'te Çalıştır butonları kaldırıldı
            (kullanıcı isteği). js/app.js'deki ilgili kod (runEnterpriseAutoPilot,
            schedule-night-btn tıklama dinleyicisi, routeUrlToActiveTab'deki
@@ -277,12 +277,36 @@ require_once __DIR__ . '/db.php';
           </div>
         </div>
 
-        <div class="card mt-20 hidden" id="t3-progress-card">
-          <div class="card__head">
-            <div class="card__title">Analiz Sürüyor…</div>
-            <span class="small muted">Şu an hangi kontrolün yapıldığını aşağıda canlı olarak görebilirsiniz</span>
+        <div class="t3-scan-overlay hidden" id="t3-progress-card" role="dialog" aria-modal="true" aria-labelledby="t3-scan-title" aria-describedby="t3-scan-current" aria-live="polite" aria-busy="false" aria-hidden="true">
+          <div class="t3-scan-overlay__panel" tabindex="-1">
+            <div id="t3-scan-running">
+              <div class="t3-scan-overlay__scan-dot" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9" stroke-dasharray="18 8"/></svg></div>
+              <div class="t3-scan-overlay__title" id="t3-scan-title">Teknik analiz sürüyor</div>
+              <div class="t3-scan-overlay__current" id="t3-scan-current">Analiz hazırlanıyor…</div>
+              <div class="t3-scan-overlay__bar" role="progressbar" aria-label="Analiz ilerlemesi" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="t3-scan-overlay__bar-fill" id="t3-scan-progress-fill"></div></div>
+              <div class="t3-scan-overlay__steps" id="t3-progress-body"></div>
+            </div>
+            <div class="t3-scan-overlay__done hidden" id="t3-scan-done" role="status"><div class="t3-scan-overlay__done-icon" aria-hidden="true">✓</div><div class="t3-scan-overlay__done-text">Analiz tamamlandı. Sonuçlar hazırlanıyor…</div></div>
+            <div class="t3-scan-overlay__error hidden" id="t3-scan-error" role="alert"><div class="t3-scan-overlay__error-icon" aria-hidden="true">!</div><div class="t3-scan-overlay__error-text" id="t3-scan-error-text"></div><div class="t3-scan-overlay__error-actions"><button class="btn btn--primary btn--sm" id="t3-scan-retry" type="button">Tekrar Dene</button><button class="btn btn--ghost btn--sm" id="t3-scan-close" type="button">Kapat</button></div></div>
           </div>
-          <div class="mt-16" id="t3-progress-body"></div>
+        </div>
+
+        <div class="card mt-20 hidden t3-overview" id="t3-overview-card">
+          <div class="card__head"><div><div class="card__title">Genel Bakış</div><div class="small muted" id="t3-overview-meta"></div></div></div>
+          <div class="t3-overview__stats" id="t3-overview-stats"></div>
+          <div class="t3-section-nav mt-16" aria-label="Teknik SEO sonuç bölümleri">
+            <button type="button" data-target="t3-overview-priority">Önce Bunları Düzeltin</button>
+            <button type="button" data-target="t3-findings-card">Bulgular ve Çözümler</button>
+            <button type="button" data-target="t3-solutions-card">Hazır Çıktılar</button>
+            <button type="button" data-target="t3-output-card">PageSpeed Ayrıntıları</button>
+            <button type="button" data-target="t3-quick-audit-card">Tarama Ayrıntıları</button>
+          </div>
+          <div class="t3-priority mt-16" id="t3-overview-priority"></div>
+        </div>
+
+        <div class="card mt-20 hidden" id="t3-solutions-card">
+          <div class="card__head"><div><div class="card__title">Hazır Çıktılar</div><div class="small muted">Önizleyin, kopyalayın veya dosya olarak indirin. Hiçbir değişiklik siteye otomatik uygulanmaz.</div></div></div>
+          <div class="mt-16" id="t3-solutions-body"></div>
         </div>
 
         <div class="card mt-20" id="t3-output-card">
@@ -371,6 +395,7 @@ require_once __DIR__ . '/db.php';
               <div class="meter-track"><div class="meter-fill" id="t3-inp-fill" style="width:0%;"></div></div>
             </div>
           </div>
+          <div class="t3-psi-details mt-20" id="t3-psi-details"></div>
         </div>
 
         <div class="card mt-20 hidden" id="t3-quick-audit-card">

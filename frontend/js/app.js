@@ -138,13 +138,62 @@ async function fetchClients(){
   }
 }
 
+// Sidebar "Aktif Musteri" secici artik native <select> degil, yazarak
+// aranabilen bir search-select (bkz. wireSidebarClientSearchSelect asagida).
+// Gorunen metin kutusunun id'si 'client-select-input', ama gercek secili
+// musteri id'sini tasiyan gizli input HALA 'client-select' id'sinde - boylece
+// bu dosyadaki (ve technical-seo.js'teki) client-select'in .value'sunu okuyan/
+// yazan ve 'change' olayini dinleyen TUM mevcut kod DEGISMEDEN calismaya
+// devam ediyor; sadece gorunen metni ayrica senkronlamamiz gerekiyor.
 function renderClientSelect(){
-  const sel = document.getElementById('client-select');
-  const prev = sel.value;
-  sel.innerHTML = '<option value="">— Müşteri seçin —</option>' +
-    state.clients.map(c => '<option value="' + c.id + '">' + escapeHtml(c.name) + '</option>').join('');
-  if(prev && state.clients.some(c => String(c.id) === prev)) sel.value = prev;
+  const hidden = document.getElementById('client-select');
+  const visible = document.getElementById('client-select-input');
+  const stillExists = hidden.value && state.clients.some(c => String(c.id) === String(hidden.value));
+  if (!stillExists) hidden.value = '';
+  const selected = hidden.value ? state.clients.find(c => String(c.id) === String(hidden.value)) : null;
+  if (visible) visible.value = selected ? selected.name : '';
 }
+
+// technical-seo.js'teki wireClientSearchSelect ile ayni gorsel/etkilesim
+// davranisi (odaklaninca tam liste, yazinca filtrele, tiklayinca sec, disari
+// tiklayinca kapat) - ama listeyi ORADAKI ayri/cache'lenen musteri listesi
+// yerine buradaki state.clients'tan besliyoruz ki musteri ekleme/duzenleme/
+// silme sonrasi liste (ayri bir cache'i manuel gecersiz kilmaya gerek kalmadan)
+// HER ZAMAN güncel kalsin.
+function wireSidebarClientSearchSelect() {
+  const input = document.getElementById('client-select-input');
+  const hidden = document.getElementById('client-select');
+  const list = document.getElementById('client-select-list');
+  if (!input || !hidden || !list) return;
+
+  const renderList = (query) => {
+    const q = (query || '').trim().toLowerCase();
+    const sorted = state.clients.slice().sort((a, b) => (a.name || '').localeCompare(b.name || '', 'tr'));
+    const filtered = q
+      ? sorted.filter(c => (c.name || '').toLowerCase().includes(q) || (c.domain_url || '').toLowerCase().includes(q))
+      : sorted;
+    list.innerHTML = filtered.length
+      ? filtered.map(c => `<div class="search-select__item" data-id="${c.id}" data-name="${escapeHtml(c.name)}">${escapeHtml(c.name)}${c.domain_url ? `<span class="small muted"> — ${escapeHtml(c.domain_url)}</span>` : ''}</div>`).join('')
+      : '<div class="search-select__item search-select__item--empty">Eşleşen müşteri yok</div>';
+  };
+
+  input.addEventListener('focus', () => { renderList(''); list.classList.remove('hidden'); });
+  input.addEventListener('input', () => { hidden.value = ''; renderList(input.value); list.classList.remove('hidden'); });
+  list.addEventListener('mousedown', (e) => {
+    const item = e.target.closest('.search-select__item[data-id]');
+    if (!item) return;
+    e.preventDefault();
+    input.value = item.dataset.name;
+    hidden.value = item.dataset.id;
+    list.classList.add('hidden');
+    hidden.dispatchEvent(new Event('change'));
+  });
+  document.addEventListener('click', (e) => {
+    if (e.target === input || list.contains(e.target)) return;
+    list.classList.add('hidden');
+  });
+}
+wireSidebarClientSearchSelect();
 
 document.getElementById('client-add-btn')?.addEventListener('click', async () => {
   const name = prompt('Yeni müşteri adı:');
@@ -233,6 +282,15 @@ document.getElementById('client-delete-btn')?.addEventListener('click', async ()
 
 document.getElementById('client-select')?.addEventListener('change', async (e) => {
   const id = e.target.value;
+  // Ekle/Düzenle/Sil butonları hidden input'un .value'sunu programatik
+  // olarak set edip 'change' dispatch ediyor (liste tıklamasından farklı
+  // olarak) - görünen metin kutusu da burada senkronlanmazsa ör. yeni
+  // müşteri eklendiğinde kutuda hiçbir isim görünmez.
+  const visibleClientInput = document.getElementById('client-select-input');
+  if (visibleClientInput) {
+    const selectedForDisplay = id ? state.clients.find(c => String(c.id) === id) : null;
+    visibleClientInput.value = selectedForDisplay ? selectedForDisplay.name : '';
+  }
   state.currentClientId = id || null;
   // ÖNEMLİ DÜZELTME: c.id veritabanından PHP int olarak gelir (json'da sayı),
   // ama <select> elemanının e.target.value'su HER ZAMAN string döner. Eskiden
@@ -252,12 +310,17 @@ document.getElementById('client-select')?.addEventListener('change', async (e) =
     // Sitemap Explorer artık kendi pure-PHP api/sitemap.php endpoint'imizi
     // kullanıyor (eskiden var olmayan localhost:3000 Node servisine
     // bağımlıydı, bu yüzden her zaman "Failed to fetch" veriyordu).
-    explorerEl.style.display = 'block';
+    explorerEl.hidden = false;
     loadClientSitemap(state.currentClient.domain_url);
   } else {
+    sitemapLoadSequence++;
     domainEl.style.display = 'none';
     domainEl.textContent = '';
-    explorerEl.style.display = 'none';
+    explorerEl.hidden = true;
+    const sitemapBadge = document.getElementById('sitemap-url-count');
+    if (sitemapBadge) sitemapBadge.hidden = true;
+    const sitemapTree = document.getElementById('site-explorer-tree');
+    if (sitemapTree) sitemapTree.innerHTML = '<div class="t3-sitemap__empty">Müşteri seçiniz...</div>';
   }
 
   // YENİ: müşteri seçildiğinde (kök URL'si tanımlıysa) ilgili sekmelerdeki
@@ -297,18 +360,31 @@ document.getElementById('client-select')?.addEventListener('change', async (e) =
   }
 });
 
+let sitemapLoadSequence = 0;
+
 async function loadClientSitemap(domain) {
+  const loadSequence = ++sitemapLoadSequence;
   const treeEl = document.getElementById('site-explorer-tree');
-  treeEl.innerHTML = '<span class="spinner" style="width:12px;height:12px;border-width:2px;display:inline-block;vertical-align:middle;margin-right:5px;border-top-color:var(--accent);"></span> Yükleniyor...';
+  const badgeEl = document.getElementById('sitemap-url-count');
+  const refreshBtn = document.getElementById('refresh-sitemap-btn');
+  treeEl.innerHTML = '<div class="t3-sitemap__empty"><span class="spinner spinner--dark" aria-hidden="true"></span> Sitemap yükleniyor…</div>';
+  refreshBtn?.classList.add('is-loading');
+  refreshBtn?.setAttribute('aria-busy', 'true');
+  if (badgeEl) badgeEl.hidden = true;
   
   try {
     // ESKİDEN: http://localhost:3000/api/sitemap - var olmayan bir Node servisi.
     // Artık kendi pure-PHP api/sitemap.php endpoint'imizi kullanıyoruz.
     const targetUrl = `api/sitemap.php?url=${encodeURIComponent(domain)}`;
     const res = await fetch(targetUrl);
-    if (!res.ok) throw new Error('Sitemap alınamadı');
-    const urls = await res.json();
-    if(!Array.isArray(urls) || urls.length === 0) throw new Error('Sitemap boş');
+    const payload = await res.json();
+    if (loadSequence !== sitemapLoadSequence) return;
+    if (!res.ok || !Array.isArray(payload)) throw new Error(payload?.error || 'Sitemap alınamadı');
+    const urls = payload;
+    if (urls.length === 0) {
+      treeEl.innerHTML = '<div class="t3-sitemap__empty">Sitemap içinde URL bulunamadı.</div>';
+      return;
+    }
     
     // Klasör yapısına çevir
     const tree = {};
@@ -329,22 +405,22 @@ async function loadClientSitemap(domain) {
       let html = '';
       for (const key in node) {
         if(key === '_root') {
-          html += `<div style="margin-bottom:4px;"><a href="#" class="sitemap-link" data-url="${node[key]._url}" style="color:var(--accent); text-decoration:none; display:flex; align-items:center; gap:4px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg> Ana Sayfa</a></div>`;
+          html += `<a href="#" class="t3-sitemap__home sitemap-link" data-url="${escapeHtml(node[key]._url)}" title="${escapeHtml(node[key]._url)}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg><span>Ana Sayfa</span></a>`;
           continue;
         }
         
         const hasChildren = Object.keys(node[key]._children).length > 0;
         const u = node[key]._url;
         
-        html += `<div style="margin-left:8px; margin-bottom:2px;">`;
+        html += '<div class="t3-sitemap__row">';
         if (hasChildren) {
-          html += `<div style="color:#B8C2FF; cursor:pointer; font-weight:600; padding:2px 0;" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display==='none'?'block':'none'"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:2px;"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg> /${escapeHtml(key)}</div>`;
-          html += `<div style="display:none; border-left:1px solid rgba(255,255,255,0.1); padding-left:4px; margin-left:4px;">`;
-          if (u) html += `<div style="margin-left:8px;"><a href="#" class="sitemap-link" data-url="${u}" style="color:var(--muted-2); text-decoration:none; display:flex; align-items:center; gap:4px;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path></svg> (dizin)</a></div>`;
+          html += `<button type="button" class="t3-sitemap__folder" aria-expanded="false" title="/${escapeHtml(key)}"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg><span>/${escapeHtml(key)}</span></button>`;
+          html += '<div class="t3-sitemap__children" hidden>';
+          if (u) html += `<a href="#" class="t3-sitemap__link sitemap-link" data-url="${escapeHtml(u)}" title="${escapeHtml(u)}"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg><span>(dizin)</span></a>`;
           html += buildTreeHtml(node[key]._children);
           html += `</div>`;
         } else {
-          html += `<a href="#" class="sitemap-link" data-url="${u}" style="color:var(--muted-2); text-decoration:none; display:flex; align-items:center; gap:4px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${escapeHtml(key)}"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path></svg> ${escapeHtml(key)}</a>`;
+          html += `<a href="#" class="t3-sitemap__link sitemap-link" data-url="${escapeHtml(u)}" title="${escapeHtml(u)}"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg><span>${escapeHtml(key)}</span></a>`;
         }
         html += `</div>`;
       }
@@ -352,19 +428,36 @@ async function loadClientSitemap(domain) {
     }
     
     treeEl.innerHTML = buildTreeHtml(tree);
-    
-    treeEl.querySelectorAll('.sitemap-link').forEach(el => {
-      el.addEventListener('click', (e) => {
-        e.preventDefault();
-        const clickedUrl = e.currentTarget.getAttribute('data-url');
-        routeUrlToActiveTab(clickedUrl);
-      });
-    });
+    if (badgeEl) { badgeEl.textContent = String(urls.length); badgeEl.hidden = false; }
     
   } catch(err) {
-    treeEl.innerHTML = `<span style="color:var(--danger)">Hata: ${err.message}</span>`;
+    if (loadSequence !== sitemapLoadSequence) return;
+    treeEl.innerHTML = `<div class="t3-sitemap__error">Sitemap yüklenemedi: ${escapeHtml(err.message)}</div>`;
+  } finally {
+    if (loadSequence === sitemapLoadSequence) {
+      refreshBtn?.classList.remove('is-loading');
+      refreshBtn?.removeAttribute('aria-busy');
+    }
   }
 }
+
+document.getElementById('site-explorer-tree')?.addEventListener('click', (event) => {
+  const link = event.target.closest('.sitemap-link');
+  if (link) {
+    event.preventDefault();
+    const treeEl = event.currentTarget;
+    treeEl.querySelectorAll('.sitemap-link').forEach(item => item.classList.remove('is-active'));
+    link.classList.add('is-active');
+    routeUrlToActiveTab(link.dataset.url);
+    return;
+  }
+  const folder = event.target.closest('.t3-sitemap__folder');
+  if (!folder) return;
+  const children = folder.nextElementSibling;
+  const expanded = folder.getAttribute('aria-expanded') === 'true';
+  folder.setAttribute('aria-expanded', String(!expanded));
+  if (children) children.hidden = expanded;
+});
 
 document.getElementById('refresh-sitemap-btn')?.addEventListener('click', () => {
   if (state.currentClient && state.currentClient.domain_url) {

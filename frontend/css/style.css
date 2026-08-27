@@ -37,9 +37,26 @@
   --font-display:'Space Grotesk', sans-serif;
   --font-body:'Inter', sans-serif;
   --font-mono:'JetBrains Mono', monospace;
+
+  /* --- Adres Gezgini kurumsal marka renkleri (bkz. medya kiti) --- */
+  --ag-yellow:#FBBA00;
+  --ag-yellow-dark:#DE9F00;
+  --ag-yellow-soft:#FFF2CC;
+  --ag-navy:#312F4D;
+  --ag-navy-soft:#3E3C5C;
+  --ag-sidebar:var(--ag-navy);
+  --ag-bg:var(--paper);
+  --ag-surface:var(--surface);
+  --ag-border:var(--border);
+  --ag-text:var(--ink);
+  --ag-muted:var(--muted);
+  --ag-success:var(--success);
+  --ag-danger:var(--danger);
 }
 
 *,*::before,*::after{box-sizing:border-box;}
+[hidden]{display:none !important;}
+.sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important;}
 html,body{height:100%;}
 body{
   margin:0;
@@ -71,20 +88,30 @@ a{color:inherit;}
 
 /* --- Sidebar --- */
 .sidebar{
-  background:var(--ink);
+  background:var(--ag-sidebar);
   color:var(--sidebar-muted);
   display:flex;
   flex-direction:column;
   padding:22px 16px 20px;
   position:sticky;
   top:0;
-  /* DÜZELTME: sabit height:100vh, Sitemap Explorer gibi içerik arttıkça
-     sidebar'ın koyu arkaplanının içerikten önce bitmesine (nav öğelerinin
-     ve "Çıkış Yap"ın düz beyaz zeminde, sidebar'dan "taşmış" gibi
-     görünmesine) sebep oluyordu. min-height ile sidebar en az bir ekran
-     boyu kalıyor ama içerik uzadıkça birlikte uzayabiliyor. */
-  min-height:100vh;
+  /* height:100vh + overflow-y:auto: sidebar viewport'a sabitlenip artık
+     KENDİ İÇİNDE kayıyor. Önceki min-height yaklaşımı, içerik (özellikle
+     Sitemap Explorer) uzadıkça sidebar'ın kendisini viewport'tan daha
+     uzun yapıp koyu arkaplanın sayfa ortasında bitmesine (nav/"Çıkış
+     Yap"ın düz zeminde "taşmış" görünmesine) yol açıyordu - artık taşan
+     içerik kutunun kendi scroll alanında kalıyor, kutu hep tam ekran
+     yüksekliğinde ve sabit kalıyor. */
+  height:100vh;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  scrollbar-width:thin;
+  scrollbar-color:rgba(255,255,255,.18) transparent;
 }
+.sidebar::-webkit-scrollbar{ width:6px; }
+.sidebar::-webkit-scrollbar-track{ background:transparent; }
+.sidebar::-webkit-scrollbar-thumb{ background:rgba(255,255,255,.18); border-radius:999px; }
+.sidebar::-webkit-scrollbar-thumb:hover{ background:rgba(255,255,255,.3); }
 .sidebar__brand{
   display:flex;
   align-items:center;
@@ -107,8 +134,14 @@ a{color:inherit;}
   50%{ opacity:.9; transform:scale(1);}
   100%{ opacity:.15; transform:scale(.6);}
 }
-.brand-text .name{ font-family:var(--font-display); font-weight:700; font-size:15px; color:#fff; line-height:1.15;}
-.brand-text .sub{ font-size:11px; color:var(--sidebar-muted); letter-spacing:.04em; text-transform:uppercase; margin-top:2px;}
+.brand-text .name{ font-family:var(--font-display); font-weight:700; font-size:14.5px; color:#fff; line-height:1.2; letter-spacing:-.01em;}
+.brand-text .sub{
+  display:inline-block;
+  font-size:9.5px; font-weight:700; color:var(--ag-navy);
+  letter-spacing:.06em; text-transform:uppercase;
+  margin-top:5px; padding:2px 7px;
+  background:var(--ag-yellow); border-radius:999px;
+}
 
 .nav{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:2px; flex:1;}
 .nav__item{
@@ -131,14 +164,14 @@ a{color:inherit;}
 }
 .nav__item:hover{ background:rgba(255,255,255,.05); color:#fff; }
 .nav__item.active{
-  background:rgba(14,143,130,.16);
+  background:rgba(251,186,0,.16);
   color:#fff;
 }
-.nav__item.active .num{ color:var(--accent); }
+.nav__item.active .num{ color:var(--ag-yellow); }
 .nav__item.active::before{
   content:'';
   position:absolute; left:-16px; top:8px; bottom:8px; width:3px;
-  background:var(--accent); border-radius:0 3px 3px 0;
+  background:var(--ag-yellow); border-radius:0 3px 3px 0;
 }
 
 .sidebar__footer{
@@ -157,7 +190,7 @@ a{color:inherit;}
 .client-box{ padding:0 8px 16px; border-bottom:1px solid rgba(255,255,255,.08); margin-bottom:16px; }
 .client-box label{ display:block; font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--muted-2); margin-bottom:6px; }
 .client-select-dark{ width:100%; padding:8px 10px; border-radius:7px; border:1px solid #2A3044; background:#1A1F2C; color:#fff; font-size:13px; margin-bottom:8px; }
-.client-select-dark:focus{ outline:none; border-color:var(--accent); }
+.client-select-dark:focus{ outline:none; border-color:var(--ag-yellow); box-shadow:0 0 0 3px rgba(251,186,0,.18); }
 .btn--sidebar{ width:100%; justify-content:center; background:rgba(255,255,255,.06); color:#E4E7EE; border:1px solid rgba(255,255,255,.1); }
 .btn--sidebar:hover{ background:rgba(255,255,255,.1); }
 .google-status{ font-size:10.5px; color:var(--muted-2); margin-top:6px; display:flex; align-items:center; gap:5px; }
@@ -242,9 +275,9 @@ textarea.tall{ min-height:180px; }
   white-space:nowrap;
 }
 .btn:active{ transform:translateY(1px); }
-.btn--primary{ background:var(--accent); color:#fff; }
-.btn--primary:hover{ background:var(--accent-dark); }
-.btn--primary:disabled{ background:#A9C9C5; cursor:not-allowed; }
+.btn--primary{ background:var(--ag-yellow); color:var(--ag-navy); }
+.btn--primary:hover{ background:var(--ag-yellow-dark); }
+.btn--primary:disabled{ background:#F0DFA8; color:#8A7A3D; cursor:not-allowed; }
 .btn--ghost{ background:#fff; color:var(--ink-soft); border-color:var(--border); }
 .btn--ghost:hover{ border-color:#C7CCD6; background:#FAFBFC; }
 .btn--dark{ background:var(--ink); color:#fff; }
@@ -313,6 +346,16 @@ textarea.tall{ min-height:180px; }
 .search-select__item:hover{ background:var(--paper); }
 .search-select__item--empty{ color:var(--muted-2); cursor:default; }
 .search-select__item--empty:hover{ background:transparent; }
+
+/* Sidebar'daki "Aktif Musteri" secici de ayni search-select bilesenini
+   kullaniyor (bkz. js/app.js: wireSidebarClientSearchSelect) - ama sidebar
+   koyu zeminde oldugu icin liste de koyu varyant alir, aksi halde beyaz
+   bir kutu koyu sidebar'in ortasinda garip dururdu. */
+.search-select{ position:relative; }
+.search-select__list--dark{ background:#1A1F2C; border-color:#2A3044; }
+.search-select__list--dark .search-select__item{ color:#fff; }
+.search-select__list--dark .search-select__item:hover{ background:rgba(251,186,0,.12); }
+.search-select__list--dark .search-select__item--empty{ color:var(--muted-2); }
 
 /* Teknik SEO - "Yeni Teknik Denetim" kompakt karti: URL + buton ayni satirda
    (masaustu), musteri otomatik-eslesme durumu ince bir satirda, "kaydet"
@@ -606,17 +649,185 @@ tbody td input.input{ padding:7px 9px; font-size:12.5px; }
 .t3-progress-item[data-status="pending"]{ color:var(--muted-2); }
 .t3-progress-item[data-status="done"]{ color:var(--ink-soft); }
 .t3-progress-item[data-status="skipped"]{ color:var(--muted-2); font-style:italic; }
+.t3-progress-item[data-status="start"]{ color:var(--ag-navy); font-weight:600; }
+.t3-progress-item[data-status="error"]{ color:var(--ag-danger); }
 .t3-progress-icon{ width:16px; height:16px; flex:none; display:flex; align-items:center; justify-content:center; font-size:12.5px; font-weight:700; color:var(--muted-2); }
 .t3-progress-item[data-status="done"] .t3-progress-icon{ color:var(--success); }
+.t3-progress-item[data-status="error"] .t3-progress-icon{ color:var(--ag-danger); }
 .spinner--dark{
   width:13px; height:13px; border-radius:50%;
-  border:2px solid var(--border-soft); border-top-color:var(--accent);
+  border:2px solid var(--border-soft); border-top-color:var(--ag-yellow);
   animation:spin .7s linear infinite;
+}
+
+/* ============================================================
+   TEKNİK SEO - CANLI ANALİZ OVERLAY'İ (bkz. js/technical-seo.js:
+   openScanOverlay/closeScanOverlay/showScanOverlaySuccess/Error).
+   Konum --ag-overlay-top / --ag-overlay-left ile JS'ten (syncOverlayMetrics)
+   dinamik olarak set edilir; boylece sidebar genisligi veya topbar
+   yuksekligi degisse bile overlay hep .content alaninin ustunde kalir,
+   sidebar/topbar'i asla kaplamaz.
+   ============================================================ */
+.t3-scan-overlay{
+  position:fixed;
+  top:var(--ag-overlay-top, 0px);
+  left:var(--ag-overlay-left, 0px);
+  right:0;
+  bottom:0;
+  z-index:6;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:24px;
+  background:rgba(24,20,40,.6);
+  opacity:0;
+  visibility:hidden;
+  pointer-events:none;
+  transition:opacity .28s ease;
+}
+@supports ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+  .t3-scan-overlay{ -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px); }
+}
+.t3-scan-overlay.is-open{ opacity:1; visibility:visible; pointer-events:auto; }
+.t3-scan-overlay__panel{
+  width:100%; max-width:420px; max-height:calc(100vh - 48px); overflow-y:auto;
+  background:var(--ag-surface); border-radius:var(--radius-lg);
+  box-shadow:0 20px 60px rgba(18,15,31,.35);
+  padding:26px 26px 22px;
+  transform:translateY(6px);
+  transition:transform .28s ease;
+}
+.t3-scan-overlay.is-open .t3-scan-overlay__panel{ transform:translateY(0); }
+.t3-scan-overlay__scan-dot{
+  width:34px; height:34px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  background:var(--ag-yellow-soft); color:var(--ag-yellow-dark);
+  margin-bottom:14px;
+}
+.t3-scan-overlay__scan-dot svg{ animation:t3ScanSpin 1.6s linear infinite; }
+@keyframes t3ScanSpin{ to{ transform:rotate(360deg); } }
+.t3-scan-overlay__title{ font-size:16px; font-weight:700; font-family:var(--font-display); color:var(--ag-text); }
+.t3-scan-overlay__current{ font-size:12.5px; color:var(--ag-muted); margin-top:4px; min-height:16px; }
+.t3-scan-overlay__bar{ height:5px; border-radius:999px; background:var(--ag-border); margin:16px 0 14px; overflow:hidden; }
+.t3-scan-overlay__bar-fill{ height:100%; width:0%; background:var(--ag-yellow); border-radius:999px; transition:width .35s ease; }
+.t3-scan-overlay__steps{ max-height:280px; overflow-y:auto; }
+.t3-scan-overlay__done,
+.t3-scan-overlay__error{ text-align:center; padding:10px 4px 4px; }
+.t3-scan-overlay__done-icon,
+.t3-scan-overlay__error-icon{
+  width:38px; height:38px; border-radius:50%; margin:0 auto 10px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:18px; font-weight:700;
+}
+.t3-scan-overlay__done-icon{ background:var(--ag-success); color:#fff; }
+.t3-scan-overlay__error-icon{ background:var(--ag-danger); color:#fff; }
+.t3-scan-overlay__done-text{ font-size:13.5px; font-weight:600; color:var(--ag-text); margin-bottom:14px; }
+.t3-scan-overlay__error-text{ font-size:13px; color:var(--ag-muted); margin-bottom:16px; line-height:1.5; }
+.t3-scan-overlay__error-actions{ display:flex; gap:10px; justify-content:center; }
+
+/* ============================================================
+   SIDEBAR - SITEMAP EXPLORER (bkz. js/app.js: loadClientSitemap)
+   ============================================================ */
+.t3-sitemap{ margin:0 20px 16px; padding:12px 10px 10px; background:rgba(0,0,0,.18); border-radius:10px; border:1px solid rgba(255,255,255,.06); }
+.t3-sitemap__head{ display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:8px; padding:0 2px; }
+.t3-sitemap__title{ display:flex; align-items:center; gap:6px; font-size:10.5px; font-weight:700; color:var(--muted-2); text-transform:uppercase; letter-spacing:.05em; }
+.t3-sitemap__badge{ display:inline-flex; align-items:center; justify-content:center; min-width:17px; height:17px; padding:0 5px; border-radius:999px; background:rgba(251,186,0,.18); color:var(--ag-yellow); font-size:10px; font-weight:700; font-family:var(--font-mono); }
+.t3-sitemap__refresh{ background:none; border:none; padding:4px; border-radius:6px; color:var(--muted-2); display:flex; cursor:pointer; transition:background .15s, color .15s; }
+.t3-sitemap__refresh:hover{ background:rgba(255,255,255,.08); color:#fff; }
+.t3-sitemap__refresh.is-loading svg{ animation:spin .7s linear infinite; }
+.t3-sitemap__body{ max-height:220px; overflow-y:auto; font-size:11.5px; line-height:1.7; color:#E4E7EE; scrollbar-width:thin; scrollbar-color:rgba(255,255,255,.16) transparent; }
+.t3-sitemap__body::-webkit-scrollbar{ width:5px; }
+.t3-sitemap__body::-webkit-scrollbar-track{ background:transparent; }
+.t3-sitemap__body::-webkit-scrollbar-thumb{ background:rgba(255,255,255,.16); border-radius:999px; }
+.t3-sitemap__empty{ padding:14px 4px; text-align:center; color:var(--muted-2); font-style:italic; }
+.t3-sitemap__error{ padding:8px 4px; color:#F3A3A5; }
+.t3-sitemap__home{ display:flex; align-items:center; gap:6px; padding:4px 4px; margin-bottom:2px; color:var(--ag-yellow); text-decoration:none; font-weight:600; border-radius:6px; }
+.t3-sitemap__home:hover{ background:rgba(255,255,255,.06); }
+.t3-sitemap__home svg{ flex:none; }
+.t3-sitemap__row{ position:relative; }
+.t3-sitemap__folder{ display:flex; align-items:center; gap:5px; padding:4px 4px; color:#B9BFD6; font-weight:600; cursor:pointer; border-radius:6px; user-select:none; }
+.t3-sitemap__folder{ width:100%; border:0; background:transparent; font:inherit; text-align:left; min-width:0; }
+.t3-sitemap__folder span{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.t3-sitemap__folder:hover{ background:rgba(255,255,255,.05); color:#fff; }
+.t3-sitemap__folder svg:first-child{ flex:none; transition:transform .15s; }
+.t3-sitemap__folder[aria-expanded="true"] svg:first-child{ transform:rotate(90deg); }
+.t3-sitemap__children{ margin-left:9px; padding-left:9px; border-left:1px solid rgba(255,255,255,.1); }
+.t3-sitemap__link{ display:flex; align-items:center; gap:5px; padding:4px 4px; color:var(--muted-2); text-decoration:none; border-radius:6px; overflow:hidden; }
+.t3-sitemap__link span{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.t3-sitemap__link svg{ flex:none; }
+.t3-sitemap__link:hover{ background:rgba(255,255,255,.06); color:#fff; }
+.t3-sitemap__link.is-active{ background:rgba(251,186,0,.14); color:var(--ag-yellow); }
+.t3-sitemap__link.is-active svg{ color:var(--ag-yellow); }
+
+/* Teknik SEO sonuç bilgi mimarisi */
+.t3-overview{ border-top:3px solid var(--ag-yellow); }
+.t3-overview__stats{ display:grid; grid-template-columns:repeat(5,minmax(110px,1fr)); gap:10px; margin-top:16px; }
+.t3-stat{ padding:13px; border:1px solid var(--border-soft); border-radius:var(--radius); background:#FAFBFC; min-width:0; }
+.t3-stat span{ display:block; font:700 20px/1.1 var(--font-display); color:var(--ag-navy); overflow-wrap:anywhere; }
+.t3-stat small{ display:block; margin-top:5px; color:var(--muted); font-size:10.5px; text-transform:uppercase; letter-spacing:.04em; }
+.t3-section-nav{ display:flex; gap:7px; overflow-x:auto; padding-bottom:4px; }
+.t3-section-nav button{ border:1px solid var(--border); background:#fff; color:var(--ink-soft); border-radius:999px; padding:7px 11px; font-size:11.5px; font-weight:600; white-space:nowrap; }
+.t3-section-nav button:hover{ border-color:var(--ag-yellow); color:var(--ag-navy); }
+.t3-priority{ border-top:1px solid var(--border-soft); padding-top:16px; }
+.t3-priority__row{ display:grid; grid-template-columns:28px minmax(0,1fr) auto; gap:10px; align-items:center; padding:11px 0; border-bottom:1px solid var(--border-soft); }
+.t3-priority__num{ display:grid; place-items:center; width:25px; height:25px; border-radius:50%; background:var(--ag-yellow-soft); color:var(--ag-navy); font-weight:700; }
+.t3-details{ border:1px solid var(--border); border-radius:var(--radius); margin-bottom:9px; background:#fff; overflow:hidden; }
+.t3-details summary{ display:flex; justify-content:space-between; gap:10px; padding:12px 14px; cursor:pointer; font-weight:650; background:#FAFBFC; }
+.t3-details summary span{ color:var(--muted); font-size:11px; font-weight:500; }
+.t3-details>div{ padding:12px 14px; border-top:1px solid var(--border-soft); }
+.t3-psi-impact,.t3-audit-row-detail{ display:flex; justify-content:space-between; align-items:flex-start; gap:12px; padding:10px 0; border-bottom:1px solid var(--border-soft); }
+.t3-empty-state{ padding:18px; border:1px dashed var(--border); border-radius:var(--radius); text-align:center; color:var(--muted); }
+.t3-solution p{ line-height:1.55; margin-bottom:10px; }
+.t3-solution ol{ margin:10px 0 14px; padding-left:20px; color:var(--ink-soft); font-size:12px; line-height:1.6; }
+.t3-code-preview{ max-height:340px; overflow:auto; padding:14px; border-radius:var(--radius); background:#12151F; color:#D7F5EE; font:11px/1.55 var(--font-mono); white-space:pre-wrap; overflow-wrap:anywhere; }
+.t3-sitemap-decision{ display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin:12px 0; }
+.t3-sitemap-decision div{ padding:10px; background:var(--paper); border-radius:8px; }
+.t3-sitemap-decision strong,.t3-sitemap-decision span{ display:block; }
+.t3-sitemap-decision span{ font:700 18px var(--font-display); margin-top:3px; }
+.finding-card__actions{ display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
+.finding-card.is-highlighted{ box-shadow:0 0 0 3px rgba(251,186,0,.35); }
+
+/* Teknik SEO - bulgu kartindaki "AI ile Acikla" paneli (bkz. js/technical-seo.js:
+   handleAiExplainClick/renderAiExplainPanel). Deterministik bulgu/cozüm alanlarina
+   DOKUNMAZ - Gemini'nin sade Turkce anlatimini ayri, gorsel olarak ayirt edilebilir
+   bir blokta gosterir; "AI destekli" etiketi ve guven seviyesi her zaman gorunur. */
+.t3-ai-explain{
+  margin-top:12px; padding:12px 14px; border-radius:10px;
+  background:rgba(251,186,0,.06); border:1px solid rgba(251,186,0,.25);
+  font-size:13px; line-height:1.55; color:var(--ink-soft);
+}
+.t3-ai-explain-btn{ color:var(--ag-navy); }
+.t3-ai-explain-btn:hover{ background:rgba(49,47,77,.08); }
+.t3-ai-explain__loading{ display:flex; align-items:center; gap:8px; color:var(--muted-2); }
+.t3-ai-explain__head{ display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; margin-bottom:8px; }
+.t3-ai-badge{
+  display:inline-flex; align-items:center; gap:5px; padding:3px 9px; border-radius:999px;
+  background:var(--ag-navy); color:#fff; font-size:11px; font-weight:700; letter-spacing:.02em;
+}
+.t3-ai-confidence{ font-size:11.5px; font-weight:600; }
+.t3-ai-explain__summary{ margin:0 0 8px; }
+.t3-ai-explain__steps{ margin:0 0 8px; padding-left:18px; }
+.t3-ai-explain__steps li{ margin-bottom:4px; }
+.t3-ai-explain__risk{ margin:0 0 6px; }
+.t3-ai-explain__disclaimer{ margin:0; font-style:italic; }
+.t3-ai-explain__error{ color:var(--danger); }
+
+@media (max-width:1100px){ .t3-overview__stats{ grid-template-columns:repeat(3,1fr); } }
+@media (max-width:640px){
+  .t3-overview__stats{ grid-template-columns:repeat(2,1fr); }
+  .t3-priority__row{ grid-template-columns:26px minmax(0,1fr); }
+  .t3-priority__row .btn{ grid-column:2; justify-self:start; }
+  .t3-sitemap-decision{ grid-template-columns:1fr; }
+  .t3-scan-overlay__panel{ padding:20px 16px; max-height:calc(100vh - 32px); }
 }
 
 @media (max-width:880px){
   .app{ grid-template-columns:1fr; }
-  .sidebar{ position:relative; height:auto; }
+  .sidebar{ position:relative; height:auto; overflow-y:visible; }
   .nav{ flex-direction:row; overflow-x:auto; }
   .nav__item.active::before{ display:none; }
+  /* Dar ekranda sidebar artik sabit bir sutun degil (icerigin ustunde akan
+     normal bir blok) - overlay'in konumunu JS'in olctugu sidebar/topbar
+     ofsetlerine gore degil, dogrudan tam ekrana gore ayarliyoruz. */
+  .t3-scan-overlay{ left:0 !important; padding:16px; }
 }

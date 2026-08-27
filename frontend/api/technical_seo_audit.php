@@ -115,6 +115,59 @@ function skipStep(string $step, string $label): void
     sendEvent(['type' => 'progress', 'step' => $step, 'label' => $label, 'status' => 'skipped']);
 }
 
+/** Deterministik sitemap çözümü; AI teknik kararlara dahil edilmez. */
+function buildSitemapSolution(bool $found, string $xml, array $existingUrls, array $pages, array $missingUrls): array
+{
+    $pageByUrl = [];
+    foreach ($pages as $page) $pageByUrl[rtrim((string) ($page['url'] ?? ''), '/')] = $page;
+    $safe = []; $review = []; $excluded = [];
+    foreach ($missingUrls as $url) {
+        $page = $pageByUrl[rtrim((string) $url, '/')] ?? null;
+        $reason = null;
+        if (!is_array($page)) { $review[] = ['url' => $url, 'reason' => 'Tarama ayrıntıları doğrulanamadı.']; continue; }
+        $status = (int) ($page['status_code'] ?? 0);
+        $finalUrl = (string) ($page['final_url'] ?? $url);
+        $canonical = $page['canonical'] ?? null;
+        $path = strtolower((string) parse_url($url, PHP_URL_PATH));
+        $query = (string) parse_url($url, PHP_URL_QUERY);
+        if ($status < 200 || $status >= 300) $reason = "HTTP {$status}";
+        elseif ($finalUrl !== $url) $reason = 'Yönlendirme yapan URL';
+        elseif (($page['noindex'] ?? null) === true) $reason = 'noindex';
+        elseif (is_string($canonical) && rtrim($canonical, '/') !== rtrim($url, '/')) $reason = 'Canonical başka URL’ye işaret ediyor';
+        elseif (($page['canonical_issue'] ?? null) !== null) $reason = 'Canonical yapısı belirsiz';
+        elseif ($query !== '') { $review[] = ['url' => $url, 'reason' => 'Query/filter URL’si; manuel karar gerekli.']; continue; }
+        elseif (preg_match('#/(admin|wp-admin|login|cart|checkout|account|search)(/|$)#i', $path)) $reason = 'Yönetim/sistem sayfası';
+        if ($reason !== null) { $excluded[] = ['url' => $url, 'reason' => $reason]; continue; }
+        $safe[] = $url;
+    }
+
+    $isIndex = $found && preg_match('/<\s*sitemapindex\b/i', $xml) === 1;
+    $doc = new \DOMDocument('1.0', 'UTF-8');
+    $doc->formatOutput = true;
+    $outputMode = $isIndex ? 'supplemental' : 'replacement';
+    if (!$isIndex && $found && trim($xml) !== '' && @$doc->loadXML($xml, LIBXML_NONET)) {
+        $root = $doc->documentElement;
+    } else {
+        $doc->appendChild($root = $doc->createElementNS('http://www.sitemaps.org/schemas/sitemap/0.9', 'urlset'));
+        if (!$isIndex) foreach ($existingUrls as $url) { $node = $doc->createElement('url'); $node->appendChild($doc->createElement('loc'))->appendChild($doc->createTextNode($url)); $root->appendChild($node); }
+    }
+    $currentCount = count($existingUrls);
+    $capacity = max(0, 50000 - ($isIndex ? 0 : $currentCount));
+    $toAdd = array_slice($safe, 0, $capacity);
+    foreach ($toAdd as $url) { $node = $doc->createElement('url'); $node->appendChild($doc->createElement('loc'))->appendChild($doc->createTextNode($url)); $root->appendChild($node); }
+    if (count($safe) > count($toAdd)) $review[] = ['url' => '', 'reason' => '50.000 URL sınırı nedeniyle sitemap index/parçalama gerekli.'];
+    $generated = $doc->saveXML() ?: '';
+    $validator = new \DOMDocument();
+    $valid = $generated !== '' && @$validator->loadXML($generated, LIBXML_NONET) && $validator->documentElement?->localName === 'urlset';
+    return [
+        'available' => $valid && $toAdd !== [], 'valid_xml' => $valid, 'mode' => $outputMode,
+        'existing_count' => $currentCount, 'missing' => array_values($missingUrls),
+        'safe_to_add' => $toAdd, 'excluded' => $excluded, 'review_required' => $review,
+        'xml' => $valid ? $generated : null,
+        'note' => $isIndex ? 'Mevcut sitemap index korunur; çıktı ayrı bir ek sitemap olarak sunulur ve indexe manuel eklenmelidir.' : 'Mevcut URL sırası korunarak güvenli adaylar sona eklendi.',
+    ];
+}
+
 $config = require __DIR__ . '/../src/TechnicalSeo/Bootstrap.php';
 
 try {
@@ -204,10 +257,12 @@ try {
     });
 
     // 4) sitemap.xml (robots.txt içinde farklı bir sitemap belirtilmişse onu, yoksa varsayılan yolu dene)
-    runStep('sitemap', 'sitemap.xml kontrol ediliyor', function () use ($crawler, $origin, $indexChecker, $robotsParsed, &$sitemapUrl, &$sitemapFound, &$sitemapUrls) {
+    $sitemapXml = '';
+    runStep('sitemap', 'sitemap.xml kontrol ediliyor', function () use ($crawler, $origin, $indexChecker, $robotsParsed, &$sitemapUrl, &$sitemapFound, &$sitemapUrls, &$sitemapXml) {
         $sitemapUrl = $robotsParsed['sitemaps'][0] ?? ($origin . '/sitemap.xml');
         $sitemapResult = $crawler->fetch($sitemapUrl);
         $sitemapFound = $sitemapResult['error'] === null && $sitemapResult['status_code'] === 200;
+        $sitemapXml = $sitemapFound ? (string) $sitemapResult['body'] : '';
         $sitemapUrls = $sitemapFound ? $indexChecker->parseSitemapUrls($sitemapResult['body']) : [];
     });
 
@@ -420,6 +475,8 @@ try {
         $responseResumeState['link_check'] = $linkCheckState;
     }
 
+    $sitemapSolution = buildSitemapSolution($sitemapFound, $sitemapXml, $sitemapUrls, $siteStructure['pages'], $crossRef['orphan_pages']);
+
     sendEvent([
         'type' => 'result',
         'success' => true,
@@ -449,6 +506,7 @@ try {
         'link_check' => $linkCheckResult,
         'mobile_parity' => $mobileParity,
         'schema' => ['detected_json_ld_count' => count($jsonLdBlocks), 'issues' => $schemaIssues],
+        'solutions' => ['sitemap' => $sitemapSolution],
     ]);
 } catch (\Throwable $e) {
     if (!headers_sent()) {
