@@ -1,831 +1,172 @@
+<?php // AI SEO Hizmetler Paneli ?>
 <section class="tab-panel" id="tab-3">
 
 <!-- ACTION VIEW -->
-<div
-id="copilot-action-view"
-style="display:flex; flex-direction:column; gap:16px; min-height:80vh;"
->
+<div id="copilot-action-view" style="display:flex; flex-direction:column; gap:20px; min-height:80vh;">
+
+  <!-- TOP NAV -->
+  <div style="display:flex; justify-content:space-between; align-items:center; width:100%; margin-bottom:4px;">
+    <div>
+      <span id="aiseo-url-badge" style="display:none; background:#eff6ff; color:#2563eb; border:1px solid #bfdbfe; border-radius:20px; padding:4px 14px; font-size:12px; font-weight:600;"></span>
+      <span id="aiseo-type-badge" style="display:none; background:#f0fdf4; color:#15803d; border:1px solid #bbf7d0; border-radius:20px; padding:4px 14px; font-size:12px; font-weight:600; margin-left:6px;"></span>
+    </div>
+    <div style="display:flex; gap:6px; align-items:center;">
+      <button id="btn-download-pdf"
+        title="Tüm analiz adımları tamamlandıktan sonra indirilebilir."
+        style="display:inline-flex; align-items:center; background:#64748b; color:white; border:none; opacity:0.5; cursor:not-allowed; padding:6px 12px; font-size:12px; border-radius:12px;">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        Rapor
+      </button>
+      <button id="btn-new-analysis"
+        title="Yeni URL analizi başlatır."
+        style="display:inline-flex; align-items:center; gap:4px; padding:6px 12px; font-size:12px; font-weight:600; color:var(--muted); border:none; background:none; cursor:pointer; border-radius:12px;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+        Yeni Analiz
+      </button>
+      <button id="btn-toggle-history-sidebar"
+        title="Geçmiş Analizleri Göster"
+        style="display:inline-flex; align-items:center; gap:4px; padding:6px 12px; font-size:12px; font-weight:600; color:var(--muted); border:none; background:none; cursor:pointer; border-radius:12px;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+        Geçmiş
+      </button>
+    </div>
+  </div>
+
+
+  <!-- ===================== URL GİRİŞ KARTI ===================== -->
+  <div id="aiseo-url-card" class="card" style="border-top:4px solid var(--accent); border-radius:20px; padding:32px; box-shadow:0 4px 20px rgba(0,0,0,0.06);">
+    <div style="max-width:680px; margin:0 auto; text-align:center;">
+      <div style="font-size:28px; margin-bottom:8px;">🤖</div>
+      <h2 style="font-size:20px; font-weight:700; color:#0f172a; margin:0 0 8px 0;">Yapay Zeka SEO Hizmetleri</h2>
+      <p style="color:#64748b; font-size:14px; margin:0 0 28px 0;">Müşterinizin web sitesini analiz etmek için URL'yi girin. Yapay zeka site türünü otomatik tespit eder.</p>
+
+      <div style="display:flex; align-items:center; background:#f0f4f9; border-radius:30px; padding:6px 8px 6px 22px; box-shadow:0 2px 8px rgba(0,0,0,0.05);">
+        <input type="text" id="aiseo-url-input"
+          placeholder="Örn: https://www.musteri-sitesi.com"
+          style="flex:1; border:none; outline:none; background:transparent; font-size:15px; color:#1e293b; padding:10px 0; box-shadow:none; min-width:0;">
+        <button id="aiseo-url-submit"
+          style="background:#2563eb; color:#fff; border:none; border-radius:22px; padding:10px 22px; font-size:14px; font-weight:600; cursor:pointer; white-space:nowrap; transition:all 0.2s; flex-shrink:0;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:middle; margin-right:4px;"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
+          Analiz Et
+        </button>
+      </div>
+      <p style="font-size:11px; color:#94a3b8; margin-top:10px;">Yapay zeka site türünü otomatik algılar • Gemini API ile güçlendirilmiştir</p>
+
+      <!-- Tarama göstergesi -->
+      <div id="aiseo-scan-indicator" style="display:none; margin-top:24px; padding:16px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px;">
+        <div style="display:flex; align-items:center; justify-content:center; gap:10px; color:#475569; font-size:14px;">
+          <div class="typing-indicator" style="padding:0;"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>
+          <span id="aiseo-scan-text">Site taranıyor ve site türü tespit ediliyor...</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ===================== HİZMET PANELİ (URL girildikten sonra) ===================== -->
+  <div id="aiseo-services-panel" style="display:none;">
+
+    <!-- Hizmet Butonları -->
+    <div class="card" style="border-radius:20px; padding:20px 24px; box-shadow:0 2px 12px rgba(0,0,0,0.05);">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:10px;">
+        <div>
+          <h3 style="font-size:15px; font-weight:700; color:#0f172a; margin:0 0 2px 0;">AI SEO Hizmetleri</h3>
+          <p style="font-size:12px; color:#64748b; margin:0;">Hizmete tıklayarak AI analizi başlatın</p>
+        </div>
+        <button id="btn-run-all-services"
+          style="display:inline-flex; align-items:center; gap:6px; background:#10b981; color:#fff; border:none; border-radius:20px; padding:10px 20px; font-size:13px; font-weight:600; cursor:pointer; box-shadow:0 3px 8px rgba(16,185,129,0.25); transition:all 0.2s;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+          Tüm Hizmetleri Yap
+        </button>
+      </div>
+
+      <div id="aiseo-service-buttons" style="display:flex; flex-wrap:wrap; gap:8px;">
+
+        <!-- Hizmet 1 -->
+        <button class="aiseo-svc-btn has-tooltip" data-service="1"
+          data-tooltip="Web sitenizdeki sayfa, hizmet ve işletme bilgilerinin yapay zeka destekli arama sistemleri tarafından daha anlaşılır hale gelmesi hedeflenir. Sitenin bilgi yapısı, hizmet başlıkları ve önemli sayfaları daha net bir düzene kavuşturulur."
+          style="display:inline-flex; align-items:center; gap:6px; background:#fff; border:1.5px solid #e2e8f0; border-radius:20px; padding:8px 16px; font-size:13px; font-weight:500; color:#334155; cursor:pointer; transition:all 0.2s;">
+          <span class="svc-icon">🏗️</span> Yapay Zeka Uyumlu Site Yapısı
+          <span class="svc-status" data-svc="1"></span>
+        </button>
+
+        <!-- Hizmet 2 -->
+        <button class="aiseo-svc-btn has-tooltip" data-service="2"
+          data-tooltip="Yapay zeka destekli arama sistemlerinin web sitesini daha kolay anlamasına yardımcı olacak tanıtım dosyaları hazırlanır. llms.txt gibi dosyalar ve önemli sayfa bilgileri bu kapsamda değerlendirilir."
+          style="display:inline-flex; align-items:center; gap:6px; background:#fff; border:1.5px solid #e2e8f0; border-radius:20px; padding:8px 16px; font-size:13px; font-weight:500; color:#334155; cursor:pointer; transition:all 0.2s;">
+          <span class="svc-icon">🤖</span> Yapay Zeka Tanıtım Dosyaları
+          <span class="svc-status" data-svc="2"></span>
+        </button>
+
+        <!-- Hizmet 3 -->
+        <button class="aiseo-svc-btn has-tooltip" data-service="3"
+          data-tooltip="Web sitenizin Google, Yandex ve Bing gibi arama motorlarına tanıtılması için gerekli kayıt ve doğrulama işlemleri rehber şeklinde sunulur. Search Console ve webmaster araçları bu kapsamda değerlendirilir."
+          style="display:inline-flex; align-items:center; gap:6px; background:#fff; border:1.5px solid #e2e8f0; border-radius:20px; padding:8px 16px; font-size:13px; font-weight:500; color:#334155; cursor:pointer; transition:all 0.2s;">
+          <span class="svc-icon">🔍</span> Arama Motoru Kayıtları
+          <span class="svc-status" data-svc="3"></span>
+        </button>
+
+        <!-- Hizmet 4 -->
+        <button class="aiseo-svc-btn has-tooltip" data-service="4"
+          data-tooltip="Web sitenizin içeriğini arama motorlarına ve yapay zeka destekli sistemlere daha açık şekilde anlatmak için Schema.org uyumlu işaretleme yapıları kontrol edilir veya düzenlenir."
+          style="display:inline-flex; align-items:center; gap:6px; background:#fff; border:1.5px solid #e2e8f0; border-radius:20px; padding:8px 16px; font-size:13px; font-weight:500; color:#334155; cursor:pointer; transition:all 0.2s;">
+          <span class="svc-icon">📊</span> Yapılandırılmış Veri Düzenlemeleri
+          <span class="svc-status" data-svc="4"></span>
+        </button>
+
+        <!-- Hizmet 5 -->
+        <button class="aiseo-svc-btn has-tooltip" data-service="5"
+          data-tooltip="Müşteriden alınan mevcut metinler web sitesine, kullanıcı deneyimine ve SEO yapısına uygun olacak şekilde düzenlenir. Hizmet açıklamaları, kurumsal metinler, başlıklar ve açıklama alanları geliştirilebilir."
+          style="display:inline-flex; align-items:center; gap:6px; background:#fff; border:1.5px solid #e2e8f0; border-radius:20px; padding:8px 16px; font-size:13px; font-weight:500; color:#334155; cursor:pointer; transition:all 0.2s;">
+          <span class="svc-icon">✍️</span> İçerik Düzenleme ve Geliştirme
+          <span class="svc-status" data-svc="5"></span>
+        </button>
+
+        <!-- Hizmet 6 -->
+        <button class="aiseo-svc-btn has-tooltip" data-service="6"
+          data-tooltip="İçerikler yalnızca arama motorları için değil, ziyaretçilerin daha kolay anlayabileceği şekilde düzenlenir. Açık anlatım, doğru başlık yapısı ve yönlendirici içerik kurgusu oluşturulur."
+          style="display:inline-flex; align-items:center; gap:6px; background:#fff; border:1.5px solid #e2e8f0; border-radius:20px; padding:8px 16px; font-size:13px; font-weight:500; color:#334155; cursor:pointer; transition:all 0.2s;">
+          <span class="svc-icon">👥</span> Kullanıcı Odaklı İçerik
+          <span class="svc-status" data-svc="6"></span>
+        </button>
+
+        <!-- Hizmet 7 -->
+        <button class="aiseo-svc-btn has-tooltip" data-service="7"
+          data-tooltip="Web sitesindeki ilgili sayfaların birbirini desteklemesi için site içi bağlantı yapısı düzenlenir. Kullanıcıların ilgili hizmetlere daha kolay ulaşması ve arama motorlarının site yapısını daha iyi anlaması hedeflenir."
+          style="display:inline-flex; align-items:center; gap:6px; background:#fff; border:1.5px solid #e2e8f0; border-radius:20px; padding:8px 16px; font-size:13px; font-weight:500; color:#334155; cursor:pointer; transition:all 0.2s;">
+          <span class="svc-icon">🔗</span> Site İçi İçerik Bağlantıları
+          <span class="svc-status" data-svc="7"></span>
+        </button>
+
+      </div>
+    </div><!-- /hizmet butonları -->
+
+
+    <!-- ===================== SONUÇ ACCORDION ALANI ===================== -->
+    <div id="aiseo-results-area" style="display:flex; flex-direction:column; gap:12px;">
+      <!-- Accordion'lar JS tarafından buraya eklenir -->
+    </div>
+
+  </div><!-- /aiseo-services-panel -->
+
+</div><!-- /copilot-action-view -->
 
-<!-- TOP NAV -->
-<div
-style="display:flex; justify-content:flex-end; align-items:center; width:100%; margin-bottom:8px;"
->
-
-<!-- Sağ Üst -->
-<div style="display:flex; gap:6px; align-items:center;">
-
-<button
-class="btn btn--sm"
-id="btn-open-battle-mode"
-title="Sitenizi en dişli rakiplerinizle kıyaslayın."
-style="display:inline-flex; align-items:center; background:#475569; color:white; border:none; border-radius:12px; padding:6px 12px; font-size:12px;"
->
-<svg
-width="12"
-height="12"
-viewBox="0 0 24 24"
-fill="none"
-stroke="currentColor"
-stroke-width="2"
-style="margin-right:4px;"
->
-<path d="M12 2L2 7l10 5 10-5-10-5z"></path>
-<path d="M2 17l10 5 10-5"></path>
-<path d="M2 12l10 5 10-5"></path>
-</svg>
-Rakip Kıyasla
-</button>
-
-<button
-class="btn btn--sm"
-id="btn-download-pdf"
-title="Tüm analiz adımları tamamlandıktan sonra indirilebilir."
-style="display:inline-flex; align-items:center; background:#64748b; color:white; border:none; opacity:0.5; cursor:not-allowed; padding:6px 12px; font-size:12px; border-radius:12px;"
->
-<svg
-width="12"
-height="12"
-viewBox="0 0 24 24"
-fill="none"
-stroke="currentColor"
-stroke-width="2"
-style="margin-right:4px;"
->
-<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-<polyline points="7 10 12 15 17 10"></polyline>
-<line x1="12" y1="15" x2="12" y2="3"></line>
-</svg>
-Rapor
-</button>
-
-<button
-class="btn btn--sm"
-id="btn-send-to-todos"
-title="Eksikleri yapılacaklar listesine aktar."
-style="display:inline-flex; align-items:center; opacity:0.5; cursor:not-allowed; padding:6px 12px; background:#64748b; color:white; border:none; font-size:12px; border-radius:12px;"
->
-📋 Gönder
-</button>
-
-<button
-class="btn btn--sm"
-id="copilot-manual-save-btn"
-title="Sohbeti geçmişe kaydeder."
-style="display:inline-flex; align-items:center; padding:6px 12px; font-size:12px; border-radius:12px; background:#64748b; color:white; border:none;"
->
-<svg
-width="12"
-height="12"
-viewBox="0 0 24 24"
-fill="none"
-stroke="currentColor"
-stroke-width="2"
-style="margin-right:4px;"
->
-<path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-<polyline points="17 21 17 13 7 13 7 21"></polyline>
-<polyline points="7 3 7 8 15 8"></polyline>
-</svg>
-Kaydet
-</button>
-
-<div
-style="display:flex; align-items:center; gap:6px; margin-left:8px; border-left:1px solid var(--border); padding-left:8px;"
->
-<label class="switch" title="Sunum modu">
-<input type="checkbox" id="client-view-toggle">
-<span class="slider round"></span>
-</label>
-
-<span style="font-size:12px; font-weight:600; color:var(--muted);">
-Sunum
-</span>
-
-<button
-class="btn btn--ghost btn--sm"
-title="Yeni bir sohbet / yeni URL analizi başlatır."
-id="btn-clear-chat"
-style="display:inline-flex; align-items:center; gap:4px; padding:4px 10px; margin-left:4px; font-size:12px; font-weight:600; color:var(--muted);"
->
-<svg
-width="14"
-height="14"
-viewBox="0 0 24 24"
-fill="none"
-stroke="currentColor"
-stroke-width="2"
-stroke-linecap="round"
-stroke-linejoin="round"
->
-<line x1="12" y1="5" x2="12" y2="19"></line>
-<line x1="5" y1="12" x2="19" y2="12"></line>
-</svg>
-Yeni Sohbet
-</button>
-
-<button
-class="btn btn--ghost btn--sm"
-title="Geçmiş Sohbetleri Göster"
-id="btn-toggle-history-sidebar"
-style="display:inline-flex; align-items:center; gap:4px; padding:4px 10px; margin-left:4px; font-size:12px; font-weight:600; color:var(--muted);"
->
-<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-<circle cx="12" cy="12" r="10"></circle>
-<polyline points="12 6 12 12 16 14"></polyline>
-</svg>
-Geçmiş
-</button>
-</div>
-
-</div>
-</div>
-
-
-<!-- CHAT INTERFACE -->
-<div
-class="card"
-id="copilot-card"
-style="width:100%; border-top:4px solid var(--accent); padding:0; display:flex; flex-direction:column; height:calc(100vh - 200px); overflow:hidden; border-radius:28px; box-shadow:0 4px 20px rgba(0,0,0,0.05);"
->
-
-<!-- Card Header -->
-<div style="padding:24px 24px 0 24px;">
-<div
-class="card__title"
-style="display:inline-flex; align-items:center;"
->
-GEO AI Bot (URL Tabanlı)
-</div>
-
-<div class="card__hint">
-Web sitenizin SEO ve Yapay Zeka (SGE) görünürlüğünü sohbet asistanı ile adım adım analiz edin.
-</div>
-</div>
-
-
-<!-- COPILOT CONTAINER -->
-<div
-class="copilot-container"
-style="border:none; margin-top:0; border-radius:0; padding-right:0; display:flex; flex-direction:column; flex:1; min-height:0;"
->
-
-<!-- COPILOT HEADER -->
-<div
-class="copilot-header"
-style="position:relative; z-index:2; display:flex; flex-direction:column; gap:16px; border-bottom:1px solid #e2e8f0; padding-bottom:16px; background:#fff; flex-shrink:0;"
->
-
-<!-- Progress Bar -->
-<div
-style="display:flex; justify-content:center; width:calc(100% - 40px); margin:8px auto 0 auto; border-top:1px solid var(--border); padding-top:16px;"
->
-
-<div
-class="copilot-progress"
-id="copilot-progress"
-style="display:flex; justify-content:center; align-items:center; gap:8px; width:100%; flex-wrap:wrap; padding: 4px 4px 28px 4px;"
->
-
-<!-- STEP 1 -->
-<div
-class="copilot-step active has-tooltip"
-data-step="1"
-id="cp-step-1"
-data-tooltip="URL yapısı, hız, mobil uyum ve indekslenebilirlik durumunu tarar."
->
-<div class="copilot-step-circle">
-<span class="num">1</span>
-<svg
-width="12"
-height="12"
-viewBox="0 0 24 24"
-fill="none"
-stroke="currentColor"
-stroke-width="3"
-stroke-linecap="round"
-stroke-linejoin="round"
->
-<polyline points="20 6 9 17 4 12"></polyline>
-</svg>
-</div>
-
-<button
-class="btn-fix-issue"
-data-step="1"
-id="btn-fix-1"
-style="position:absolute; top:100%; left:50%; transform:translateX(-50%); margin-top:6px; display:none; background:transparent; border:none; padding:0; font-size:16px; cursor:pointer; z-index:10;"
-title="1. Adımı Çöz"
->
-🔧
-</button>
-
-<span>Site Yapısı</span>
-</div>
-
-
-<svg
-width="14"
-height="14"
-viewBox="0 0 24 24"
-fill="none"
-stroke="currentColor"
-stroke-width="2"
-color="var(--border)"
->
-<path d="M9 18l6-6-6-6"></path>
-</svg>
-
-
-<!-- STEP 2 -->
-<div
-class="copilot-step has-tooltip"
-data-step="2"
-id="cp-step-2"
-data-tooltip="İçeriğin kalitesi, okunabilirliği, hedef kitleye uygunluğu ve SSS eksiklerini analiz eder."
->
-<div class="copilot-step-circle">
-<span class="num">2</span>
-<svg
-width="12"
-height="12"
-viewBox="0 0 24 24"
-fill="none"
-stroke="currentColor"
-stroke-width="3"
-stroke-linecap="round"
-stroke-linejoin="round"
->
-<polyline points="20 6 9 17 4 12"></polyline>
-</svg>
-</div>
-
-<button
-class="btn-fix-issue"
-data-step="2"
-id="btn-fix-2"
-style="position:absolute; top:100%; left:50%; transform:translateX(-50%); margin-top:6px; display:none; background:transparent; border:none; padding:0; font-size:16px; cursor:pointer; z-index:10;"
-title="2. Adımı Çöz"
->
-🔧
-</button>
-
-<span>İçerik Analizi</span>
-</div>
-
-
-<svg
-width="14"
-height="14"
-viewBox="0 0 24 24"
-fill="none"
-stroke="currentColor"
-stroke-width="2"
-color="var(--border)"
->
-<path d="M9 18l6-6-6-6"></path>
-</svg>
-
-
-<!-- STEP 3 -->
-<div
-class="copilot-step has-tooltip"
-data-step="3"
-id="cp-step-3"
-data-tooltip="Rakiplerinizdeki eksikleri tespit edip içerik boşluklarını ve fırsatları belirler."
->
-<div class="copilot-step-circle">
-<span class="num">3</span>
-<svg
-width="12"
-height="12"
-viewBox="0 0 24 24"
-fill="none"
-stroke="currentColor"
-stroke-width="3"
-stroke-linecap="round"
-stroke-linejoin="round"
->
-<polyline points="20 6 9 17 4 12"></polyline>
-</svg>
-</div>
-
-<button
-class="btn-fix-issue"
-data-step="3"
-id="btn-fix-3"
-style="position:absolute; top:100%; left:50%; transform:translateX(-50%); margin-top:6px; display:none; background:transparent; border:none; padding:0; font-size:16px; cursor:pointer; z-index:10;"
-title="3. Adımı Çöz"
->
-🔧
-</button>
-
-<span>Rakip Zafiyetleri</span>
-</div>
-
-
-<svg
-width="14"
-height="14"
-viewBox="0 0 24 24"
-fill="none"
-stroke="currentColor"
-stroke-width="2"
-color="var(--border)"
->
-<path d="M9 18l6-6-6-6"></path>
-</svg>
-
-
-<!-- STEP 4 -->
-<div
-class="copilot-step has-tooltip"
-data-step="4"
-id="cp-step-4"
-data-tooltip="Sayfa içi linkleme stratejisi, anchor metinleri ve gezinme kolaylığını denetler."
->
-<div class="copilot-step-circle">
-<span class="num">4</span>
-<svg
-width="12"
-height="12"
-viewBox="0 0 24 24"
-fill="none"
-stroke="currentColor"
-stroke-width="3"
-stroke-linecap="round"
-stroke-linejoin="round"
->
-<polyline points="20 6 9 17 4 12"></polyline>
-</svg>
-</div>
-
-<button
-class="btn-fix-issue"
-data-step="4"
-id="btn-fix-4"
-style="position:absolute; top:100%; left:50%; transform:translateX(-50%); margin-top:6px; display:none; background:transparent; border:none; padding:0; font-size:16px; cursor:pointer; z-index:10;"
-title="4. Adımı Çöz"
->
-🔧
-</button>
-
-<span>İç Bağlantılar</span>
-</div>
-
-
-<svg
-width="14"
-height="14"
-viewBox="0 0 24 24"
-fill="none"
-stroke="currentColor"
-stroke-width="2"
-color="var(--border)"
->
-<path d="M9 18l6-6-6-6"></path>
-</svg>
-
-
-<!-- STEP 5 -->
-<div
-class="copilot-step has-tooltip"
-data-step="5"
-id="cp-step-5"
-data-tooltip="Schema.org işaretlemelerini kontrol ederek zengin sonuç performansını artırır."
->
-<div class="copilot-step-circle">
-<span class="num">5</span>
-<svg
-width="12"
-height="12"
-viewBox="0 0 24 24"
-fill="none"
-stroke="currentColor"
-stroke-width="3"
-stroke-linecap="round"
-stroke-linejoin="round"
->
-<polyline points="20 6 9 17 4 12"></polyline>
-</svg>
-</div>
-
-<button
-class="btn-fix-issue"
-data-step="5"
-id="btn-fix-5"
-style="position:absolute; top:100%; left:50%; transform:translateX(-50%); margin-top:6px; display:none; background:transparent; border:none; padding:0; font-size:16px; cursor:pointer; z-index:10;"
-title="5. Adımı Çöz"
->
-🔧
-</button>
-
-<span>Yapılandırılmış Veri</span>
-</div>
-
-
-<svg
-width="14"
-height="14"
-viewBox="0 0 24 24"
-fill="none"
-stroke="currentColor"
-stroke-width="2"
-color="var(--border)"
->
-<path d="M9 18l6-6-6-6"></path>
-</svg>
-
-
-<!-- STEP 6 -->
-<div
-class="copilot-step has-tooltip"
-data-step="6"
-id="cp-step-6"
-data-tooltip="Sentez ve çözümleme aşaması."
->
-<div class="copilot-step-circle">
-<span class="num">6</span>
-<svg
-width="12"
-height="12"
-viewBox="0 0 24 24"
-fill="none"
-stroke="currentColor"
-stroke-width="3"
-stroke-linecap="round"
-stroke-linejoin="round"
->
-<polyline points="20 6 9 17 4 12"></polyline>
-</svg>
-</div>
-
-<span>Entegrasyon</span>
-</div>
-
-</div>
-</div>
-
-</div>
-<!-- /COPILOT HEADER -->
-
-
-<!-- CHAT MESSAGES -->
-<div
-class="copilot-chat"
-id="copilot-chat-messages-container"
-style="padding:24px; min-height:200px; flex:1; overflow-y:auto; scroll-behavior:smooth;"
->
-<!-- Chat messages go here -->
-</div>
-
-
-<!-- INPUT AREA -->
-<div
-class="copilot-input-area"
-id="copilot-input-area-container"
-style="padding:16px 24px; background:transparent; border-top:none; position:relative; flex-shrink:0;"
->
-
-<!-- QUICK ACTIONS WRAPPER -->
-<div style="position:relative;">
-
-<div
-style="position:absolute; top:-16px; left:0; right:0; height:16px; background:linear-gradient(to bottom, rgba(255,255,255,0), #fff 85%); pointer-events:none; z-index:2;"
-></div>
-
-<div
-class="quick-actions"
-id="copilot-quick-actions"
-style="margin-bottom:8px; padding:4px 8px 4px 8px; max-width:800px; width:100%; margin-left:auto; margin-right:auto; display:none; justify-content:center; gap:8px; background:#fff; border:none; overflow:visible; white-space:nowrap; position:relative; z-index:3;"
->
-
-<button
-class="quick-action-btn has-tooltip"
-data-tooltip="İçeriği daha inandırıcı hale getirmek için ipuçları iste."
-onclick="document.getElementById('copilot-text-input').value='İçeriği daha ikna edici nasıl yaparım?'; document.getElementById('btn-send-message').click();"
->
-İçeriği daha ikna edici nasıl yaparım?
-</button>
-
-<button
-class="quick-action-btn has-tooltip"
-data-tooltip="Eksik olan E-E-A-T veya semantik unsurları listele."
-onclick="document.getElementById('copilot-text-input').value='Bana içerik eksiklerimi söyle'; document.getElementById('btn-send-message').click();"
->
-Bana içerik eksiklerimi söyle
-</button>
-
-<button
-class="quick-action-btn has-tooltip"
-data-tooltip="Makalenin anlamsal derinliğini artıracak anahtar kelimeler öner."
-onclick="document.getElementById('copilot-text-input').value='Hangi LSI kelimelerini kullanmalıyım?'; document.getElementById('btn-send-message').click();"
->
-Hangi LSI kelimelerini kullanmalıyım?
-</button>
-
-<button
-class="quick-action-btn has-tooltip"
-data-tooltip="Rakiplerin senden daha iyi olduğu spesifik noktaları öğren."
-onclick="document.getElementById('copilot-text-input').value='Rakiplerimden neden gerideyim?'; document.getElementById('btn-send-message').click();"
->
-Rakiplerimden neden gerideyim?
-</button>
-
-</div>
-</div>
-
-
-<!-- INPUT WRAPPER -->
-<div
-class="input-wrapper"
-style="display:flex; flex-direction:column; align-items:center; width:100%;"
->
-<div
-id="copilot-llms-container"
-style="display:flex; align-items:center; width:100%; max-width:1000px; gap:8px; margin-bottom:8px; justify-content:center;"
->
-<button
-class="btn btn--primary"
-id="btn-auto-analyze"
-style="display:none; padding:10px 16px; font-weight:600; background:#10b981; border:none; border-radius:30px; box-shadow:0 4px 6px rgba(16,185,129,0.2); white-space:nowrap; font-size:13px;"
->
-<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px; color:#fff; vertical-align:middle;"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
-Tüm Siteyi Analiz Et
-</button>
-
-<div
-style="display:flex; align-items:center; flex:1; max-width:800px; background:#f0f4f9; border-radius:30px; padding:6px 10px 6px 24px;"
->
-<input
-type="text"
-id="copilot-text-input"
-placeholder="Örn: https://www.site.com/hizmet"
-style="flex:1; border:none; outline:none; background:transparent; font-size:15px; color:#1e293b; padding:10px 0; box-shadow:none; min-width:0;"
->
-<input
-type="text"
-id="copilot-secondary-input"
-style="display:none;"
->
-<button
-id="btn-send-message"
-style="background:#a8c7fa; color:#041e49; border:none; border-radius:50%; width:40px; height:40px; display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; transition:all 0.2s; margin-left:12px;"
->
-<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
-</button>
-</div>
-
-<button
-class="btn btn--primary"
-id="btn-auto-fix"
-style="display:none; padding:10px 16px; font-weight:600; background:#10b981; border:none; border-radius:30px; box-shadow:0 4px 6px rgba(16,185,129,0.2); white-space:nowrap; font-size:13px;"
->
-<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px; color:#fff; vertical-align:middle;"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>
-Tüm Eksikleri Gider
-</button>
-</div>
-
-<div
-style="font-size:12px; color:#64748b; text-align:center; font-weight:400;"
->
-AI SEO Bot bir yapay zeka modeli olduğu için hata yapabilir.
-</div>
-
-</div>
-<!-- /INPUT WRAPPER -->
-
-</div>
-<!-- /COPILOT INPUT AREA -->
-
-</div>
-<!-- /COPILOT CONTAINER -->
-
-</div>
-<!-- /COPILOT CARD -->
-
-
-<!-- LIVE REPORT PANEL -->
-<div
-class="live-report-panel"
-id="live-report-panel"
-style="width:100%; background:#fff; border:1px solid var(--border); border-radius:12px; box-shadow:0 4px 6px -1px rgba(0,0,0,0.05); padding:24px;"
->
-
-<h3
-style="font-size:16px; font-weight:700; color:#0f172a; margin:0 0 20px 0; display:flex; align-items:center; gap:8px;"
->
-<svg
-width="20"
-height="20"
-viewBox="0 0 24 24"
-fill="none"
-stroke="currentColor"
-stroke-width="2"
-stroke-linecap="round"
-stroke-linejoin="round"
-style="color:#475569;"
->
-<path d="M3 3v18h18"></path>
-<path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"></path>
-</svg>
-Canlı Rapor Paneli
-</h3>
-
-
-<!-- 3 GRAFİK -->
-<div
-style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; margin-bottom:16px;"
->
-
-<!-- Genel Sağlık -->
-<div
-style="background:#f8fafc; border:2px dashed #cbd5e1; border-radius:12px; padding:16px;"
->
-
-<h4
-style="font-size:13px; font-weight:600; color:#475569; margin-bottom:12px; text-align:center;"
->
-Genel AI Güven Skoru
-</h4>
-
-<div
-style="height:200px; position:relative; display:flex; justify-content:center; align-items:center;"
->
-<canvas id="chart-overall-health"></canvas>
-
-<div
-id="chart-overall-health-placeholder"
-style="position:absolute; display:flex; flex-direction:column; align-items:center; color:#94a3b8;"
->
-<svg
-width="48"
-height="48"
-viewBox="0 0 24 24"
-fill="none"
-stroke="#cbd5e1"
-stroke-width="1.5"
->
-<circle cx="12" cy="12" r="10"></circle>
-<path d="M12 8v4l3 3"></path>
-</svg>
-
-<span style="font-size:12px; margin-top:8px;">
-Analiz bekleniyor...
-</span>
-</div>
-</div>
-
-</div>
-
-
-<!-- E-E-A-T -->
-<div
-style="background:#f8fafc; border:2px dashed #cbd5e1; border-radius:12px; padding:16px;"
->
-
-<h4
-style="font-size:13px; font-weight:600; color:#475569; margin-bottom:12px; text-align:center;"
->
-E-E-A-T Sinyalleri
-</h4>
-
-<div
-style="height:200px; position:relative; display:flex; justify-content:center; align-items:center;"
->
-<canvas id="chart-eeat"></canvas>
-
-<div
-id="chart-eeat-placeholder"
-style="position:absolute; display:flex; flex-direction:column; align-items:center; color:#94a3b8;"
->
-<svg
-width="48"
-height="48"
-viewBox="0 0 24 24"
-fill="none"
-stroke="#cbd5e1"
-stroke-width="1.5"
->
-<polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
-<polyline points="2 17 12 22 22 17"></polyline>
-<polyline points="2 12 12 17 22 12"></polyline>
-</svg>
-
-<span style="font-size:12px; margin-top:8px;">
-Analiz bekleniyor...
-</span>
-</div>
-</div>
-
-</div>
-
-<!-- Dinamik Adım Metrikleri ve Varlıklar -->
-<div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px;">
-<h4 style="font-size: 13px; font-weight: 600; color: #475569; margin-bottom: 12px;">Dinamik Analiz Metrikleri</h4>
-
-<div id="dynamic-metrics-container" style="display: flex; flex-direction: column; gap: 12px;">
-<p style="color: #94a3b8; font-size: 12px; text-align: center; margin: 10px 0;">Analiz edildikçe dolacak...</p>
-</div>
-
-<h4 style="font-size: 13px; font-weight: 600; color: #475569; margin-top: 20px; margin-bottom: 10px;">Tespit Edilen Varlıklar (Entities)</h4>
-<div id="dynamic-tags-container" style="display: flex; flex-wrap: wrap; gap: 6px;">
-<!-- JS ile etiketler buraya dolacak -->
-</div>
-</div>
-
-<!-- RAKİP KIYASLAMA -->
-<div
-id="battle-chart-container"
-style="background:#f8fafc; border:2px dashed #cbd5e1; border-radius:12px; padding:16px; display: none;"
->
-
-<h4
-style="font-size:13px; font-weight:600; color:#475569; margin-bottom:12px; text-align:center;"
->
-Rakip Kıyaslaması
-</h4>
-
-<div
-style="height:200px; position:relative; display:flex; justify-content:center; align-items:center;"
->
-<canvas id="chart-battle"></canvas>
-
-<div
-id="chart-battle-placeholder"
-style="position:absolute; display:flex; flex-direction:column; align-items:center; color:#94a3b8;"
->
-<svg
-width="48"
-height="48"
-viewBox="0 0 24 24"
-fill="none"
-stroke="#cbd5e1"
-stroke-width="1.5"
->
-<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-<circle cx="9" cy="7" r="4"></circle>
-<path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-<path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-</svg>
-
-<span style="font-size:12px; margin-top:8px;">
-Rakip Kıyaslama aktif değil.
-</span>
-</div>
-</div>
-
-</div>
-
-</div>
-
-
-<!-- AKSİYON PLANI -->
-<div
-style="background:#f8fafc; border:2px dashed #cbd5e1; border-radius:12px; padding:16px;"
->
-
-<h4
-style="font-size:13px; font-weight:600; color:#475569; margin-bottom:12px;"
->
-Acil Aksiyon Planı
-</h4>
-
-<div
-id="action-plan-table-container"
-style="font-size:13px;"
->
-<p
-style="color:#94a3b8; font-size:12px; text-align:center; margin:20px 0;"
->
-Analiz tamamlandığında aksiyon maddeleri burada görünecek.
-</p>
-</div>
-
-</div>
-
-</div>
-<!-- /LIVE REPORT PANEL -->
-
-
-
-</div>
-<!-- /COPILOT ACTION VIEW -->
 
 <!-- HISTORY SIDEBAR -->
-<div id="ai-history-sidebar" style="position:fixed; top:0; right:-350px; width:350px; height:100vh; background:#fff; box-shadow:-4px 0 15px rgba(0,0,0,0.1); z-index:9999; transition:right 0.3s ease; display:flex; flex-direction:column; border-left:1px solid #e2e8f0;">
-<div style="padding:16px 20px; border-bottom:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center; background:#f8fafc;">
-<h3 style="margin:0; font-size:16px; font-weight:600; color:#0f172a;">Geçmiş Sohbetler</h3>
-<button id="btn-close-history-sidebar" style="background:none; border:none; cursor:pointer; padding:4px; color:#64748b;">
-<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-</button>
-</div>
-<div style="padding:12px 20px; font-size:13px; color:#64748b; background:#f1f5f9; display:flex; justify-content:space-between; align-items:center;">
-Tıklayarak sohbeti geri yükle
-<button class="btn btn--ghost btn--sm" id="btn-clear-history-sidebar" style="font-size:12px; padding:2px 6px; color:#ef4444;">Tümünü Sil</button>
-</div>
-<div id="copilot-sidebar-history-list" style="flex:1; overflow-y:auto; padding:12px 20px; display:flex; flex-direction:column; gap:8px; scroll-behavior: smooth;">
-<p class="empty-note">Henüz geçmiş sohbet yok.</p>
-</div>
+<div id="ai-history-sidebar" style="position:fixed; top:0; right:-380px; width:380px; height:100vh; background:#fff; box-shadow:-4px 0 15px rgba(0,0,0,0.1); z-index:9999; transition:right 0.3s ease; display:flex; flex-direction:column; border-left:1px solid #e2e8f0;">
+  <div style="padding:16px 20px; border-bottom:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center; background:#f8fafc;">
+    <h3 style="margin:0; font-size:16px; font-weight:600; color:#0f172a;">Geçmiş Analizler</h3>
+    <button id="btn-close-history-sidebar" style="background:none; border:none; cursor:pointer; padding:4px; color:#64748b;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+    </button>
+  </div>
+  <div style="padding:12px 20px; font-size:13px; color:#64748b; background:#f1f5f9; display:flex; justify-content:space-between; align-items:center;">
+    Tıklayarak analizi geri yükle
+    <button class="btn btn--ghost btn--sm" id="btn-clear-history-sidebar" style="font-size:12px; padding:2px 6px; color:#ef4444;">Tümünü Sil</button>
+  </div>
+  <div id="copilot-sidebar-history-list" style="flex:1; overflow-y:auto; padding:12px 20px; display:flex; flex-direction:column; gap:8px; scroll-behavior:smooth;">
+    <p class="empty-note">Henüz geçmiş analiz yok.</p>
+  </div>
 </div>
 <!-- /HISTORY SIDEBAR -->
 

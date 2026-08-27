@@ -169,7 +169,7 @@ require_once __DIR__ . '/db.php';
         Teknik SEO</button></li>
       <li><button class="nav__item" data-tab="3"><span class="num">03</span>
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-        AI SEO Analizi</button></li>
+        AI SEO Hizmetleri</button></li>
       <li><button class="nav__item" data-tab="4"><span class="num">04</span>
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
         Yapılacaklar</button></li>
@@ -467,7 +467,7 @@ require_once __DIR__ . '/db.php';
               <div class="card__title has-tooltip" style="display:inline-flex; align-items:center;" data-tooltip="AI tarafından tespit edilen tüm eksiklikleri tek bir listede takip edin.">Yapılacaklar & Eksiklikler</div>
               <button class="btn btn--ghost btn--sm has-tooltip" data-tooltip="Yapılacaklar listesini kalıcı olarak siler." id="btn-clear-todos">Listeyi Temizle</button>
             </div>
-            <div class="card__hint">AI SEO Analizi (3. Sekme) sırasında sistemin tespit ettiği "Metin Bazlı SEO Gereksinimleri" ve "Teknik SEO Gereksinimleri" burada toplanır. Bir maddeye tıklayarak analiz edildiği noktaya (3. Sekmeye) geri dönebilirsiniz.</div>
+            <div class="card__hint">AI SEO Hizmetleri (3. Sekme) kapsamında tespit edilen görev ve öneriler burada toplanır.</div>
             
             <div class="grid mt-20" style="gap:20px; grid-template-columns: repeat(3, 1fr);">
               <!-- Teknik Eksiklikler Sütunu -->

@@ -1,1902 +1,1010 @@
-const seoQuestionPool = [
-  "Bana içerik eksiklerimi söyle",
-  "Rakiplerimden neden gerideyim?",
-  "Bu sayfa için SSS (FAQ) hazırla",
-  "İçeriği daha ikna edici nasıl yaparım?",
-  "Hangi LSI kelimelerini kullanmalıyım?",
-  "Kullanıcı niyetine ne kadar uygun?",
-  "Okunabilirlik skorumu nasıl artırırım?",
-  "Sayfa başlığı (Title) yeterince iyi mi?",
-  "E-E-A-T sinyallerim eksik mi?",
-  "Hangi alt başlıkları (H2/H3) eklemeliyim?",
-  "Featured Snippet (Sıfırıncı sıra) için ne yapmalıyım?"
+/**
+ * AdresGezgini — AI SEO Hizmetleri
+ * URL gir → AI site türü tespit → 7 hizmet + özel hizmet ekle → accordion sonuçlar
+ */
+
+// ============================================================
+// 7 SABİT HİZMET
+// ============================================================
+const AI_SEO_SERVICES = [
+  {
+    id: 1,
+    icon: '🏗️',
+    title: 'Yapay Zeka Uyumlu Site Yapısı',
+    description: 'Site yapısının, hizmet ve işletme bilgilerinin yapay zeka sistemleri tarafından anlaşılır hale getirilmesi.',
+    buildPrompt(d) {
+      return `Sen bir AdresGezgini AI SEO uzmanısın. "${d.url}" sitesi için YAPAY ZEKA UYUMLU SİTE YAPISI analizi yap.
+
+Site: ${d.title} | ${d.description}
+Tür: ${d.siteType}
+Metin: ${d.text.substring(0, 3000)}
+Schema'lar: ${d.schemas.join(', ') || 'Yok'}
+
+Türkçe, Markdown başlıkları kullanarak aşağıdakileri analiz et:
+
+## 1. Genel Şema ve Site Kimliği
+Organization/WebSite/LocalBusiness şemalarının durumu. AI sistemlerin siteyi doğru tanıması için eksik bilgiler.
+
+## 2. ${d.siteType.includes('Ürün') ? 'Ürün (Product)' : 'Hizmet (Service)'} Detay Şeması
+${d.siteType.includes('Ürün') ? 'Product şeması: name, description, image, price, availability, brand eksiklikleri ve JSON-LD örneği.' : 'Service şeması: name, description, provider, areaServed, serviceType eksiklikleri ve JSON-LD örneği.'}
+
+## 3. Breadcrumb ve Sayfa Hiyerarşisi
+URL yapısı, H1-H6 tutarlılığı, BreadcrumbList şeması durumu.
+
+## 4. Sayfa Sayfa İçerik Değerlendirmesi
+${d.siteType.includes('Ürün') ? 'Ana sayfa, kategori, ürün, hakkımızda, iletişim' : 'Ana sayfa, hizmet sayfaları, hakkımızda, iletişim, blog'} için ayrı ayrı değerlendirme (4-5 sayfa).
+
+## 5. Taranabilirlik ve Linkleme
+robots.txt, sitemap.xml, canonical, HTTP/HTTPS tutarlılığı, iç link yapısı.
+
+## 6. LLM Uyumluluğu
+ChatGPT/Gemini/Perplexity bu siteyi nasıl anlıyor? İşletme kimliği ve hizmetler yeterince açık mı? LLM-dostu iyileştirme önerileri.
+
+## Öncelikli 5 Aksiyon
+Kritik maddeler öncelik sırasıyla.`;
+    }
+  },
+  {
+    id: 2,
+    icon: '🤖',
+    title: 'Yapay Zeka Tanıtım Dosyaları',
+    description: 'llms.txt ve diğer AI tanıtım dosyalarının hazırlanması ve meta verilerin AI sistemleri için optimize edilmesi.',
+    buildPrompt(d) {
+      return `Sen bir AdresGezgini AI SEO uzmanısın. "${d.url}" sitesi için YAPAY ZEKA TANITIM DOSYALARI hazırla.
+
+Site: ${d.title} | ${d.description}
+Tür: ${d.siteType}
+Metin: ${d.text.substring(0, 4000)}
+Schema'lar: ${d.schemas.join(', ') || 'Yok'}
+
+## 1. llms.txt Dosyası Analizi
+Bu site için llms.txt gerekli mi? Perplexity, ChatGPT gibi sistemlere katkısı nedir?
+
+## 2. Hazır llms.txt İçeriği
+Aşağıdaki formatı kullan ve siteye özel doldur:
+
+\`\`\`
+# ${d.title} - AI Tanıtım Dosyası
+> [İşletme özeti - tek cümle]
+
+## İşletme Hakkında
+[Faaliyet alanı, lokasyon, hedef kitle]
+
+## Önemli Sayfalar
+- ${d.url} — Ana Sayfa
+- [Tespit ettiğin diğer sayfalar]
+
+## Hizmetler / Ürünler
+[Her biri için kısa açıklama]
+
+## İletişim
+[Varsa bilgiler]
+\`\`\`
+
+## 3. Meta Veri Durumu
+Meta açıklamaları, Open Graph etiketleri, JSON-LD description/name alanları AI sistemleri için yeterli mi?
+
+## 4. Öncelikli 5 Aksiyon
+En önemli yapılacaklar listesi.`;
+    }
+  },
+  {
+    id: 3,
+    icon: '🔍',
+    title: 'Arama Motoru Kayıtları',
+    description: 'Google, Yandex ve Bing webmaster araçlarına kayıt ve doğrulama için adım adım rehber. (Sadece rehber formatında)',
+    buildPrompt(d) {
+      return `Sen bir AdresGezgini AI SEO uzmanısın. "${d.url}" sitesi için ARAMA MOTORU KAYITLARI rehberi hazırla.
+
+ÖNEMLİ: Biz kayıt işlemini yapmıyoruz. Müşteriye rehber sunuyoruz.
+
+Site: ${d.title} | Tür: ${d.siteType}
+
+## 1. Google Search Console Kayıt Rehberi
+- Site ekleme adımları (arayüz güncellemelerine göre)
+- Sahiplik doğrulama yöntemleri: HTML etiket, Google Analytics, DNS kaydı
+- XML Sitemap gönderimi nasıl yapılır?
+- URL Denetleme aracı nasıl kullanılır?
+- İndeksleme hataları ve Core Web Vitals raporu nasıl okunur?
+
+## 2. Bing Webmaster Tools Kayıt Rehberi
+- Site ekleme ve sahiplik doğrulama
+- Google Search Console'dan otomatik aktarım seçeneği
+- Sitemap gönderimi ve Bing'e özel dikkat edilecekler
+
+## 3. Yandex Webmaster Kayıt Rehberi
+- Türk kullanıcılar için Yandex önemi
+- Site ekleme, doğrulama, sitemap gönderimi
+
+## 4. ${d.url} İçin Özel Notlar
+Bu sitenin URL yapısına göre kayıt sürecinde dikkat edilecek özel durumlar (www/non-www tercihi, HTTPS zorunluluğu, vs.)
+
+## 5. Webmaster Araçları Takip Takvimi
+Aylık/haftalık kontrol edilmesi gereken raporlar ve metrikler.`;
+    }
+  },
+  {
+    id: 4,
+    icon: '📊',
+    title: 'Yapılandırılmış Veri Düzenlemeleri',
+    description: 'Schema.org işaretlemelerinin denetimi ve eksik şemaların JSON-LD koduyla hazırlanması.',
+    buildPrompt(d) {
+      return `Sen bir AdresGezgini AI SEO uzmanısın. "${d.url}" sitesi için YAPILANDIRILMIŞ VERİ DÜZENLEMELERİ analizi yap.
+
+Site: ${d.title} | ${d.description}
+Tür: ${d.siteType}
+Mevcut Schema'lar: ${d.schemas.join(', ') || 'HİÇ SCHEMA BULUNAMADI'}
+Metin: ${d.text.substring(0, 3000)}
+
+## 1. Mevcut Şema Durumu
+Hangi şemalar var, hangileri eksik? Genel değerlendirme.
+
+## 2. Organization / LocalBusiness Şeması
+Örnek JSON-LD kodu (siteye özel name, url, description, address, telephone, openingHours alanlarıyla):
+\`\`\`json
+{JSON-LD örneği buraya}
+\`\`\`
+
+## 3. ${d.siteType.includes('Ürün') ? 'Product Şeması' : 'Service Şeması'}
+${d.siteType.includes('Ürün') ? 'Ürün sayfaları için Product şeması örneği (name, description, image, offers, aggregateRating).' : 'Hizmet sayfaları için Service şeması örneği (name, description, provider, areaServed, serviceType).'}
+\`\`\`json
+{JSON-LD örneği buraya}
+\`\`\`
+
+## 4. BreadcrumbList Şeması
+Bu site için örnek Breadcrumb şeması.
+\`\`\`json
+{JSON-LD örneği buraya}
+\`\`\`
+
+## 5. FAQ Şeması
+Siteye uygun 5 soru-cevap ve JSON-LD örneği.
+\`\`\`json
+{JSON-LD örneği buraya}
+\`\`\`
+
+## 6. Test ve Doğrulama
+Google Rich Results Test nasıl kullanılır? Yaygın şema hataları nelerdir?
+
+## 7. Öncelikli 5 Aksiyon`;
+    }
+  },
+  {
+    id: 5,
+    icon: '✍️',
+    title: 'İçerik Düzenleme ve Geliştirme',
+    description: 'Mevcut metin içeriklerinin SEO ve kullanıcı deneyimine uygun şekilde geliştirilmesi.',
+    buildPrompt(d) {
+      return `Sen bir AdresGezgini AI SEO uzmanısın. "${d.url}" sitesi için İÇERİK DÜZENLEME VE GELİŞTİRME analizi yap.
+
+Site: ${d.title} | ${d.description}
+Tür: ${d.siteType}
+Mevcut metin: ${d.text.substring(0, 5000)}
+
+## 1. Meta Başlık Analizi
+Mevcut: "${d.title}"
+SEO için optimize edilmiş 3 alternatif başlık öner (max 60 karakter, her biri farklı açıdan).
+
+## 2. Meta Açıklama Analizi
+Mevcut: "${d.description}"
+2 alternatif meta açıklama yaz (max 160 karakter, kullanıcıyı tıklamaya ikna eden).
+
+## 3. Ana Sayfa İçerik İyileştirmeleri
+Mevcut metinden tespit ettiğin en zayıf 3 bölümü belirt ve alternatif metin önerileri sun.
+
+## 4. Sayfa Sayfa Değerlendirme (4-5 Sayfa)
+${d.siteType.includes('Ürün') ? 'Ana sayfa, kategori sayfaları, ürün sayfaları, hakkımızda, iletişim' : 'Ana sayfa, hizmet sayfaları, hakkımızda, iletişim, varsa blog'} için ayrı ayrı içerik değerlendirmesi ve iyileştirme notları.
+
+## 5. H1-H6 Başlık Yapısı
+Başlık hiyerarşisi doğru mu? Eksik veya hatalı başlıklar için somut düzeltme önerileri.
+
+## 6. Okunabilirlik ve Dil Kalitesi
+Anlaşılması güç ifadeler, tekrarlayan cümleler, gereksiz teknik jargon tespiti.
+
+## 7. Öncelikli 5 Aksiyon`;
+    }
+  },
+  {
+    id: 6,
+    icon: '👥',
+    title: 'Kullanıcı Odaklı İçerik',
+    description: 'Ziyaretçi niyetine uygun SSS, değer teklifi ve kullanıcı yönlendirme içeriklerinin geliştirilmesi.',
+    buildPrompt(d) {
+      return `Sen bir AdresGezgini AI SEO uzmanısın. "${d.url}" sitesi için KULLANICI ODAKLI İÇERİK analizi yap.
+
+Site: ${d.title} | ${d.description}
+Tür: ${d.siteType}
+Metin: ${d.text.substring(0, 4000)}
+
+## 1. Kullanıcı Niyeti Analizi
+Bu siteyi ziyaret eden kullanıcıların en temel soruları ve beklentileri. Ağırlıklı kullanıcı niyeti (bilgilendirme, karşılaştırma, satın alma, iletişim)?
+
+## 2. Sıkça Sorulan Sorular (8 Soru)
+Bu ${d.siteType.includes('Ürün') ? 'e-ticaret' : 'hizmet'} sitesi için en çok sorulan 8 soru ve doğrudan yanıtları. Her yanıt ilk cümlede cevabı vermeli.
+
+## 3. Değer Teklifi (Value Proposition)
+Rakiplerden ayrışan, kullanıcıyı ikna eden yeni değer teklifi metni (max 100 kelime).
+
+## 4. CTA (Harekete Geçirici Mesaj) Önerileri
+Mevcut CTA metinlerini değerlendir, 5 güçlü alternatif CTA metni öner.
+
+## 5. İçerik Boşlukları
+Kullanıcıların karar vermeden önce ihtiyaç duyduğu ama sitede olmayan bilgiler neler?
+
+## 6. Blog / Rehber İçerik Önerileri
+Kullanıcı sorularını karşılayacak 5 blog konusu.
+
+## 7. Öncelikli 5 Aksiyon`;
+    }
+  },
+  {
+    id: 7,
+    icon: '🔗',
+    title: 'Site İçi İçerik Bağlantıları',
+    description: 'İç linkleme stratejisinin oluşturulması ve topic cluster yapısının kurulması.',
+    buildPrompt(d) {
+      return `Sen bir AdresGezgini AI SEO uzmanısın. "${d.url}" sitesi için SİTE İÇİ İÇERİK BAĞLANTILARI analizi yap.
+
+Site: ${d.title} | ${d.description}
+Tür: ${d.siteType}
+Metin: ${d.text.substring(0, 4000)}
+Schema'lar: ${d.schemas.join(', ') || 'Yok'}
+
+## 1. Mevcut İç Link Yapısı
+Ana sayfa önemli sayfalara yeterince link veriyor mu? Anchor text kalitesi nasıl?
+
+## 2. Topic Cluster Haritası
+Bu site için önerilen konu kümeleri:
+- Pillar Page (Ana Sayfa): ...
+- Cluster Content: ...
+(Her küme için belirt)
+
+## 3. ${d.siteType.includes('Ürün') ? 'Kategori ↔ Ürün Linkleme' : 'Hizmet Sayfaları Arası Linkleme'}
+${d.siteType.includes('Ürün') ? 'Kategori → Ürün ve Ürün → İlgili Ürün bağlantı önerileri ve anchor text örnekleri.' : 'Hizmet sayfaları arası çapraz linkleme önerileri ve anchor text örnekleri.'}
+
+## 4. Blog → Hizmet/Ürün Linkleme
+Önerilen blog konuları ve hangi sayfalara link vermesi gerektiği.
+
+## 5. Kırık Bağlantı Riskleri
+404 riski taşıyan URL yapıları, canonical URL tutarlılığı.
+
+## 6. Öncelikli 5 Aksiyon`;
+    }
+  }
 ];
 
-window.renderDynamicQuickActions = function() {
-  const quickActionsContainer = document.getElementById("copilot-quick-actions");
-  if (!quickActionsContainer) return;
+// ============================================================
+// ÖZEL HİZMETLER — In-Memory dizi (persistence için localStorage)
+// ============================================================
+const CUSTOM_SERVICES_KEY = 'ag_custom_seo_services_v2';
 
-  const shuffled = [...seoQuestionPool].sort(() => 0.5 - Math.random());
-  const selected = shuffled.slice(0, 3);
+// In-memory dizi — buildPrompt fonksiyonlarını korur
+const customServicesRegistry = [];
 
-  const infoIconBlue = '';
-
-  let html = "";
-  selected.forEach(q => {
-    // FIX the button so it sets value to just the question string, without the SVG!
-    // 'this.textContent' will include the SVG text if not careful, but textContent ignores SVG tags, so it should be fine.
-    html += `<button class="quick-action-btn has-tooltip" data-tooltip="Hızlı aksiyon ile AI'a anında talimat gönderin." onclick="document.getElementById('copilot-text-input').value=this.textContent; document.getElementById('btn-send-message').click();">` + q + infoIconBlue + `</button>`;
-  });
-  
-  quickActionsContainer.innerHTML = html;
+function persistCustomServices() {
+  const data = customServicesRegistry.map(s => ({
+    id: s.id,
+    icon: s.icon,
+    title: s.title,
+    description: s.description,
+    promptTemplate: s.promptTemplate
+  }));
+  try { localStorage.setItem(CUSTOM_SERVICES_KEY, JSON.stringify(data)); } catch(e) {}
 }
-window.showFollowUpPrompt = function() {
-  addMessage("Başka bir konuda yardımcı olmamı ister misiniz? İşte birkaç örnek soru:", 'ai', false, false);
-  window.renderDynamicQuickActions();
-  const cqa = document.getElementById("copilot-quick-actions");
-  if (cqa) cqa.style.display = "flex";
+
+function buildCustomServiceObj(data) {
+  const tmpl = data.promptTemplate || '';
+  return {
+    id: data.id,
+    icon: data.icon || '⭐',
+    title: data.title,
+    description: data.description,
+    promptTemplate: tmpl,
+    isCustom: true,
+    buildPrompt(d) {
+      return tmpl
+        .replace(/\{URL\}/g,         d.url)
+        .replace(/\{TITLE\}/g,       d.title)
+        .replace(/\{DESCRIPTION\}/g, d.description)
+        .replace(/\{SITE_TYPE\}/g,   d.siteType)
+        .replace(/\{TEXT\}/g,        (d.text || '').substring(0, 4000))
+        .replace(/\{SCHEMAS\}/g,     (d.schemas || []).join(', ') || 'Yok');
+    }
+  };
+}
+
+/** Tüm hizmetler: sabit 7 + özel */
+function getAllServices() {
+  return [...AI_SEO_SERVICES, ...customServicesRegistry];
+}
+
+// ============================================================
+// STATE
+// ============================================================
+const state = {
+  targetUrl: '',
+  siteType: '',
+  fetchedData: null,
+  completedServices: new Set(),
+  serviceResults: {},
+  currentChatId: String(Date.now())
 };
-document.addEventListener('DOMContentLoaded', () => {
-const copilotChat = document.getElementById('copilot-chat-messages-container');
-const copilotResetBtn = document.getElementById('btn-clear-chat');
-const copilotSaveBtn = document.getElementById('copilot-manual-save-btn');
-const copilotProgress = document.getElementById('copilot-progress');
-const copilotActions = document.getElementById('copilot-actions') || { style: {}, innerHTML: '', replaceChildren: function(){} };
-const copilotInputArea = document.getElementById('copilot-input-area-container');
-const copilotTextInput = document.getElementById('copilot-text-input');
-const copilotSendBtn = document.getElementById('btn-send-message');
-const historyList = document.getElementById('copilot-history-list');
-const btnClearHistory = document.getElementById('btn-clear-history');
 
-if (!copilotChat) return;
+// ============================================================
+// YARDIMCI FONKSİYONLAR
+// ============================================================
 
-const aiSeoSteps = ["", "Site Yapısı ve Taranabilirlik", "Kullanıcı Odaklı İçerik ve SSS", "Rakip Zafiyetleri ve İçerik Derinliği", "İçerik İçi Bağlantılar ve Kayıtlar", "Yapılandırılmış Veri Derinliği", "AI Bilgilendirme ve Entegrasyon"];
-
-let currentState = 'WAITING_FOR_URL';
-let currentStep = 1;
-let completedSteps = new Set();
-let fixedIssues = new Set();
-let targetUrl = '';
-let targetType = '';
-let fetchedData = null;
-window.targetCompetitorUrl = '';
-window.fetchedCompetitorData = null;
-let chatMessages = [];
-let reportData = [];
-let currentChatId = Date.now().toString();
-
-function addMessage(text, sender, isHtml = false, doPush = true) {
-  const emptyState = document.getElementById("copilot-empty-state");
-  if(emptyState) emptyState.style.display = "none";
-  const div = document.createElement('div');
-  div.className = `chat-msg ${sender}`;
-  const msgId = 'msg-' + document.querySelectorAll('.chat-msg').length;
-  div.id = msgId;
-  if (isHtml) { div.innerHTML = text; } else { div.textContent = text; }
-  const msgContainer = document.getElementById('copilot-chat-messages-container');
-  if (msgContainer) msgContainer.appendChild(div);
-  copilotChat.scrollTop = copilotChat.scrollHeight;
-
-  if (doPush) {
-    chatMessages.push({ text, sender, isHtml });
-    // We no longer auto-save here, the user must click Save manually
-  }
-}
-
-function addTypingIndicator() {
-  const div = document.createElement('div');
-  div.className = `chat-msg ai typing-indicator-wrap`;
-  div.id = 'typing-indicator';
-  div.innerHTML = `<div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>`;
-  const msgContainer = document.getElementById('copilot-chat-messages-container');
-  if (msgContainer) msgContainer.appendChild(div);
-  copilotChat.scrollTop = copilotChat.scrollHeight;
-}
-
-function removeTypingIndicator() {
-  const indicator = document.getElementById('typing-indicator');
-  if (indicator) {
-      try { indicator.remove(); } catch(e) { console.warn(e); }
-  }
-}
-
-function updateProgressUI(step) {
-  if(step === 0) {
-    copilotProgress.style.display = 'none';
-    if (copilotSaveBtn) copilotSaveBtn.style.display = 'none';
-    return;
-  }
-  copilotProgress.style.display = 'flex';
-  if (copilotSaveBtn) copilotSaveBtn.style.display = 'inline-flex';
-
-  for (let i = 1; i <= 6; i++) {
-    const stepEl = document.getElementById(`cp-step-${i}`);
-    if (!stepEl) continue;
-    if (completedSteps.has(i)) {
-      stepEl.classList.add('completed');
-      stepEl.classList.remove('active');
-    } else if (i === step) {
-      stepEl.classList.add('active');
-      stepEl.classList.remove('completed');
-    } else {
-      stepEl.classList.remove('active', 'completed');
-    }
-  }
-  renderIssuesUI();
-}
-
-function renderIssuesUI() {
-  for (let i = 1; i <= 6; i++) {
-    const btn = document.getElementById(`btn-fix-${i}`);
-    if (!btn) continue;
-    
-    if (completedSteps.has(i)) {
-      btn.style.display = 'block';
-      const isFixed = fixedIssues.has(i);
-      btn.style.background = 'transparent';
-      btn.style.color = isFixed ? '#10b981' : '#2563eb';
-      btn.style.borderColor = 'transparent';
-      btn.style.border = 'none';
-      
-      btn.innerHTML = isFixed ? '✓' : '🔧';
-      btn.title = isFixed ? `${i}. Adım Çözüldü` : `${i}. Adımı Çöz (Manuel)`;
-      
-      btn.style.cursor = (window.isAutoAnalyzing || window.isAutoFixing) ? 'default' : 'pointer';
-      btn.style.pointerEvents = (window.isAutoAnalyzing || window.isAutoFixing) ? 'none' : 'auto';
-      btn.style.textDecoration = 'none';
-      
-      // Use onclick to avoid duplicates and DOM replacement issues
-      btn.onclick = (e) => {
-        e.stopPropagation();
-        const s = parseInt(e.currentTarget.getAttribute('data-step'));
-        if (!fixedIssues.has(s)) {
-          fixAiSeoIssue(s);
-        } else {
-           const msgs = Array.from(document.querySelectorAll('.chat-msg.user'));
-           const targetMsg = msgs.find(m => m.innerText.includes(`${s}. Adım Çözümü`));
-           if (targetMsg) {
-              const scrollOffset = targetMsg.getBoundingClientRect().top - copilotChat.getBoundingClientRect().top + copilotChat.scrollTop;
-              copilotChat.scrollTo({ top: scrollOffset - 10, behavior: 'smooth' });
-           }
-        }
-      };
-    } else {
-      btn.style.display = 'none';
-    }
-  }
-}
-
-async function fixAiSeoIssue(step) {
-  const kural = "ÖNEMLİ KURAL: Önerdiğin İSTİSNASIZ HER eylemi modül mantığıyla sun. Eğer eylem sadece yazılım/teknik ekibini ilgilendiriyorsa (Şema, kod, hız, yönlendirme) başına tam olarak '🚨 [TEKNİK - Modül: Modül Adı]', sadece içerik ekibini ilgilendiriyorsa (metin yazımı) '✍️ [METİN - Modül: Modül Adı]', her ikisini de içeren bütünleşik bir eylemse (veya fotoğraf, strateji, çoklu lokasyon gibi genel bir kurguysa) '📌 [GENEL - Modül: Modül Adı]' yaz. (Örn: 📌 [GENEL - Modül: SSS] Bu soruları sayfaya ekle ve FAQ şemasını da yayımla). Bütün eksikleri atlamadan bu formata sok!";
-  const fixPrompts = [
-    "",
-    "Az önceki 1. Adım analizinde bulduğun eksikleri gidermek için siteme doğrudan ekleyebileceğim E-E-A-T sinyallerini artıran metinler yaz. Ayrıca Site Hiyerarşisini (Bilgi Mimarisini) düzeltmek için menü/kategori URL yapısı önerileri sun. Teknik ekip için HTTP/HTTPS tutarlılığı, kırık linkler (404) ve canonical yönlendirmeleri (301) hakkında spesifik onarım kodları veya talimatları ver. " + kural,
-    "Az önceki 2. Adım analizine dayanarak, kullanıcıların en çok aradığı sorulara doğrudan yanıt veren 5 adet 'Kullanıcı Odaklı SSS (FAQ)' metni ve bu soruların hatasız JSON-LD Schema kodunu hazırla. " + kural,
-    "Az önceki 3. Adım analizinde bulduğun içerik açıklarını kapatmak için; hizmet kapsamını detaylandıran, teknik terimleri basitleştiren ve rakiplerden ayrışan ikna edici bir Değer Teklifi (Value Proposition) metni yaz. " + kural,
-    "Az önceki 4. Adım analizine göre; bu sayfanın otoritesini besleyecek 'Site İçi İçerik Bağlantıları (Internal Linking / Topic Clusters)' stratejisi oluştur. Hangi blog başlıkları yazılmalı ve bu sayfaya hangi Anchor Text (bağlantı metni) ile linklenmeli detaylıca yaz. Ek olarak Google Search Console, Bing ve Yandex Webmaster Tools üzerinde indeksleme sorunlarının nasıl çözüleceğine dair teknik ekibe talimat ver. " + kural,
-    "Az önceki 5. Adım analizine göre sayfadaki Yapılandırılmış Veri (Schema) derinliğini artır. Eğer sayfa ürünse Product, hizmetse Service (veya uygun olan) şemasını fiyat, yorum, açıklama gibi tüm detaylarıyla baştan yaz. Şema koduna yapay zeka (LLM) dostu 'knowsAbout' veya 'mentions' bağlamsal etiketlerini ekle. " + kural,
-    "" // 6. adımın fix butonu yok.
-  ];
-
-  setTimeout(() => { copilotChat.scrollTop = copilotChat.scrollHeight; }, 100);
-  let prompt = fixPrompts[step];
-  if (step === 6) {
-    prompt = "Sen bir AI SEO Entegrasyon Şefisin. Aşağıda, bu web sitesi için önceki 5 adımda ürettiğimiz TÜM spesifik içerik ve teknik düzeltme çıktılarını sana veriyorum.\nGörevin genel geçer SEO kuralları anlatmak DEĞİL. Görevin; doğrudan bizim ürettiğimiz bu spesifik metinlerin ve kodların birbirleriyle olan görünmez bağlarını (zincirlerini) ekibe göstermek.\nÖrneğin: Ürettiğimiz spesifik değer teklifi metinlerinin, şemadaki 'knowsAbout' veya 'mentions' etiketleriyle nasıl eşleştiğini; veya ürettiğimiz SSS metinlerinin teknik taraftaki HTML/Schema kodlarıyla aynı anda yayına alınmazsa yapay zekanın neden kafasının karışacağını anlat. \nEkibe, ürettiğimiz bu 5 adımlık paketin parçalanmadan 'bütünsel' olarak siteye entegre edilmesi gerektiğini, doğrudan ürettiğimiz spesifik veriler üzerinden ispatla.\n\n--- ÖNCEKİ 5 ADIMDA ÜRETTİĞİMİZ ÇIKTILAR ---\n";
-    chatMessages.forEach(msg => {
-      if(msg.sender === 'ai' && !msg.text.includes('Site başarıyla tarandı') && !msg.text.includes('Arka planda')) {
-        prompt += "\n" + msg.text + "\n";
-      }
-    });
-    prompt += "\n--- ÇIKTILARIN SONU ---\n\nYukarıdaki verilere dayanarak AdresGezgini ekibi için entegrasyon zincirlerini oluştur. Uzun metinleri ve kod bloklarını birebir kopyalamana GEREK YOK, ancak tavsiyelerini verirken KESİNLİKLE yukarıdaki spesifik verilerden örnekler kullan! (Örn: '5. adımda ürettiğimiz şemadaki Folkart Towers adresi ile 2. adımdaki SSS metni birbiriyle eşleşmelidir' gibi). Genel SEO cümleleri kurma, sadece bu projeye ve yukarıdaki verilere özel konuş. " + kural;
-  } else if (fetchedData) {
-    prompt += `\n\n--- SİTE BAĞLAMI (BUNLARI KULLAN) ---\nURL: ${fetchedData.url}\nBaşlık: ${fetchedData.title}\nAçıklama: ${fetchedData.description}\nKategori: ${reportData.siteCategory || 'Bilinmiyor'}\nSchema: ${JSON.stringify(fetchedData.schemas)}\n---------------------\n\nÖNEMLİ KURAL: Bana şablon (Örn: [Şirket Adı], [Sektör]) verme! Yukarıdaki site bağlamı verilerini kullanarak metni doğrudan bu şirket için kişiselleştir.`;
-  }
-  
-  addMessage(`${step}. Adımdaki Eksiklikler Gideriliyor (Otomatik Çözüm)...`, 'user');
-  addTypingIndicator();
-  copilotActions.style.display = 'none';
-
-  prompt += `\n\nÖNEMLİ: Yanıtının SONUNA, analizine dayanan şu verileri içeren, aşağıdaki YAPIDA KESİN bir JSON bloğu ekle (\`\`\`json ... \`\`\` içinde olsun):
-{
-"overview_html": "<p>Sitenin genel özeti...</p>",
-"charts_data": {
-  "trust_score": 0-100 arası genel sağlık skoru,
-  "eeat_radar": {
-    "experience": 0-100,
-    "expertise": 0-100,
-    "authoritativeness": 0-100,
-    "trustworthiness": 0-100
-  }
-},
-"action_plan_table": [
-  { "issue": "Aksiyon açıklaması", "category": "Kategori", "priority": "high/medium/low", "color": "red/orange/green" }
-]
-}`;
-  try {
-    const res = await fetch('form_submit.php', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { temperature: 0.2 }
-      })
-    });
-    const result = await res.json();
-    removeTypingIndicator();
-    if (result.error) {
-      addMessage(`Hata: ${result.error.message || result.error}`, 'ai');
-      copilotActions.style.display = 'flex';
-      return;
-    }
-
-    let aiText = result.candidates[0].content.parts[0].text;
-    const { cleanText, parsedData, rawJsonStr } = extractAndCleanJson(aiText);
-    
-    if (parsedData) {
-        initOrUpdateCharts(parsedData);
-    }
-
-    let htmlText = (typeof marked !== 'undefined' ? marked.parse(cleanText) : cleanText) + (rawJsonStr ? '<div class="ai-raw-json" style="display:none;">' + rawJsonStr + '</div>' : '');
-    addMessage(htmlText, 'ai', true);
-
-    fixedIssues.add(step);
-    renderIssuesUI();
-    renderAiSeoActions();
-    if (window.isAutoFixing) {
-      copilotActions.style.display = 'none';
-    } else {
-      copilotActions.style.display = 'flex';
-    }
-    setTimeout(() => { copilotChat.scrollTop = copilotChat.scrollHeight; }, 100);
-  } catch (err) {
-    removeTypingIndicator();
-    addMessage(`Bağlantı hatası: ${err.message}`, 'ai');
-    copilotActions.style.display = 'flex';
-  }
-}
-
-
-window.liveActionPlanItems = window.liveActionPlanItems || [];
-
-function extractAndCleanJson(aiText) {
-  let cleanText = aiText || '';
-  let parsedData = null;
-  let rawJsonStr = '';
-
-  if (!cleanText) return { cleanText: '', parsedData: null, rawJsonStr: '' };
-
-  // 1. ```json ... ``` veya ``` ... ``` kontrolü
-  const codeBlockMatch = cleanText.match(/```(?:json)?\s*(\{[\s\S]*?\})\s*```/i);
-  if (codeBlockMatch) {
-    cleanText = cleanText.replace(codeBlockMatch[0], '').trim();
-    rawJsonStr = codeBlockMatch[0];
-    try { parsedData = JSON.parse(codeBlockMatch[1]); } catch(e){}
-  }
-
-  // 2. Ham JSON objesi { ... } kontrolü
-  if (!parsedData) {
-    const rawJsonMatch = cleanText.match(/\{[\s\S]*\}/);
-    if (rawJsonMatch) {
-      try {
-        parsedData = JSON.parse(rawJsonMatch[0]);
-        cleanText = cleanText.replace(rawJsonMatch[0], '').trim();
-        rawJsonStr = rawJsonMatch[0];
-      } catch(e){}
-    }
-  }
-
-  // 3. Metin boş kaldıysa fakat JSON varsa okunabilir metin üret
-  if (!cleanText && parsedData) {
-    if (parsedData.overview_html) {
-      cleanText = parsedData.overview_html;
-    } else if (parsedData.rakip_ustunluk_nedenleri) {
-      cleanText = `### 🎯 Rakip Üstünlük Nedenleri\n\n${parsedData.rakip_ustunluk_nedenleri}`;
-    }
-  }
-
-  return { cleanText, parsedData, rawJsonStr };
-}
-
-// --- CHART.JS LOGIC START ---
-let overallHealthChart = null;
-let eeatChart = null;
-let battleChart = null;
-
-function initOrUpdateCharts(data) {
-  if (!data || typeof Chart === 'undefined') return;
-
-  let chartsData = data.charts_data || data; 
-  let trustScore = chartsData.trust_score || chartsData.genel_skor || 0;
-  
-  // 1. Genel Sağlık (Doughnut Chart)
-  if (trustScore > 0) {
-      const ctxOverall = document.getElementById('chart-overall-health');
-      if (ctxOverall) {
-          const placeholder = document.getElementById('chart-overall-health-placeholder');
-          if (placeholder) placeholder.style.display = 'none';
-          if (overallHealthChart) overallHealthChart.destroy();
-          overallHealthChart = new Chart(ctxOverall, {
-              type: 'doughnut',
-              data: {
-                  labels: ['Güven Skoru', 'Eksik'],
-                  datasets: [{
-                      data: [trustScore, 100 - trustScore],
-                      backgroundColor: ['#2563eb', '#e2e8f0'],
-                      borderWidth: 0
-                  }]
-              },
-              options: { cutout: '75%' },
-              plugins: [{
-                id: 'textCenter',
-                beforeDraw: function(chart) {
-                    var width = chart.width,
-                        height = chart.height,
-                        ctx = chart.ctx;
-            
-                    ctx.restore();
-                    var fontSize = (height / 100).toFixed(2);
-                    ctx.font = "bold " + fontSize + "em sans-serif";
-                    ctx.textBaseline = "middle";
-                    ctx.fillStyle = "#1e293b"; // Yazı rengi
-            
-                    var text = trustScore + "%", // Dinamik veri eklendi!
-    textX = Math.round((width - ctx.measureText(text).width) / 2),
-                        // Grafiğin tam ortasını (Y ekseni) bulmak için chart.chartArea.top da hesaba katılmalı
-                        textY = chart.chartArea.top + (chart.chartArea.bottom - chart.chartArea.top) / 2;
-            
-                    ctx.fillText(text, textX, textY);
-                    ctx.save();
-                }
-            }]
-          });
-      }
-  }
-
-  // 2. E-E-A-T Radar Chart
-  if (chartsData.eeat_radar) {
-      const ctxEeat = document.getElementById('chart-eeat');
-      if (ctxEeat) {
-          const eeatPlaceholder = document.getElementById('chart-eeat-placeholder');
-          if (eeatPlaceholder) eeatPlaceholder.style.display = 'none';
-          if (eeatChart) eeatChart.destroy();
-          
-          let eeat = chartsData.eeat_radar;
-          let exp = eeat.experience || eeat.deneyim || 60;
-          let exp_t = eeat.expertise || eeat.uzmanlik || 65;
-          let auth = eeat.authoritativeness || eeat.otorite || 70;
-          let trust = eeat.trustworthiness || eeat.guvenilirlik || 75;
-
-          eeatChart = new Chart(ctxEeat, {
-              type: 'radar',
-              data: {
-                  labels: ['Deneyim', 'Uzmanlık', 'Otorite', 'Güvenilirlik'],
-                  datasets: [{
-                      label: 'E-E-A-T Profili',
-                      data: [exp, exp_t, auth, trust],
-                      backgroundColor: 'rgba(37, 99, 235, 0.2)',
-                      borderColor: '#2563eb',
-                      pointBackgroundColor: '#2563eb'
-                  }]
-              },
-              options: { scales: { r: { min: 0, max: 100 } } }
-          });
-      }
-  }
-
-  // 3. Rakip Kıyaslama Bar Chart (Battle Mode / Savaş Modu)
-  let siteA = chartsData.site_a_skorlari || (chartsData.competitor_comparison ? chartsData.competitor_comparison.main_scores : null);
-  let siteB = chartsData.site_b_skorlari || (chartsData.competitor_comparison ? chartsData.competitor_comparison.comp_scores : null);
-  if (siteA || siteB) {
-      const bContainer = document.getElementById('battle-chart-container');
-      if (bContainer) bContainer.style.display = 'block';
-      const ctxB = document.getElementById('chart-battle');
-      if (ctxB) {
-          const battlePlaceholder = document.getElementById('chart-battle-placeholder');
-          if (battlePlaceholder) battlePlaceholder.style.display = 'none';
-          if (battleChart) battleChart.destroy();
-          
-          let sa = siteA || [60, 65, 50];
-          let sb = siteB || [85, 90, 88];
-
-          battleChart = new Chart(ctxB, {
-              type: 'bar',
-              data: {
-                  labels: ['İçerik Derinliği', 'SEO Kalitesi', 'E-E-A-T'],
-                  datasets: [
-                      { label: 'Senin Siten', data: Array.isArray(sa) ? sa : [sa.icerik || 60, sa.seo || 65, sa.eeat || 50], backgroundColor: '#2563eb' },
-                      { label: 'Rakip', data: Array.isArray(sb) ? sb : [sb.icerik || 85, sb.seo || 90, sb.eeat || 88], backgroundColor: '#ef4444' }
-                  ]
-              },
-              options: { scales: { y: { min: 0, max: 100 } } }
-          });
-      }
-  }
-
-  // 4. Aksiyon Planı Tablosuna Tüm Adımlardan Gelen Verileri Ekle (Accumulate)
-  let rawPlan = data.action_plan_table || data.acil_aksiyon_plani;
-  if (rawPlan) {
-      if (Array.isArray(rawPlan)) {
-          rawPlan.forEach(item => {
-              const issueText = item.issue || item.sorun || '';
-              if (issueText && !window.liveActionPlanItems.some(existing => existing.issue === issueText)) {
-                  window.liveActionPlanItems.push({
-                      issue: issueText,
-                      category: item.category || item.kategori || 'Genel SEO',
-                      priority: item.priority || item.onem || 'MEDIUM',
-                      color: item.color || '#f59e0b'
-                  });
-              }
-          });
-      } else if (typeof rawPlan === 'object') {
-          const categories = [
-              { key: 'icerik_derinligi', label: 'İçerik Derinliği', color: '#2563eb', priority: 'HIGH' },
-              { key: 'seo_kalitesi', label: 'SEO Kalitesi', color: '#10b981', priority: 'MEDIUM' },
-              { key: 'eeat_sinyalleri', label: 'E-E-A-T Sinyalleri', color: '#f59e0b', priority: 'HIGH' }
-          ];
-          categories.forEach(cat => {
-              const list = rawPlan[cat.key];
-              if (Array.isArray(list)) {
-                  list.forEach(task => {
-                      if (task && !window.liveActionPlanItems.some(existing => existing.issue === task)) {
-                          window.liveActionPlanItems.push({
-                              issue: task,
-                              category: cat.label,
-                              priority: cat.priority,
-                              color: cat.color
-                          });
-                      }
-                  });
-              }
-          });
-      }
-  }
-
-  // Canlı Rapor Paneline Birikimli Tabloyu Yansıt
-  const tableContainer = document.getElementById('action-plan-table-container');
-  if (tableContainer && window.liveActionPlanItems.length > 0) {
-      let tableHtml = '<table style="width:100%; border-collapse: collapse; text-align:left; font-size:13px;">';
-      tableHtml += '<tr style="border-bottom: 2px solid #e2e8f0; color: #475569;"><th style="padding:10px;">Tespit Edilen Aksiyon</th><th style="padding:10px;">Kategori</th><th style="padding:10px;">Önem</th></tr>';
-
-      window.liveActionPlanItems.forEach(item => {
-          let priorityText = (item.priority || 'MEDIUM').toString().toUpperCase();
-          let color = item.color || (priorityText.includes('HIGH') || priorityText.includes('YÜKSEK') ? '#ef4444' : (priorityText.includes('LOW') || priorityText.includes('DÜŞÜK') ? '#10b981' : '#f59e0b'));
-          
-          tableHtml += `<tr style="border-bottom: 1px solid #f1f5f9;">
-              <td style="padding: 10px; color: #0f172a; font-weight: 500;">${item.issue}</td>
-              <td style="padding: 10px; color: #64748b;">${item.category}</td>
-              <td style="padding: 10px;">
-                  <span style="background: ${color}; color: white; padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;">
-                      ${priorityText}
-                  </span>
-              </td>
-          </tr>`;
-      });
-      tableHtml += '</table>';
-      tableContainer.innerHTML = tableHtml;
-  }
-}
-// --- CHART.JS LOGIC END ---
-
-window._forceResetChat = resetChat;
-// --- ZAMAN YOLCULUĞU (TIME TRAVEL) FONKSİYONU ---
-window.rebuildChartsForStep = function(targetStep) {
-  // 1. Panelin hafızasını tamamen sıfırla
-  window.liveStepMetrics = {};
-  window.liveTags = { intent: '', entities: new Set() };
-  window.liveActionPlanItems = [];
-  
-  const metricsC = document.getElementById('dynamic-metrics-container');
-  if (metricsC) metricsC.innerHTML = '<p style="color: #94a3b8; font-size: 12px; text-align: center; margin: 10px 0;">Analiz edildikçe dolacak...</p>';
-  const tagsC = document.getElementById('dynamic-tags-container');
-  if (tagsC) tagsC.innerHTML = '';
-  const tableC = document.getElementById('action-plan-table-container');
-  if (tableC) tableC.innerHTML = '<div style="color:var(--muted); font-size:13px; text-align:center; margin-top:20px;">Henüz veri yok.</div>';
-
-  // 2. Sohbet geçmişini 1. adımdan tıkladığın adıma kadar sessizce yeniden oynat
-  let currentParsingStep = 0;
-  
-  chatMessages.forEach(msg => {
-      // Kullanıcının attığı "X. Adım: ..." mesajından hangi adımda olduğumuzu anlıyoruz
-      if (msg.sender === 'user') {
-          const match = msg.text.match(/^(\d+)\.\s*Adım:/i);
-          if (match) currentParsingStep = parseInt(match[1]);
-      }
-      
-      // Sadece tıkladığımız adıma kadar olan AI yanıtlarındaki JSON'ları oku
-      if (msg.sender === 'ai' && currentParsingStep <= targetStep) {
-          try {
-              const jsonMatch = msg.text.match(/<div class="ai-raw-json"[^>]*>([\s\S]*?)<\/div>/i);
-              let rawJson = '';
-              if (jsonMatch) {
-                  const codeMatch = jsonMatch[1].match(/```(?:json)?\s*(\{[\s\S]*?\})\s*```/i);
-                  rawJson = codeMatch ? codeMatch[1] : jsonMatch[1];
-              }
-              if (rawJson) {
-                  const chartData = JSON.parse(rawJson);
-                  initOrUpdateCharts(chartData); // Grafikleri ve tabloları sessizce güncelle
-              }
-          } catch(e) { console.error("Zaman yolculuğu hatası:", e); }
-      }
+async function callGemini(prompt, temperature = 0.3) {
+  const res = await fetch('form_submit.php', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: { temperature }
+    })
   });
-};
-function resetChat(loadFromHistory = null, forceActionView = false) {
-  const actionView = document.getElementById('copilot-action-view');
-  if (actionView) actionView.style.display = 'flex';
-  if (loadFromHistory) {
-    window._chatLoadedFromHistory = true;
-    currentChatId = loadFromHistory.chatId;
-    currentState = 'WAITING_FOR_TYPE';
-    currentStep = 1;
-    const rawSteps = loadFromHistory.completedSteps || [];
-    completedSteps = new Set(rawSteps.map(s => parseInt(s)));
-    const rawIssues = loadFromHistory.fixedIssues || [];
-    fixedIssues = new Set(rawIssues.map(s => parseInt(s)));
-    
-    targetUrl = loadFromHistory.url;
-    targetType = loadFromHistory.type;
-    chatMessages = loadFromHistory.messages || [];
-
-    if (completedSteps.size === 0 && chatMessages.length > 0) {
-      chatMessages.forEach(m => {
-        if (m.text) {
-           const match = m.text.match(/^(\d+)\.\s*Adım:/i);
-           if (match) completedSteps.add(parseInt(match[1]));
-        }
-      });
-      
-      if (completedSteps.size === 0) {
-         let aiCount = chatMessages.filter(m => m.sender === 'ai').length;
-         for(let i = 1; i < aiCount && i <= 5; i++) {
-           completedSteps.add(i);
-         }
-      }
-    }
-    
-    if (completedSteps.has(5)) completedSteps.add(6); if (loadFromHistory.reportData) {
-      reportData = loadFromHistory.reportData;
-    } else {
-      // Fallback for old history
-      reportData = chatMessages.filter(m => m.sender === 'ai' && m.text.length > 200).map(m => m.text);
-    }
-    const llmsC = document.getElementById('copilot-llms-container');
-    if (llmsC) llmsC.style.display = 'flex';
-    const msgContainer = document.getElementById('copilot-chat-messages-container');
-    if (msgContainer) { 
-        msgContainer.style.display = 'flex'; 
-        msgContainer.style.flexDirection = 'column'; 
-        msgContainer.style.flex = '1'; 
-        msgContainer.style.overflowY = 'auto'; 
-        msgContainer.style.paddingTop = '16px'; 
-    }
-    if (msgContainer) { try { msgContainer.replaceChildren(); } catch(e) { msgContainer.innerHTML = ''; } }
-    chatMessages.forEach(msg => { addMessage(msg.text, msg.sender, msg.isHtml, false); if (msg.sender === 'ai') { try { const jsonMatch = msg.text.match(/<div class="ai-raw-json" style="display:none;">```json\s*(\{[\s\S]*?\})\s*```<\/div>/); if (jsonMatch) { const chartData = JSON.parse(jsonMatch[1]); initOrUpdateCharts(chartData); } } catch(e){} } });
-    
-    if (copilotInputArea) copilotInputArea.style.display = "block";
-    const textInput = document.getElementById('copilot-text-input');
-    if (textInput) textInput.placeholder = "Sormak istediğiniz bir şey var mı?";
-    
-    const cqa = document.getElementById("copilot-quick-actions"); 
-    if(cqa) cqa.style.display = "flex";
-    renderAiSeoActions();
-    
-    if (copilotSaveBtn) {
-      copilotSaveBtn.innerHTML = `✓ Kayıtlı`;
-      copilotSaveBtn.style.opacity = '0.5';
-      copilotSaveBtn.style.pointerEvents = 'none';
-    }
-    if (completedSteps.size >= 6) {
-      setTimeout(() => { window.showFollowUpPrompt(); }, 200);
-    }
-  if (typeof updateActiveHistoryItem === 'function') updateActiveHistoryItem();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-    return;
-  }
-
-  currentChatId = Date.now().toString();
-  window._chatLoadedFromHistory = false;
-  currentState = 'WAITING_FOR_URL';
-  currentStep = 1;
-  completedSteps.clear();
-  fixedIssues.clear();
-  targetUrl = '';
-  targetType = '';
-  fetchedData = null;
-  window.targetCompetitorUrl = '';
-  window.fetchedCompetitorData = null;
-  chatMessages = [];
-  reportData = [];
-  window.liveActionPlanItems = [];
-  
-  updateProgressUI(0);
-  
-  if (typeof overallHealthChart !== 'undefined' && overallHealthChart) { overallHealthChart.destroy(); overallHealthChart = null; }
-  if (typeof eeatChart !== 'undefined' && eeatChart) { eeatChart.destroy(); eeatChart = null; }
-  if (typeof battleChart !== 'undefined' && battleChart) { battleChart.destroy(); battleChart = null; }
-  const tableC = document.getElementById('action-plan-table-container');
-  if (tableC) tableC.innerHTML = '<div style="color:var(--muted); font-size:13px; text-align:center; margin-top:20px;">Henüz veri yok.</div>';
-
-
-  const msgContainer = document.getElementById('copilot-chat-messages-container');
-if (msgContainer) { 
-    msgContainer.style.display = 'flex'; 
-    msgContainer.style.flexDirection = 'column'; 
-    msgContainer.style.flex = '1'; 
-    msgContainer.style.overflowY = 'auto'; 
-    msgContainer.style.paddingTop = '16px'; 
-    msgContainer.style.minHeight = '0'; 
+  if (!res.ok) throw new Error('Sunucu hatası: ' + res.status);
+  const result = await res.json();
+  if (result.error) throw new Error(result.error.message || JSON.stringify(result.error));
+  const text = result?.candidates?.[0]?.content?.parts?.[0]?.text;
+  if (!text) throw new Error('AI yanıt vermedi.');
+  return text;
 }
 
+async function fetchSiteData(url) {
+  const res = await fetch('fetch_url.php?url=' + encodeURIComponent(url));
+  if (!res.ok) throw new Error('Site verileri alınamadı: ' + res.status);
+  const data = await res.json();
+  if (data.error) throw new Error(data.error);
+  return {
+    title:       data.title       || '',
+    description: data.description || '',
+    text:        data.text        || '',
+    schemas:     Array.isArray(data.schemas) ? data.schemas : []
+  };
+}
 
-  if (msgContainer) { 
-    try { msgContainer.replaceChildren(); } catch(e) { msgContainer.innerHTML = ''; }
-    msgContainer.innerHTML = `
-    <div class="copilot-empty-state" style="display: flex; align-items: center; justify-content: flex-start; padding: 20px; text-align: left; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; margin-top: 20px; width: 100%;">
-        <span style="font-size: 24px; margin-right: 12px;">👋</span>
-        <div>
-           <h3 style="font-size: 15px; font-weight: 600; color: #0f172a; margin: 0 0 4px 0;">Merhaba! Ben GEO SEO Asistanı.</h3>
-           <p style="color: #64748b; font-size: 13px; margin: 0;">Analiz etmek istediğiniz sayfanın URL'sini aşağıdaki kutuya yapıştırarak başlayabilirsiniz.</p>
-        </div>
+function mdToHtml(md) {
+  if (typeof marked !== 'undefined') {
+    try { return marked.parse(md); } catch(e) {}
+  }
+  // Basit fallback
+  return md
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+    .replace(/^## (.+)$/gm,  '<h2>$1</h2>')
+    .replace(/^# (.+)$/gm,   '<h1>$1</h1>')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+    .replace(/^[-*] (.+)$/gm, '<li>$1</li>')
+    .replace(/(<li>[\s\S]*?<\/li>)/g, '<ul>$1</ul>')
+    .replace(/\n\n+/g, '</p><p>')
+    .replace(/^([^<\n].+)$/gm, '<p>$1</p>');
+}
+
+function updateServiceButtonState(serviceId, status) {
+  const btn  = document.querySelector(`.aiseo-svc-btn[data-service="${serviceId}"]`);
+  const span = document.querySelector(`.svc-status[data-svc="${serviceId}"]`);
+  if (!btn) return;
+  const styles = {
+    loading: { border: '#f59e0b', bg: '#fffbeb', color: '#92400e' },
+    done:    { border: '#10b981', bg: '#f0fdf4', color: '#065f46' },
+    error:   { border: '#ef4444', bg: '#fef2f2', color: '#991b1b' },
+    idle:    { border: '#e2e8f0', bg: '#fff',    color: '#334155' }
+  };
+  const s = styles[status] || styles.idle;
+  btn.style.borderColor = s.border;
+  btn.style.background  = s.bg;
+  btn.style.color       = s.color;
+  if (span) {
+    if (status === 'loading') {
+      span.innerHTML = '<span style="display:inline-block;width:10px;height:10px;border:2px solid #f59e0b;border-top-color:transparent;border-radius:50%;animation:ag-spin .8s linear infinite;vertical-align:middle;margin-left:4px;"></span>';
+    } else if (status === 'done') {
+      span.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="3" style="vertical-align:middle;margin-left:4px;"><polyline points="20 6 9 17 4 12"/></svg>';
+    } else {
+      span.innerHTML = status === 'error' ? ' ⚠️' : '';
+    }
+  }
+}
+
+function updateBadges() {
+  const ub = document.getElementById('aiseo-url-badge');
+  const tb = document.getElementById('aiseo-type-badge');
+  if (ub) { ub.textContent = state.targetUrl ? '🌐 ' + state.targetUrl : ''; ub.style.display = state.targetUrl ? 'inline-flex' : 'none'; }
+  if (tb) { tb.textContent = state.siteType  ? '📌 ' + state.siteType  : ''; tb.style.display = state.siteType  ? 'inline-flex' : 'none'; }
+}
+
+function updateRunAllBtn() {
+  const btn = document.getElementById('btn-run-all-services');
+  if (!btn) return;
+  const all  = getAllServices();
+  const left = all.filter(s => !state.completedServices.has(s.id)).length;
+  if (left === 0 && all.length > 0) {
+    btn.textContent = '✅ Tüm Hizmetler Tamamlandı';
+    btn.disabled = true; btn.style.background = '#64748b'; btn.style.cursor = 'default';
+  } else {
+    btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:6px;flex-shrink:0;"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>Tüm Hizmetleri Yap${left < all.length ? ' (' + left + ' kalan)' : ''}`;
+    btn.disabled = false; btn.style.background = '#10b981'; btn.style.cursor = 'pointer';
+  }
+}
+
+function updateDownloadBtn() {
+  const btn = document.getElementById('btn-download-pdf');
+  if (!btn) return;
+  const all    = getAllServices();
+  const allDone = all.length > 0 && all.every(s => state.completedServices.has(s.id));
+  btn.disabled  = !allDone;
+  btn.style.opacity = allDone ? '1' : '0.5';
+  btn.style.cursor  = allDone ? 'pointer' : 'not-allowed';
+  btn.title = allDone ? 'PDF Rapor İndir' : 'Tüm hizmetler tamamlandığında aktif olur';
+  btn.onclick = allDone ? downloadPDF : null;
+}
+
+// ============================================================
+// ACCORDION
+// ============================================================
+
+function renderServiceAccordion(service, status, htmlContent, errorMsg) {
+  htmlContent = htmlContent || '';
+  errorMsg    = errorMsg    || '';
+
+  // Panel + results area görünür olsun
+  const panel = document.getElementById('aiseo-services-panel');
+  if (panel) panel.style.display = 'block';
+
+  const area = document.getElementById('aiseo-results-area');
+  if (!area) { console.error('aiseo-results-area bulunamadı'); return; }
+
+  const domId = 'aiseo-accordion-' + service.id;
+  let wrap = document.getElementById(domId);
+  if (!wrap) {
+    wrap = document.createElement('div');
+    wrap.id        = domId;
+    wrap.className = 'aiseo-accordion';
+    area.appendChild(wrap);
+    setTimeout(() => wrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 200);
+  }
+
+  const colors = {
+    done:    { border: '#10b981', bg: '#f0fdf4', bodyBorder: '#d1fae5' },
+    loading: { border: '#f59e0b', bg: '#fffbeb', bodyBorder: '#fde68a' },
+    error:   { border: '#ef4444', bg: '#fef2f2', bodyBorder: '#fecaca' }
+  };
+  const c = colors[status] || colors.loading;
+
+  const icon = status === 'done'
+    ? `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>`
+    : status === 'loading'
+      ? `<span style="display:inline-block;width:14px;height:14px;border:2px solid #f59e0b;border-top-color:transparent;border-radius:50%;animation:ag-spin .8s linear infinite;"></span>`
+      : `<span style="font-size:14px;">⚠️</span>`;
+
+  let body = '';
+  if (status === 'loading') {
+    body = `<div style="padding:20px 24px;display:flex;align-items:center;gap:12px;color:#64748b;border-top:1px solid ${c.bodyBorder};">
+      <div class="typing-indicator" style="padding:0;flex-shrink:0;"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>
+      <span style="font-size:13px;">Yapay zeka analiz yapıyor, lütfen bekleyin...</span>
     </div>`;
-  }
-  if (typeof window.renderDashboard === 'function') { window.renderDashboard(); }
-  
-  if (copilotActions) {
-      try { copilotActions.replaceChildren(); } catch(e) { copilotActions.innerHTML = ''; }
-  }
-  if (copilotInputArea) copilotInputArea.style.display = "block"; 
-  
-  // Explicitly ensure the input container itself is visible, just in case
-  const inputContainer = document.getElementById('copilot-input-area-container');
-  if (inputContainer) inputContainer.style.display = 'block';
-  
-  const cqa = document.getElementById("copilot-quick-actions"); 
-  if(cqa) cqa.style.display = "none";
-  
-  // Explicitly show the text input and wrapper
-  const textInput = document.getElementById('copilot-text-input');
-  if (textInput) {
-      const wrapper = textInput.closest('.input-wrapper');
-      if (wrapper) wrapper.style.display = 'flex';
-      textInput.style.display = 'block';
-      textInput.value = '';
-      textInput.placeholder = 'Örn: https://www.site.com/hizmet';
-      setTimeout(() => textInput.focus(), 100);
-  }
-  
-  
-  if (copilotSaveBtn) {
-    copilotSaveBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px;"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg> Kaydet`;
-    copilotSaveBtn.style.opacity = '1';
-    copilotSaveBtn.style.cursor = 'pointer';
-    copilotSaveBtn.style.pointerEvents = 'auto';
-    copilotSaveBtn.onclick = null;
-  }
-  if (loadFromHistory) {
-      renderAiSeoActions();
-  }
-  if (typeof updateActiveHistoryItem === 'function') updateActiveHistoryItem();
-}
-
-function selectCategory(selectedType) {
-  if (currentState !== 'WAITING_FOR_TYPE') return;
-  targetType = selectedType;
-  addMessage(targetType, 'user');
-  if (copilotTextInput) {
-    copilotTextInput.value = '';
-    copilotTextInput.placeholder = 'Sormak istediğiniz bir şey var mı?';
-  }
-  startUrlFetch();
-}
-
-async function handleSend() {
-  const val = copilotTextInput.value.trim();
-  if (!val) return;
-  
-  if (currentState === 'WAITING_FOR_URL') {
-    addMessage(val, 'user');
-    copilotTextInput.value = '';
-    if (!val.startsWith('http')) { addMessage("Lütfen geçerli bir URL girin (http veya https ile başlamalı).", 'ai'); return; }
-    
-    targetUrl = val;
-    currentState = 'WAITING_FOR_TYPE';
-    const msgContainer = document.getElementById('copilot-chat-messages-container');
-    if (msgContainer) { 
-      msgContainer.style.display = 'flex'; 
-      msgContainer.style.flexDirection = 'column'; 
-      msgContainer.style.flex = '1'; 
-      msgContainer.style.overflowY = 'auto'; 
-      msgContainer.style.paddingTop = '16px'; 
-    }
-    
-    if (copilotInputArea) copilotInputArea.style.display = "block";
-    if (copilotTextInput) copilotTextInput.placeholder = "Kategori seçin veya yazın (Örn: Hizmet / Kurumsal)";
-
-    addMessage("Harika! Bu sayfa hangi kategoride yer alıyor? (Hizmet mi, yoksa ürün sattığınız bir E-Ticaret sayfası mı?)", 'ai');
-    
-    const cqa = document.getElementById("copilot-quick-actions");
-    if (cqa) {
-      cqa.style.display = "flex";
-      cqa.innerHTML = `
-        <button type="button" class="btn btn--primary" id="btn-type-service" style="padding:8px 16px; font-weight:600; background:#2563eb; color:#fff; border:none; border-radius:20px; cursor:pointer; font-size:13px; margin-right:8px; box-shadow:0 2px 4px rgba(122, 146, 199, 0.2);">🏢 Hizmet / Kurumsal</button>
-        <button type="button" class="btn btn--primary" id="btn-type-product" style="padding:8px 16px; font-weight:600; background:#059669; color:#fff; border:none; border-radius:20px; cursor:pointer; font-size:13px; box-shadow:0 2px 4px rgba(166, 211, 197, 0.2);">🛒 Ürün / E-Ticaret</button>
-      `;
-      const btnS = document.getElementById('btn-type-service');
-      const btnP = document.getElementById('btn-type-product');
-      if (btnS) btnS.addEventListener('click', () => selectCategory('Hizmet / Kurumsal'));
-      if (btnP) btnP.addEventListener('click', () => selectCategory('Ürün / E-Ticaret'));
-    }
-  } else if (currentState === 'WAITING_FOR_TYPE') {
-    selectCategory(val);
-  } else if (currentState === 'CHAT_MODE') {
-    addMessage(val, 'user');
-    copilotTextInput.value = '';
-    addTypingIndicator();
-    
-    let p = `Sen bir GEO uzmanısın. Kullanıcı şu an "${targetUrl}" sitesi hakkında ekstra bir soru soruyor: "${val}"\n\nSite Başlığı: ${fetchedData ? fetchedData.title : ''}\nLütfen soruyu markdown formatında yanıtla.`;
-    
-            p += `\n\nÖNEMLİ: Yanıtının SONUNA, analizine dayanan şu verileri içeren, aşağıdaki YAPIDA KESİN bir JSON bloğu ekle (\`\`\`json ... \`\`\` içinde olsun):
-{
-"overview_html": "<p>Sitenin genel özeti...</p>",
-"charts_data": {
-  "trust_score": 0-100 arası genel sağlık skoru,
-  "eeat_radar": {
-    "experience": 0-100,
-    "expertise": 0-100,
-    "authoritativeness": 0-100,
-    "trustworthiness": 0-100
-  }
-},
-"action_plan_table": [
-  { "issue": "Aksiyon açıklaması", "category": "Kategori", "priority": "high/medium/low", "color": "red/orange/green" }
-]
-}`;
-  try {
-    const res = await fetch('form_submit.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: p }] }], generationConfig: { temperature: 0.5 } }) });
-      const result = await res.json();
-      removeTypingIndicator();
-      if (result.error) { addMessage(`Hata: ${result.error.message || result.error}`, 'ai'); return; }
-      
-            let aiText = result.candidates[0].content.parts[0].text;
-    
-    // JSON Extraction
-    let cleanText = aiText;
-    let chartData = null;
-    let rawJsonStr = '';
-    
-    const jsonMatch = aiText.match(/```(?:json)?\s*(\{[\s\S]*?\})\s*```/i);
-    if (jsonMatch) {
-        cleanText = aiText.replace(jsonMatch[0], '').trim();
-        rawJsonStr = jsonMatch[0];
-        try {
-            chartData = JSON.parse(jsonMatch[1]);
-        } catch(e) { console.warn("JSON Parse Error:", e); }
-    } else {
-        const fallbackMatch = aiText.match(/\{[\s\S]*"trust_score"[\s\S]*\}$/);
-        if (fallbackMatch) {
-            cleanText = aiText.replace(fallbackMatch[0], '').trim();
-            rawJsonStr = fallbackMatch[0];
-            try { chartData = JSON.parse(fallbackMatch[0]); } catch(e){}
-        }
-    }
-    
-          if (chartData) {
-        initOrUpdateCharts(chartData);
-        if (chartData.overview_html) {
-            cleanText = chartData.overview_html + "\n\n" + cleanText;
-        }
-    }
-
-    let htmlText = (typeof marked !== 'undefined' ? marked.parse(cleanText) : cleanText) + (rawJsonStr ? '<div class="ai-raw-json" style="display:none;">' + rawJsonStr + '</div>' : '');
-      addMessage(htmlText, 'ai', true);
-    } catch (err) {
-      removeTypingIndicator();
-      addMessage(`Bağlantı hatası: ${err.message}`, 'ai');
-    }
-  }
-}
-
-copilotSendBtn.addEventListener('click', handleSend);
-copilotTextInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleSend(); });
-
-async function startUrlFetch() {
-  copilotActions.innerHTML = '';
-  addMessage(window.targetCompetitorUrl ? "Hedef site ve rakip site arka planda taranıyor. Lütfen bekle..." : "Arka planda siteyi tarıyorum, meta ve schema verilerini çekiyorum. Lütfen bekle...", 'ai');
-  addTypingIndicator();
-  try {
-    const res = await fetch(`fetch_url.php?url=${encodeURIComponent(targetUrl)}`);
-    const data = await res.json();
-    removeTypingIndicator();
-    if (data.error) { addMessage(`Hata: ${data.error}`, 'ai'); setTimeout(resetChat, 3000); return; }
-    
-    fetchedData = data;
-    addMessage(`✅ Hedef Site başarıyla tarandı!<br><br><strong>Başlık:</strong> ${data.title}<br><strong>Bulunan Schema Sayısı:</strong> ${data.schemas ? data.schemas.length : 0}`, 'ai', true);
-
-
-
-    addMessage(`Şimdi ${targetType} sitenize özel 5 adımlı analiz sürecini başlatabiliriz.`, 'ai', true);
-const cqa = document.getElementById('copilot-quick-actions'); 
-if(cqa) cqa.style.display = 'flex';
-renderAiSeoActions();
-  } catch (e) {
-    removeTypingIndicator();
-    addMessage(`Bağlantı hatası: ${e.message}`, 'ai');
-    setTimeout(resetChat, 3000);
-  }
-}
-
-function renderAiSeoActions() {
-  updateProgressUI(currentStep);
-  window.renderDynamicQuickActions();
-
-
-  let nextStep = 1;
-  while(completedSteps.has(nextStep) && nextStep <= 5) { nextStep++; }
-  
-  let actionsHtml = '';
-  
-  if (nextStep <= 5) {
-    currentStep = nextStep;
-    updateProgressUI(currentStep);
-    window.renderDynamicQuickActions();
-  }
-
-  const btnAnalyze = document.getElementById('btn-auto-analyze');
-  const btnFix = document.getElementById('btn-auto-fix');
-
-  if (completedSteps.size < 6 || (completedSteps.size >= 5 && fixedIssues.size < 6)) {
-    const analyzeText = completedSteps.size === 0 ? "Tüm Siteyi Analiz Et" : "Kalan Adımları Analiz Et";
-    const fixText = fixedIssues.size === 0 ? "Tüm Eksikleri Gider" : "Kalan Eksikleri Gider";
-    
-    const isReady = targetUrl && targetType;
-    if (btnAnalyze) {
-        btnAnalyze.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px;"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg> ${analyzeText}`;
-        btnAnalyze.style.display = 'flex';
-        btnAnalyze.style.background = isReady ? '#10b981' : '#64748b';
-        btnAnalyze.style.cursor = isReady ? 'pointer' : 'not-allowed';
-        btnAnalyze.title = isReady ? analyzeText : 'URL girilmeden ve site tipi seçilmeden kullanılamaz';
-        btnAnalyze.disabled = !isReady;
-    }
-    if (btnFix) {
-        btnFix.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px;"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg> ${fixText}`;
-        btnFix.style.display = 'flex';
-        btnFix.style.background = isReady ? '#10b981' : '#64748b';
-        btnFix.style.cursor = isReady ? 'pointer' : 'not-allowed';
-        btnFix.title = isReady ? fixText : 'URL girilmeden ve site tipi seçilmeden kullanılamaz';
-        btnFix.disabled = !isReady;
-    }
+  } else if (status === 'error') {
+    body = `<div style="padding:20px 24px;color:#dc2626;font-size:13px;border-top:1px solid ${c.bodyBorder};">
+      <strong>⚠️ Hata:</strong> ${errorMsg}<br><br>
+      <button onclick="window.runSingleService(${JSON.stringify(service.id)})" style="background:#ef4444;color:#fff;border:none;border-radius:8px;padding:7px 16px;font-size:12px;font-weight:600;cursor:pointer;">🔄 Tekrar Dene</button>
+    </div>`;
   } else {
-    if (btnAnalyze) btnAnalyze.style.display = 'none';
-    if (btnFix) btnFix.style.display = 'none';
+    body = `<div class="aiseo-accordion-content" style="padding:20px 24px 28px;font-size:13.5px;line-height:1.75;color:#334155;border-top:1px solid ${c.bodyBorder};">${htmlContent}</div>`;
   }
 
-  const isCompleted = completedSteps.size >= 6 && fixedIssues.size >= 5;
+  const bodyOpen   = status !== 'error';
+  const toggleRot  = bodyOpen ? 'rotate(180deg)' : '';
 
-  if (copilotActions) copilotActions.innerHTML = '';
-
-  const topPdfBtn = document.getElementById('btn-download-pdf');
-  const topTodosBtn = document.getElementById('btn-send-to-todos');
-  
-  if (topPdfBtn) {
-     topPdfBtn.style.display = 'inline-flex';
-     topPdfBtn.style.alignItems = 'center';
-     topPdfBtn.disabled = false;
-     topPdfBtn.style.opacity = isCompleted ? '1' : '0.5';
-     topPdfBtn.style.cursor = isCompleted ? 'pointer' : 'not-allowed';
-     topPdfBtn.title = isCompleted ? "PDF Rapor İndir" : "Önce tüm analiz ve çözümleri bitirin";
-     topPdfBtn.onclick = () => { 
-        if (!isCompleted) {
-           alert("Önce tüm analiz ve çözümleri bitirin.");
-           return;
-        }
-        downloadReportPDF(); 
-     };
-  }
-  
-  if (topTodosBtn) {
-     topTodosBtn.style.display = 'inline-flex';
-     topTodosBtn.style.alignItems = 'center';
-     topTodosBtn.disabled = false;
-     
-     let isSent = false;
-     if (isCompleted && typeof currentChatId !== 'undefined' && currentChatId) {
-         let todos = JSON.parse(localStorage.getItem('ag_seo_todos') || '{}');
-         for (let domain in todos) {
-             if ((todos[domain].tech && todos[domain].tech.some(t => t.chatId === currentChatId)) ||
-                 (todos[domain].text && todos[domain].text.some(t => t.chatId === currentChatId)) ||
-                 (todos[domain].general && todos[domain].general.some(t => t.chatId === currentChatId))) {
-                 isSent = true;
-                 break;
-             }
-         }
-     }
-
-     if (!isCompleted) {
-         topTodosBtn.style.opacity = '0.5';
-         topTodosBtn.style.cursor = 'not-allowed';
-         topTodosBtn.title = "Önce tüm analiz ve çözümleri bitirin";
-         topTodosBtn.innerHTML = '📋 Gönder';
-     } else if (isSent) {
-         topTodosBtn.style.opacity = '0.5';
-         topTodosBtn.style.cursor = 'default';
-         topTodosBtn.title = "Zaten gönderildi";
-         topTodosBtn.innerHTML = '✅ Gönderildi';
-     } else {
-         topTodosBtn.style.opacity = '1';
-         topTodosBtn.style.cursor = 'pointer';
-         topTodosBtn.title = "Yapılacaklara Gönder";
-         topTodosBtn.innerHTML = '📋 Gönder';
-     }
-     
-     topTodosBtn.onclick = () => {
-        if (!isCompleted) {
-           alert("Önce tüm analiz ve çözümleri bitirin.");
-           return;
-        }
-        if (isSent || topTodosBtn.innerHTML.includes('Gönderildi')) return;
-        extractTodosAndSend();
-        topTodosBtn.innerHTML = '✅ Gönderildi';
-        topTodosBtn.style.opacity = '0.5';
-        topTodosBtn.style.cursor = 'default';
-        topTodosBtn.title = "Zaten gönderildi";
-     };
-  }
-
-  // btn-ai-step removed
-  if (document.getElementById('btn-auto-analyze')) {
-    const btn = document.getElementById('btn-auto-analyze');
-    btn.onclick = async () => {
-      window.isAutoAnalyzing = true;
-      await runAutoAnalysis();
-    };
-  }
-
-  if (document.getElementById('btn-auto-fix')) {
-    const btn = document.getElementById('btn-auto-fix');
-    btn.onclick = async () => {
-      window.isAutoFixing = true;
-      await runAutoFixes();
-    };
-  }
-  
-  // PDF listener moved to topBtn
-
-  currentState = 'CHAT_MODE';
-  copilotInputArea.style.display = "block"; const cqa = document.getElementById("copilot-quick-actions"); if(cqa) cqa.style.display = "flex";
-  copilotTextInput.placeholder = "Başka sormak istediğiniz bir şey var mı?";
+  wrap.innerHTML = `
+    <div style="border:1.5px solid ${c.border};border-radius:14px;overflow:hidden;background:#fff;box-shadow:0 2px 10px rgba(0,0,0,0.05);">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;background:${c.bg};cursor:pointer;user-select:none;gap:12px;"
+           onclick="window.toggleAccordion(${JSON.stringify(service.id)})">
+        <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;">
+          <span style="font-size:20px;flex-shrink:0;">${service.icon}</span>
+          <div style="min-width:0;">
+            <div style="font-size:14px;font-weight:700;color:#0f172a;">${service.title}</div>
+            <div style="font-size:12px;color:#64748b;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${service.description}</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+          ${icon}
+          <div id="aiseo-toggle-${service.id}" style="width:24px;height:24px;border-radius:50%;background:rgba(0,0,0,0.06);display:flex;align-items:center;justify-content:center;transition:transform .25s;transform:${toggleRot};">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#475569" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+        </div>
+      </div>
+      <div id="aiseo-body-${service.id}" style="display:${bodyOpen ? 'block' : 'none'};">
+        ${body}
+      </div>
+    </div>`;
 }
 
-window.isAutoAnalyzing = false;
-window.isAutoFixing = false;
+window.toggleAccordion = function(serviceId) {
+  const body   = document.getElementById('aiseo-body-' + serviceId);
+  const toggle = document.getElementById('aiseo-toggle-' + serviceId);
+  if (!body) return;
+  const open = body.style.display !== 'none';
+  body.style.display          = open ? 'none' : 'block';
+  if (toggle) toggle.style.transform = open ? '' : 'rotate(180deg)';
+};
 
-async function runAutoAnalysis() {
-  for (let i = 1; i <= 5; i++) {
-    if (!window.isAutoAnalyzing) break;
-    if (!completedSteps.has(i)) {
-      currentStep = i;
-      await processAiSeoStep();
-      if (i < 5) await new Promise(r => setTimeout(r, 4000));
-    }
+// ============================================================
+// HİZMET ÇALIŞTIR
+// ============================================================
+
+window.runSingleService = async function(rawId) {
+  // id hem integer hem string olabilir — tip-güvenli karşılaştırma
+  const serviceId = (typeof rawId === 'string' && !rawId.startsWith('custom_'))
+    ? parseInt(rawId, 10) : rawId;
+
+  const service = getAllServices().find(s => String(s.id) === String(serviceId));
+  if (!service) {
+    console.error('Hizmet bulunamadı:', serviceId, 'Mevcut:', getAllServices().map(s => s.id));
+    return;
   }
-  window.isAutoAnalyzing = false;
-  copilotActions.style.display = 'flex';
-  renderAiSeoActions();
-}
-
-async function runAutoFixes() {
-  for (let i = 1; i <= 6; i++) {
-    if (!window.isAutoFixing) break;
-    if (!fixedIssues.has(i) && (completedSteps.has(i) || (i === 6 && completedSteps.has(5)))) {
-      await fixAiSeoIssue(i);
-      if (i < 6) await new Promise(r => setTimeout(r, 4000));
-    }
-  }
-  window.isAutoFixing = false;
-  copilotActions.style.display = 'flex';
-  renderAiSeoActions();
-}
-
-async function processAiSeoStep() {
-  const step = currentStep;
-  addMessage(`${step}. Adım: ${aiSeoSteps[step]} çalıştırılıyor...`, 'user');
-  copilotActions.style.display = 'none'; 
-  addTypingIndicator();
-
-  if (!fetchedData) {
-    removeTypingIndicator();
-    addMessage("⚠️ Önceki sohbet geri yüklendi ancak arka plan verisi eksik. Detaylı analize devam etmek için sayfayı yenileyip URL'yi baştan taratmalısınız.", 'ai');
-    copilotActions.style.display = 'flex';
+  if (!state.fetchedData) {
+    alert('Lütfen önce bir URL girin ve analiz ettirin.');
     return;
   }
 
-  let p = `Sen bir GEO uzmanısın. ÖNEMLİ: Kendini tanıtma, selamlama yapma, doğrudan istenilen formatta yanıt ver. Kullanıcının ${targetType} sektörü sitesini incele. \nSayfa Başlığı: ${fetchedData.title}\nMeta: ${fetchedData.description}\nBulunan JSON-LD Schema: ${fetchedData.schemas.join(', ')}\nSayfa Metni: ${fetchedData.text}\n\n`;
-  
-  if (step === 1) {
-    p += `Aşağıdaki başlıkları kullanarak sitenin İş Bağlamını ve Site Yapısını Markdown formatında analiz et:
-**Yapay Zekâ Uyumlu Site Yapısı (Bilgi Mimarisi)**
-* BU SAYFA NE HAKKINDADIR VE KİMİN İÇİNDİR?
-* HİYERARŞİ VE AYRIŞMA: Sayfadaki hizmet/ürün hiyerarşisi net mi? Karmaşıklık var mı?
-* ANAHTAR VARLIKLAR (ENTITIES): Yapay zekanın Knowledge Graph (Bilgi Grafiği) için bu sitenin odaklanması gereken en önemli 3-4 kavram.
-* TEKNİK SEO VE TARANABİLİRLİK EKSİKLERİ: Sayfanın taranabilirliğini (Robots.txt, Sitemap) göz önünde bulundurarak olası risklerini değerlendir. Aynı içeriği açan alternatif adresler için Canonical etiketleri doğru kullanılmış mı? HTTP ve HTTPS adresleri arasında tutarlılık var mı? Sitedeki kırık bağlantılar ve 404 sayfalarının genel durumu nedir? Yönlendirme zincirleri (301) sağlıklı çalışıyor mu?
-Buna ek olarak E-E-A-T (Deneyim, Uzmanlık, Otoriterlik, Güvenilirlik) kurallarına göre bir değerlendirme yaz.`;
-  } 
-  else if (step === 2) {
-    p += `Aşağıdaki başlıkları kullanarak Markdown formatında bir Kullanıcı Odaklı İçerik ve Etkililik raporu oluştur:
-**Kullanıcı Odaklı İçerik ve SSS Raporu**
-* KULLANICI NİYETİ: Kullanıcıların bu sayfada bulmayı beklediği asıl cevaplar neler?
-* ÖNE ÇIKAN KULLANICI SORULARI (En az 5 soru listele. Sitenin bu sorulara DOĞRUDAN cevap verip veremediğini (+/-) yönleriyle ve 10 üzerinden skorla yaz.)
-* İÇERİK FIRSATLARI: İçeriğin daha faydalı, güvenilir ve insan odaklı (helpful content) olması için 5 maddelik aksiyon planı.`;
-  } 
-  else if (step === 3) {
-    p += `Aşağıdaki başlıkları kullanarak Rakip ve İçerik Geliştirme analizi yap:
-**Rakip Zafiyetleri ve İçerik Düzenleme**
-* İÇERİK DERİNLİĞİ: Sitedeki metinler çok mu genel? Teknik terimler açıklanmış mı? Hizmet/ürün kapsamı net mi?
-* RAKİP KIYASLAMASI: Aynı sektördeki en bilinen 3 rakibe kıyasla tahmini İÇERİK GÜVEN PUANI (%).
-Sitenin rakiplere kıyasla hangi açıkları kapatması ve metinleri nasıl özgünleştirmesi gerektiğini vurgula.`;
-  } 
-  else if (step === 4) {
-    p += `Aşağıdaki başlıkları kullanarak LLM içerik güven metriklerini yüzdelik (%) olarak belirle:
-Altına "İÇERİK İÇİ BAĞLANTILAR (INTERNAL LINKING) VE CANONICAL" başlığı aç.
-* İÇERİK BAĞ AĞI (TOPIC CLUSTERS): Bu sayfanın otoritesini artırmak için hangi konularda bilgilendirici blog yazıları yazılmalı ve bu sayfaya nasıl iç link (internal link) verilmeli?
-* ARAMA MOTORU KAYITLARI: Sadece Google Search Console değil, Bing Webmaster Tools ve Yandex Webmaster üzerinde de takip edilmesi gereken indeks, tarama durumu ve site haritası hatalarına dair genel stratejik tavsiyeler ver. Her üç platformda yaşanabilecek potansiyel teknik uyarıları (Geçerli/Geçersiz sayfa durumları) açıkla.`;
-  } 
-  else if (step === 5) {
-    p += `Aşağıdaki başlıkları kullanarak Yapılandırılmış Veri ve Optimizasyon analizi yap:
-**Yapılandırılmış Veri (Schema.org) Derinliği**
-* Sitede tespit edilen JSON-LD şemaları yeterli mi? (Ürün sayfaları için detaylı Product, Hizmet sayfaları için Service, Breadcrumb, FAQ vs. var mı?)
-* Okunabilirlik ve UX Analizi: LLM'ler metni rahat anlıyor mu?
-Son olarak, LLM (SGE) dostu kusursuz hale getirilmiş YENİ BİR ÖRNEK METİN ve META AÇIKLAMASI sun.`;
-  }
-  else if (step === 6) {
-    p += `ÖNEMLİ: Sen bir Bütünsel Entegrasyon Şefisin. Önceki 5 adımdaki Metin ve Teknik yapıları birbirine nasıl bağlamamız gerektiğini analiz et. 
-* AI TANITIM DOSYALARI (llms.txt): Bu sitenin kök dizininde bulunması gereken bir llms.txt dosyasının önemini anlat. Bu dosyanın içinde; işletmenin temel faaliyet alanlarının, önemli hizmet ve kategori sayfalarının listesinin ve teknik doküman, katalog, rehber içeriklerin (canonical) URL bağlantılarının yapay zeka botları için nasıl özetlenmesi gerektiğini detaylıca açıkla. Sadece 'ekleyin' deme, içeriğinde nelerin listelenmesi gerektiğini madde madde göster.
-* SENTEZ: Hangi içeriğin, hangi şemayla ve hangi linkleme (Topic Cluster) kurgusuyla BİRLİKTE canlıya alınması gerektiğini açıkla. Hiçbir kod üretme, sadece bu organik bağı analiz et.`;
-  }
+  // Hali hazırda yükleniyorsa tekrar tetikleme
+  const loadKey = 'loading_' + String(serviceId);
+  if (state.completedServices.has(loadKey)) return;
+  state.completedServices.add(loadKey);
 
-  // --- DİNAMİK METRİK MANTIĞI (ÇÖZÜM ADIMI İÇİN) ---
-  let stepMetricsJson = "";
-  if (step === 1) {
-     stepMetricsJson = `,\n  "step_metrics": { "crawl_health": "0-100 arası puan" }`;
-  } else if (step === 2) {
-     stepMetricsJson = `,\n  "step_metrics": { "faq_score": "0-100 arası puan" },\n  "tags": { "intent": "Kullanıcı Niyeti (Örn: Bilgi / Satın Alma)" }`;
-  } else if (step === 3) {
-     stepMetricsJson = `,\n  "step_metrics": { "content_depth": "0-100 arası puan" }`;
-  } else if (step === 4) {
-     stepMetricsJson = `,\n  "step_metrics": { "internal_link_power": "0-100 arası puan" }`;
-  } else if (step === 5) {
-     stepMetricsJson = `,\n  "step_metrics": { "schema_richness": "0-100 arası puan" },\n  "tags": { "entities": ["Varlık 1", "Varlık 2", "Varlık 3"] }`;
-  } else if (step === 6) {
-     stepMetricsJson = `,\n  "step_metrics": { "llm_readiness": "0-100 arası puan" }`;
-  }
+  updateServiceButtonState(serviceId, 'loading');
+  renderServiceAccordion(service, 'loading');
 
-  prompt += `\n\nÖNEMLİ: Yanıtının SONUNA, analizine dayanan şu verileri içeren, aşağıdaki YAPIDA KESİN bir JSON bloğu ekle (\`\`\`json ... \`\`\` içinde olsun):
-{
-"overview_html": "<p>Sitenin genel özeti...</p>",
-"charts_data": {
-  "trust_score": 0-100 arası genel sağlık skoru,
-  "eeat_radar": {
-    "experience": 0-100,
-    "expertise": 0-100,
-    "authoritativeness": 0-100,
-    "trustworthiness": 0-100
-  }${stepMetricsJson}
-},
-"action_plan_table": [
-  { "issue": "Aksiyon açıklaması", "category": "Kategori", "priority": "high/medium/low", "color": "red/orange/green" }
-]
-}`;
   try {
-    const res = await fetch('form_submit.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: p }] }], generationConfig: { temperature: 0.2 } }) });
-    const result = await res.json();
-    removeTypingIndicator();
-    if (result.error) { addMessage(`Hata: ${result.error.message || result.error}`, 'ai'); copilotActions.style.display = 'flex'; return; }
-    
-    let aiText = result.candidates[0].content.parts[0].text;
-    const { cleanText, parsedData, rawJsonStr } = extractAndCleanJson(aiText);
-    
-    if (parsedData) {
-        initOrUpdateCharts(parsedData);
-    }
+    const siteData = {
+      url:         state.targetUrl,
+      title:       state.fetchedData.title,
+      description: state.fetchedData.description,
+      text:        state.fetchedData.text,
+      schemas:     state.fetchedData.schemas,
+      siteType:    state.siteType
+    };
 
-    let parsedHtml = (typeof marked !== 'undefined' ? marked.parse(cleanText) : cleanText);
-    let htmlText = parsedHtml + (rawJsonStr ? '<div class="ai-raw-json" style="display:none;">' + rawJsonStr + '</div>' : '');
-    addMessage(htmlText, 'ai', true);
+    const aiText     = await callGemini(service.buildPrompt(siteData), 0.25);
+    const htmlContent = mdToHtml(aiText);
 
-    reportData[step - 1] = parsedHtml; // Clean parsed text without hidden raw JSON
+    state.completedServices.delete(loadKey);
+    state.serviceResults[String(serviceId)] = { html: htmlContent, raw: aiText };
+    state.completedServices.add(serviceId);
 
-    completedSteps.add(step); if(step === 5) completedSteps.add(6);
-    if (completedSteps.size >= 6) {
-      updateProgressUI(7);
-      let llmsHtml = `🎉 Harika! Tüm AI SEO Entegrasyon zinciri dahil 6 adımın tamamını bitirdik.<br><br>Sitenizin ChatGPT ve Gemini gibi yapay zekalar tarafından %100 doğru anlaşılması için kök dizininize bir <strong>llms.txt</strong> dosyası eklemenizi öneririz.<br><br><button id="btn-generate-llms" class="btn btn--primary" style="margin-top:10px; background:#10b981; border:none; padding:8px 16px; font-weight:600; color:#fff; border-radius:6px; cursor:pointer;">🤖 Özel llms.txt Üret</button>`;
-      addMessage(llmsHtml, 'ai', true);
-      
-      setTimeout(() => {
-        let btn = document.getElementById('btn-generate-llms');
-        if(btn) {
-          btn.addEventListener('click', () => {
-            if(typeof window.openLlmsGenerator === 'function') window.openLlmsGenerator();
-          });
-        }
-      }, 100);
-      setTimeout(() => { window.showFollowUpPrompt(); }, 300);
-    }
-    renderAiSeoActions();
-    if (window.isAutoAnalyzing) {
-      copilotActions.style.display = 'none';
-    } else {
-      copilotActions.style.display = 'flex';
-    }
+    renderServiceAccordion(service, 'done', htmlContent);
+    updateServiceButtonState(serviceId, 'done');
+    updateRunAllBtn();
+    updateDownloadBtn();
+    saveAnalysis().catch(e => console.warn('Kayıt hatası:', e));
+
   } catch (err) {
-    removeTypingIndicator();
-    addMessage(`Bağlantı hatası: ${err.message}`, 'ai');
-    copilotActions.style.display = 'flex';
+    state.completedServices.delete(loadKey);
+    renderServiceAccordion(service, 'error', '', err.message);
+    updateServiceButtonState(serviceId, 'error');
+    console.error('Hizmet hatası [' + serviceId + ']:', err);
   }
+};
+
+window.runAllServices = async function() {
+  const btn = document.getElementById('btn-run-all-services');
+  if (btn) { btn.disabled = true; btn.style.opacity = '0.8'; }
+
+  for (const svc of getAllServices()) {
+    if (!state.completedServices.has(svc.id)) {
+      await window.runSingleService(svc.id);
+      await new Promise(r => setTimeout(r, 2000));
+    }
+  }
+
+  if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
+  updateRunAllBtn();
+};
+
+// ============================================================
+// PDF
+// ============================================================
+
+function downloadPDF() {
+  if (typeof html2pdf === 'undefined') { alert('PDF kütüphanesi yüklenemedi.'); return; }
+  const date = new Date().toLocaleDateString('tr-TR');
+  let pages  = '';
+  getAllServices().forEach(svc => {
+    const res = state.serviceResults[String(svc.id)];
+    pages += `<div style="padding:40px;min-height:1100px;background:#fff;page-break-after:always;position:relative;">
+      <div style="border-bottom:3px solid #2563eb;padding-bottom:14px;margin-bottom:24px;">
+        <h2 style="font-size:20px;color:#0f172a;margin:0;font-weight:800;">${svc.icon} ${svc.title}</h2>
+        <p style="font-size:12px;color:#64748b;margin:5px 0 0;">${svc.description}</p>
+      </div>
+      <div style="font-size:13px;line-height:1.7;color:#334155;">${res ? res.html : '<p style="color:#94a3b8;">Analiz yapılmadı.</p>'}</div>
+      <div style="position:absolute;bottom:18px;left:40px;right:40px;border-top:1px solid #e2e8f0;padding-top:8px;font-size:10px;color:#94a3b8;display:flex;justify-content:space-between;">
+        <span>AdresGezgini — Yapay Zeka SEO Raporu</span><span>${date}</span>
+      </div>
+    </div>`;
+  });
+
+  const el = document.createElement('div');
+  el.innerHTML = `<div style="font-family:Arial,sans-serif;">
+    <div style="height:1100px;display:flex;flex-direction:column;justify-content:center;align-items:center;background:linear-gradient(135deg,#2563eb,#1e3a8a);color:#fff;text-align:center;padding:40px;page-break-after:always;">
+      <div style="font-size:36px;font-weight:800;margin-bottom:14px;">AdresGezgini</div>
+      <div style="font-size:44px;font-weight:800;line-height:1.1;margin-bottom:24px;">YAPAY ZEKA<br>SEO RAPORU</div>
+      <div style="background:rgba(255,255,255,.12);padding:10px 26px;border-radius:50px;font-size:15px;font-family:monospace;margin-bottom:12px;">${state.targetUrl}</div>
+      <div style="font-size:13px;opacity:.8;">Site Türü: ${state.siteType}</div>
+      <div style="margin-top:auto;font-size:12px;opacity:.6;">${date}</div>
+    </div>${pages}</div>`;
+
+  html2pdf().set({ margin: 0, filename: 'AG_AI_SEO_Raporu.pdf', image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'px', format: [794, 1123], orientation: 'portrait' } }).from(el).save();
 }
 
-function downloadReportPDF() {
-  if (!reportData || reportData.length < 5) {
-    alert("Rapor oluşturulacak yeterli veri yok. Lütfen analizi tamamlayın.");
-    return;
-  }
+// ============================================================
+// URL FETCH + SİTE TÜRÜ TESPİTİ
+// ============================================================
 
-  // 1. Fetch Todos
-  let todos = JSON.parse(localStorage.getItem('ag_seo_todos') || '{}');
-  let siteTodos = todos[targetUrl] || { tech: [], text: [], general: [] };
-  
-  let todoHtml = '';
-  if (siteTodos.tech.length > 0 || siteTodos.text.length > 0 || siteTodos.general.length > 0) {
-      todoHtml += '<div class="pdf-page" style="page-break-before: always;"><div class="pdf-header"><h2>🚀 Aksiyon Planı (Yapılacaklar)</h2></div>';
-      
-      if (siteTodos.tech.length > 0) {
-          todoHtml += '<div class="todo-box"><h3 class="todo-title" style="color:#ef4444;">🚨 Teknik Görevler</h3><ul class="todo-list">';
-          siteTodos.tech.forEach(t => todoHtml += `<li>${t.text}</li>`);
-          todoHtml += '</ul></div>';
-      }
-      if (siteTodos.text.length > 0) {
-          todoHtml += '<div class="todo-box"><h3 class="todo-title" style="color:#3b82f6;">✍️ Metin Görevleri</h3><ul class="todo-list">';
-          siteTodos.text.forEach(t => todoHtml += `<li>${t.text}</li>`);
-          todoHtml += '</ul></div>';
-      }
-      if (siteTodos.general.length > 0) {
-          todoHtml += '<div class="todo-box"><h3 class="todo-title" style="color:#10b981;">📌 Genel Görevler</h3><ul class="todo-list">';
-          siteTodos.general.forEach(t => todoHtml += `<li>${t.text}</li>`);
-          todoHtml += '</ul></div>';
-      }
-      todoHtml += '</div>';
-  }
+async function detectAndFetchSite(url) {
+  const indicator = document.getElementById('aiseo-scan-indicator');
+  const scanText  = document.getElementById('aiseo-scan-text');
+  const submitBtn = document.getElementById('aiseo-url-submit');
 
-  const dateStr = new Date().toLocaleDateString('tr-TR');
+  if (indicator) indicator.style.display = 'block';
+  if (scanText)  scanText.textContent = 'Site verileri çekiliyor...';
+  if (submitBtn) { submitBtn.disabled = true; submitBtn.style.opacity = '0.6'; }
 
-  const reportDiv = document.createElement('div');
-  reportDiv.innerHTML = `
-    <style>
-      * { box-sizing: border-box; }
-      .pdf-wrapper { font-family: 'Inter', Arial, sans-serif; background-color: #f8fafc; color: #1e293b; }
-      
-      .pdf-cover { height: 1120px; display: flex; flex-direction: column; justify-content: center; align-items: center; background: linear-gradient(135deg, #ef4444 0%, #7f1d1d 100%); color: white; text-align: center; padding: 40px; page-break-after: always; }
-      .pdf-cover-logo { font-size: 42px; font-weight: 800; letter-spacing: -1px; margin-bottom: 20px; text-shadow: 0 4px 10px rgba(0,0,0,0.3); }
-      .pdf-cover-title { font-size: 56px; font-weight: 800; margin-bottom: 30px; line-height: 1.1; }
-      .pdf-cover-subtitle { font-size: 24px; font-weight: 500; opacity: 0.9; margin-bottom: 50px; }
-      .pdf-cover-url { background: rgba(255,255,255,0.1); padding: 15px 30px; border-radius: 50px; font-size: 20px; font-weight: 600; font-family: monospace; border: 1px solid rgba(255,255,255,0.2); }
-      .pdf-cover-date { margin-top: auto; font-size: 16px; opacity: 0.7; }
-      
-      .pdf-page { padding: 40px; min-height: 1120px; position: relative; background: white; }
-      .pdf-page:not(:last-child) { page-break-after: always; }
-      
-      .pdf-header { border-bottom: 3px solid #ef4444; padding-bottom: 15px; margin-bottom: 30px; }
-      .pdf-header h2 { font-size: 28px; color: #0f172a; margin: 0; font-weight: 800; letter-spacing: -0.5px; }
-      
-      .pdf-section { background: #ffffff; border-radius: 12px; padding: 25px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); border: 1px solid #e2e8f0; }
-      .pdf-section h3, .pdf-section strong { color: #ef4444; font-size: 18px; margin-bottom: 12px; display: block; page-break-after: avoid; font-weight: 700; }
-      .pdf-section h4 { color: #334155; font-size: 15px; margin-top: 15px; page-break-after: avoid; }
-      .pdf-section p { font-size: 14px; line-height: 1.6; color: #475569; margin-bottom: 12px; text-align: justify; }
-      .pdf-section ul, .pdf-section ol { padding-left: 20px; margin-bottom: 15px; }
-      .pdf-section li { font-size: 14px; margin-bottom: 8px; color: #475569; line-height: 1.5; text-align: justify; }
-      
-      .todo-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; margin-bottom: 20px; }
-      .todo-title { margin-top: 0; font-size: 16px; font-weight: 700; margin-bottom: 15px; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px; }
-      .todo-list { list-style-type: none; padding-left: 0; margin: 0; }
-      .todo-list li { position: relative; padding-left: 25px; margin-bottom: 12px; font-size: 14px; color: #334155; line-height: 1.5; }
-      .todo-list li::before { content: "✓"; position: absolute; left: 0; top: 0; color: #ef4444; font-size: 16px; font-weight: bold; }
-      
-      .footer { position: absolute; bottom: 20px; left: 40px; right: 40px; border-top: 1px solid #e2e8f0; padding-top: 10px; font-size: 10px; color: #94a3b8; display: flex; justify-content: space-between; }
-    </style>
-    
-    <div class="pdf-wrapper">
-        <!-- COVER PAGE -->
-        <div class="pdf-cover">
-          <div class="pdf-cover-logo">AG SEO CHECK UP</div>
-          <div class="pdf-cover-title">KAPSAMLI<br>YAPAY ZEKA SEO<br>ANALİZ RAPORU</div>
-          <div class="pdf-cover-subtitle">Modern Arama Motorları ve SGE İçin Özel İnceleme</div>
-          <div class="pdf-cover-url">${targetUrl}</div>
-          <div class="pdf-cover-date">Oluşturulma Tarihi: ${dateStr}</div>
-        </div>
-        
-        <!-- PAGE 1: İş Bağlamı -->
-        <div class="pdf-page">
-          <div class="pdf-header"><h2>1. İş Bağlamı ve E-E-A-T Analizi</h2></div>
-          <div class="pdf-section">
-            ${(reportData[0] || '').replace(/\(Domain Business Context\)/gi, '').replace(/\(WHAT IS THIS DOMAIN ABOUT\)/gi, '').replace(/\(TARGET AUDIENCE\)/gi, '').replace(/\(INDUSTRY NICHE\)/gi, '')}
-          </div>
-          <div class="footer"><span>AG SEO Check Up - Gizli Rapor</span></div>
-        </div>
-        
-        <!-- PAGE 2: Etkililik -->
-        <div class="pdf-page">
-          <div class="pdf-header"><h2>2. Kullanıcı Soruları ve Etkililik</h2></div>
-          <div class="pdf-section">
-            ${(reportData[1] || '').replace(/\(OVERVIEW\)/gi, '').replace(/\(Score\)/gi, '(Skor)')}
-          </div>
-          <div class="footer"><span>AG SEO Check Up - Gizli Rapor</span></div>
-        </div>
-      
-        <!-- PAGE 3: Rakip Analizi & Güven Puanı -->
-        <div class="pdf-page">
-          <div class="pdf-header"><h2>3. Rakip & Güven Analizi</h2></div>
-          <div class="pdf-section">
-            ${(reportData[2] || '').replace(/\(Competitor Content Insights\)/gi, '')}
-          </div>
-          <div class="pdf-section">
-            ${(reportData[3] || '').replace(/\(AI Content Trust\)/gi, '').replace(/\(CONTENT TRUST SCORE\)/gi, '').replace(/\(Topical Relevance\)/gi, '').replace(/\(Subject Expertise\)/gi, '').replace(/\(Credibility\)/gi, '').replace(/\(CONTENT TRUST IMPROVEMENTS\)/gi, '')}
-          </div>
-          <div class="footer"><span>AG SEO Check Up - Gizli Rapor</span></div>
-        </div>
-      
-        <!-- PAGE 4: Optimizasyon & Entegrasyon -->
-        <div class="pdf-page">
-          <div class="pdf-header"><h2>4. Optimizasyon Önerileri</h2></div>
-          <div class="pdf-section">
-            ${reportData[4] || ''}
-          </div>
-          <div class="footer"><span>AG SEO Check Up - Gizli Rapor</span></div>
-        </div>
-        
-        <!-- PAGE 5: YAPILACAKLAR -->
-        ${todoHtml}
-    </div>
-  `;
-
-  if (typeof html2pdf !== 'undefined') {
-    const opt = {
-      margin:       0,
-      filename:     'AG_SEO_Raporu.pdf',
-      image:        { type: 'jpeg', quality: 0.98 },
-      html2canvas:  { scale: 2, useCORS: true, letterRendering: true },
-      jsPDF:        { unit: 'px', format: [794, 1123], orientation: 'portrait' }
-    };
-    
-    html2pdf().set(opt).from(reportDiv).save();
-  } else {
-    alert("PDF kütüphanesi yüklenemedi. Lütfen sayfayı yenileyin.");
-  }
-}
-
-async function saveChat() {
-  if (!targetUrl || chatMessages.length === 0) return;
   try {
-    if (copilotSaveBtn) copilotSaveBtn.innerHTML = 'Kaydediliyor...';
-    await fetch('ai_seo/api/save_chat.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ chatId: currentChatId, url: targetUrl, type: targetType, messages: chatMessages, completedSteps: Array.from(completedSteps), reportData: reportData, fixedIssues: Array.from(fixedIssues) }) });
-    loadHistory();
-    if (copilotSaveBtn) copilotSaveBtn.innerHTML = '✅ Kaydedildi';
-    setTimeout(() => {
-      if (copilotSaveBtn) copilotSaveBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg> Kaydet`;
-    }, 2000);
-  } catch(e) {}
+    state.fetchedData = await fetchSiteData(url);
+    if (scanText) scanText.textContent = 'Yapay zeka site türünü tespit ediyor...';
+
+    const typeText = await callGemini(
+      `Bu web sitesini analiz et ve sadece şu iki seçenekten birini yaz, başka HİÇBİR ŞEY EKLEME:\n- Ürün / E-Ticaret\n- Hizmet / Kurumsal\n\nURL: ${url}\nBaşlık: ${state.fetchedData.title}\nAçıklama: ${state.fetchedData.description}\nMetin (ilk 1000 karakter): ${state.fetchedData.text.substring(0, 1000)}`,
+      0.1
+    );
+    state.siteType = typeText.trim().includes('Ürün') ? 'Ürün / E-Ticaret' : 'Hizmet / Kurumsal';
+
+    updateBadges();
+    if (indicator) indicator.style.display = 'none';
+
+    document.getElementById('aiseo-url-card').style.display     = 'none';
+    document.getElementById('aiseo-services-panel').style.display = 'block';
+
+    updateRunAllBtn();
+    updateDownloadBtn();
+
+  } catch (err) {
+    if (indicator) indicator.style.display = 'none';
+    alert('Hata: ' + err.message);
+  } finally {
+    if (submitBtn) { submitBtn.disabled = false; submitBtn.style.opacity = '1'; }
+  }
+}
+
+// ============================================================
+// ÖZEL HİZMET EKLE (+ butonu)
+// ============================================================
+
+function renderCustomServiceButton(svc) {
+  const container = document.getElementById('aiseo-service-buttons');
+  if (!container) return;
+
+  // Eski + butonunu çıkar
+  const addBtn = document.getElementById('btn-add-custom-service');
+  if (addBtn) addBtn.remove();
+
+  const btn = document.createElement('button');
+  btn.className = 'aiseo-svc-btn has-tooltip';
+  btn.setAttribute('data-service', svc.id);
+  btn.setAttribute('data-tooltip', svc.description);
+  btn.style.cssText = 'display:inline-flex;align-items:center;gap:6px;background:#fff;border:1.5px solid #a78bfa;border-radius:20px;padding:8px 16px;font-size:13px;font-weight:500;color:#5b21b6;cursor:pointer;transition:all .2s;';
+  btn.innerHTML = `<span>${svc.icon}</span> ${svc.title}<span class="svc-status" data-svc="${svc.id}"></span>`;
+  btn.addEventListener('click', () => window.runSingleService(svc.id));
+  container.appendChild(btn);
+
+  appendAddButton();
+}
+
+function appendAddButton() {
+  const container = document.getElementById('aiseo-service-buttons');
+  if (!container) return;
+
+  const old = document.getElementById('btn-add-custom-service');
+  if (old) old.remove();
+
+  const btn = document.createElement('button');
+  btn.id    = 'btn-add-custom-service';
+  btn.title = 'Özel hizmet ekle';
+  btn.style.cssText = 'display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;background:#fff;border:1.5px dashed #94a3b8;border-radius:50%;cursor:pointer;font-size:20px;color:#64748b;transition:all .2s;flex-shrink:0;line-height:1;';
+  btn.textContent = '+';
+  btn.addEventListener('mouseenter', () => { btn.style.borderColor='#2563eb'; btn.style.color='#2563eb'; btn.style.background='#eff6ff'; });
+  btn.addEventListener('mouseleave', () => { btn.style.borderColor='#94a3b8'; btn.style.color='#64748b'; btn.style.background='#fff'; });
+  btn.addEventListener('click', openAddCustomServiceModal);
+  container.appendChild(btn);
+}
+
+function openAddCustomServiceModal() {
+  document.getElementById('custom-svc-modal')?.remove();
+
+  const modal = document.createElement('div');
+  modal.id = 'custom-svc-modal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;';
+  modal.innerHTML = `
+    <div style="background:#fff;border-radius:20px;padding:32px;max-width:480px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.2);animation:ag-slide-down .25s ease;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">
+        <div>
+          <h3 style="font-size:17px;font-weight:700;color:#0f172a;margin:0 0 4px;">Özel Hizmet Ekle</h3>
+          <p style="font-size:13px;color:#64748b;margin:0;">AI bu hizmet için analiz promptunu otomatik oluşturacak</p>
+        </div>
+        <button id="csm-close" style="background:none;border:none;cursor:pointer;font-size:22px;color:#64748b;line-height:1;padding:4px;">✕</button>
+      </div>
+
+      <div style="margin-bottom:14px;">
+        <label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:6px;">Hizmet Adı *</label>
+        <input id="csm-name" type="text" placeholder="Örn: Mobil SEO Denetimi"
+          style="width:100%;border:1.5px solid #e2e8f0;border-radius:10px;padding:10px 14px;font-size:14px;box-sizing:border-box;font-family:inherit;">
+      </div>
+
+      <div style="margin-bottom:24px;">
+        <label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:6px;">Hizmet Detayı *</label>
+        <textarea id="csm-desc" rows="4" placeholder="Bu hizmet kapsamında ne yapılacak? AI bu bilgiyi kullanarak analiz sorularını oluşturacak..."
+          style="width:100%;border:1.5px solid #e2e8f0;border-radius:10px;padding:10px 14px;font-size:13px;box-sizing:border-box;resize:vertical;line-height:1.6;font-family:inherit;"></textarea>
+      </div>
+
+      <div id="csm-loading" style="display:none;text-align:center;padding:10px;color:#64748b;font-size:13px;">
+        <span style="display:inline-block;width:14px;height:14px;border:2px solid #2563eb;border-top-color:transparent;border-radius:50%;animation:ag-spin .8s linear infinite;vertical-align:middle;margin-right:8px;"></span>
+        AI prompt oluşturuyor...
+      </div>
+
+      <div style="display:flex;gap:10px;">
+        <button id="csm-cancel" style="flex:1;padding:11px;background:#f1f5f9;color:#475569;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;">İptal</button>
+        <button id="csm-save"   style="flex:2;padding:11px;background:#2563eb;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;">Kaydet</button>
+      </div>
+    </div>`;
+
+  document.body.appendChild(modal);
+  setTimeout(() => document.getElementById('csm-name')?.focus(), 80);
+
+  const close = () => modal.remove();
+  document.getElementById('csm-close').onclick  = close;
+  document.getElementById('csm-cancel').onclick = close;
+  modal.addEventListener('click', e => { if (e.target === modal) close(); });
+
+  document.getElementById('csm-save').addEventListener('click', async () => {
+    const name = (document.getElementById('csm-name').value || '').trim();
+    const desc = (document.getElementById('csm-desc').value || '').trim();
+    if (!name || !desc) { alert('Hizmet adı ve detayını doldurun.'); return; }
+
+    const saveBtn = document.getElementById('csm-save');
+    const loading = document.getElementById('csm-loading');
+    saveBtn.disabled = true; saveBtn.style.opacity = '0.6';
+    if (loading) loading.style.display = 'block';
+
+    try {
+      const generatedPrompt = await callGemini(
+        `Sen bir AI SEO uzmanısın. Aşağıdaki hizmet için bir web sitesi analiz promptu yaz.
+
+Hizmet adı: ${name}
+Hizmet açıklaması: ${desc}
+
+Kurallar:
+- Prompt Türkçe olmalı
+- Prompt içinde şu yer tutucuları kullan: {URL}, {TITLE}, {DESCRIPTION}, {SITE_TYPE}, {TEXT}, {SCHEMAS}
+- Markdown başlıkları (## ile) kullan
+- En az 5, en fazla 7 ana başlık
+- Son başlık "## Öncelikli 5 Aksiyon" olsun
+- Her başlık altında somut, uygulanabilir öneriler iste
+- Sadece promptu yaz, başka açıklama ekleme`,
+        0.4
+      );
+
+      const newSvc = buildCustomServiceObj({
+        id:             'custom_' + Date.now(),
+        icon:           '⭐',
+        title:          name,
+        description:    desc,
+        promptTemplate: generatedPrompt
+      });
+
+      customServicesRegistry.push(newSvc);
+      persistCustomServices();
+      renderCustomServiceButton(newSvc);
+      updateRunAllBtn();
+      close();
+
+    } catch (err) {
+      if (loading) loading.style.display = 'none';
+      saveBtn.disabled = false; saveBtn.style.opacity = '1';
+      alert('Hata: ' + err.message);
+    }
+  });
+}
+
+// ============================================================
+// GEÇMİŞ
+// ============================================================
+
+async function saveAnalysis() {
+  if (!state.targetUrl || Object.keys(state.serviceResults).length === 0) return;
+  await fetch('ai_seo/api/save_chat.php', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      chatId:            state.currentChatId,
+      url:               state.targetUrl,
+      type:              state.siteType,
+      serviceResults:    state.serviceResults,
+      completedServices: Array.from(state.completedServices).filter(id => !String(id).startsWith('loading_')),
+      messages:          []
+    })
+  });
+  loadHistory().catch(() => {});
 }
 
 async function loadHistory() {
-  let historyList = document.getElementById('copilot-history-list');
-  let sidebarHistoryList = document.getElementById('copilot-sidebar-history-list');
-  
+  const list = document.getElementById('copilot-sidebar-history-list');
   try {
-    const res = await fetch('ai_seo/api/save_chat.php?t=' + Date.now());
-    const data = await res.json();
-    window.agChatHistory = data.history || [];
-    if(typeof window.renderDashboard === 'function') window.renderDashboard();
-    
-    // dashboard render edildikten sonra tekrar al
-    historyList = document.getElementById('copilot-history-list');
-    
-    if (historyList) historyList.innerHTML = '';
-    if (sidebarHistoryList) sidebarHistoryList.innerHTML = '';
-    
-    if (!data.history || data.history.length === 0) {
-      if (historyList) historyList.innerHTML = '<p class="empty-note">Henüz geçmiş sohbet yok.</p>';
-      if (sidebarHistoryList) sidebarHistoryList.innerHTML = '<p class="empty-note">Henüz geçmiş sohbet yok.</p>';
-      return;
-    }
-    
-    data.history.forEach(item => {
-      // Helper function to create history item DOM
-      const createItem = () => {
-          const div = document.createElement('div');
-          div.className = 'history-item';
-          div.setAttribute('data-chat-id', item.chatId || item.id);
-          div.style.padding = '12px';
-          div.style.background = '#f9fafb';
-          div.style.border = '1px solid var(--border)';
-          div.style.borderRadius = '6px';
-          div.style.display = 'flex';
-          div.style.justifyContent = 'space-between';
-          div.style.alignItems = 'center';
-          
-          const infoDiv = document.createElement('div');
-          infoDiv.style.cursor = 'pointer';
-          infoDiv.style.flex = '1';
-          infoDiv.innerHTML = `<div style="font-weight:600; font-size:13px; color:#111;">${item.url}</div><div style="font-size:12px; color:#666; margin-top:4px;">${item.date} • Adım: ${item.completedSteps ? item.completedSteps.length : 0}/5</div>`;
-          infoDiv.addEventListener('click', () => {
-              resetChat(item, true); // forceActionView=true
-              const hs = document.getElementById('ai-history-sidebar');
-              if (hs) hs.style.right = '-350px';
-          });
-          
-          const deleteBtn = document.createElement('button');
-          deleteBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" color="#ef4444"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`;
-          deleteBtn.style.background = 'none';
-          deleteBtn.style.border = 'none';
-          deleteBtn.style.cursor = 'pointer';
-          deleteBtn.style.padding = '8px';
-          deleteBtn.addEventListener('click', async (e) => {
-            e.stopPropagation();
-            if (confirm('Bu geçmiş sohbeti silmek istediğinize emin misiniz?')) {
-                await fetch(`ai_seo/api/save_chat.php?id=${item.chatId}`, { method: 'DELETE' });
-                loadHistory();
-            }
-          });
-    
-          div.appendChild(infoDiv);
-          div.appendChild(deleteBtn);
-          return div;
+    const data    = await (await fetch('ai_seo/api/save_chat.php?t=' + Date.now())).json();
+    const history = data.history || [];
+    window.agChatHistory = history;
+    if (typeof window.renderDashboard === 'function') window.renderDashboard();
+    if (!list) return;
+    list.innerHTML = '';
+    if (!history.length) { list.innerHTML = '<p class="empty-note">Henüz geçmiş analiz yok.</p>'; return; }
+    history.forEach(item => {
+      const div = document.createElement('div');
+      div.style.cssText = 'padding:12px;background:#f9fafb;border:1px solid var(--border);border-radius:8px;display:flex;align-items:center;gap:8px;';
+      const cnt = (item.completedServices || []).filter(id => !String(id).startsWith('loading_')).length;
+      div.innerHTML = `
+        <div style="flex:1;cursor:pointer;min-width:0;" class="hist-load-btn" data-idx="${history.indexOf(item)}">
+          <div style="font-weight:600;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${item.url}</div>
+          <div style="font-size:11px;color:#666;margin-top:2px;">${item.date || ''} • ${cnt} hizmet</div>
+        </div>
+        <button data-del-id="${item.chatId}" style="background:none;border:none;cursor:pointer;color:#ef4444;flex-shrink:0;padding:4px;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+        </button>`;
+
+      div.querySelector('[data-del-id]').onclick = async e => {
+        e.stopPropagation();
+        if (!confirm('Bu analizi silmek istiyor musunuz?')) return;
+        await fetch('ai_seo/api/save_chat.php?id=' + item.chatId, { method: 'DELETE' });
+        loadHistory();
       };
-
-      if (historyList) historyList.appendChild(createItem());
-      if (sidebarHistoryList) sidebarHistoryList.appendChild(createItem());
+      div.querySelector('.hist-load-btn').onclick = () => {
+        loadFromHistory(item);
+        document.getElementById('ai-history-sidebar').style.right = '-380px';
+      };
+      list.appendChild(div);
     });
-    
-    if (typeof updateActiveHistoryItem === 'function') updateActiveHistoryItem();
-  } catch(e) {}
+  } catch(e) { console.warn('Geçmiş yükleme hatası:', e); }
 }
 
-if (copilotSaveBtn) {
-  copilotSaveBtn.addEventListener('click', saveChat);
-}
+function loadFromHistory(item) {
+  resetAnalysis(false);
+  state.targetUrl      = item.url;
+  state.siteType       = item.type || '';
+  state.currentChatId  = item.chatId;
+  state.serviceResults = item.serviceResults || {};
+  state.completedServices = new Set(
+    (item.completedServices || []).map(id => isNaN(id) ? id : Number(id))
+  );
+  updateBadges();
+  document.getElementById('aiseo-url-card').style.display      = 'none';
+  document.getElementById('aiseo-services-panel').style.display = 'block';
 
-
-
-// HISTORY SIDEBAR TOGGLE
-const btnToggleSidebar = document.getElementById('btn-toggle-history-sidebar');
-const btnCloseSidebar = document.getElementById('btn-close-history-sidebar');
-const historySidebar = document.getElementById('ai-history-sidebar');
-const btnClearSidebar = document.getElementById('btn-clear-history-sidebar');
-
-if (btnToggleSidebar && historySidebar) {
-  btnToggleSidebar.addEventListener('click', () => {
-    historySidebar.style.right = '0';
-  });
-}
-if (btnCloseSidebar && historySidebar) {
-  btnCloseSidebar.addEventListener('click', () => {
-    historySidebar.style.right = '-350px';
-  });
-}
-if (btnClearSidebar) {
-  btnClearSidebar.addEventListener('click', async () => {
-    if (confirm('Tüm geçmiş sohbetleri silmek istediğinize emin misiniz?')) {
-      await fetch('ai_seo/api/save_chat.php?id=all', { method: 'DELETE' });
-      window.agChatHistory = [];
-      loadHistory();
+  getAllServices().forEach(svc => {
+    const key = String(svc.id);
+    if (state.completedServices.has(svc.id) && state.serviceResults[key]) {
+      updateServiceButtonState(svc.id, 'done');
+      renderServiceAccordion(svc, 'done', state.serviceResults[key].html || state.serviceResults[key].raw || '');
     }
   });
+  updateRunAllBtn(); updateDownloadBtn();
 }
 
-if (copilotResetBtn) {
-  copilotResetBtn.addEventListener('click', () => {
-    try {
-        const hasUserMessages = chatMessages.some(m => m.sender === 'user');
-        const hasUnsavedMessages = hasUserMessages && currentState !== 'WAITING_FOR_URL' && !window._chatLoadedFromHistory;
-        if (hasUnsavedMessages && !confirm('Mevcut sohbet kaydedilmedi. Yeni bir sohbet/URL başlatmak istediğinize emin misiniz?')) return;
-        resetChat(null, true);
-    } catch(err) {
-        alert("Reset error: " + err.message);
-    }
-  });
+function resetAnalysis(showUrlCard = true) {
+  state.targetUrl         = '';
+  state.siteType          = '';
+  state.fetchedData       = null;
+  state.completedServices = new Set();
+  state.serviceResults    = {};
+  state.currentChatId     = String(Date.now());
+
+  updateBadges();
+  const area = document.getElementById('aiseo-results-area');
+  if (area) area.innerHTML = '';
+  getAllServices().forEach(s => updateServiceButtonState(s.id, 'idle'));
+
+  const urlCard = document.getElementById('aiseo-url-card');
+  const panel   = document.getElementById('aiseo-services-panel');
+  const input   = document.getElementById('aiseo-url-input');
+  if (urlCard) urlCard.style.display = showUrlCard ? 'block' : 'none';
+  if (panel)   panel.style.display   = showUrlCard ? 'none'  : 'block';
+  if (input) { input.value = ''; if (showUrlCard) setTimeout(() => input.focus(), 100); }
+  updateDownloadBtn();
 }
 
-for (let i = 1; i <= 6; i++) {
-  const stepEl = document.getElementById(`cp-step-${i}`);
-  if (stepEl) {
-    stepEl.addEventListener('click', async () => {
-      if (completedSteps.has(i)) {
-        const msgs = Array.from(document.querySelectorAll('.chat-msg.user'));
-        const targetMsg = msgs.find(m => m.innerText.includes(`${i}. Adım:`));
-        if (targetMsg) {
-          const scrollOffset = targetMsg.getBoundingClientRect().top - copilotChat.getBoundingClientRect().top + copilotChat.scrollTop;
-          copilotChat.scrollTo({ top: scrollOffset - 10, behavior: 'smooth' });
-
-          const observer = new IntersectionObserver((entries, obs) => {
-            if (entries[0].isIntersecting) {
-              obs.disconnect();
-              const origBg = targetMsg.style.background;
-              targetMsg.style.transition = 'background 0.4s ease';
-              targetMsg.style.background = '#10b981';
-              setTimeout(() => { targetMsg.style.background = origBg; }, 1000);
-            }
-          }, { threshold: 0.5 });
-
-          observer.observe(targetMsg);
-        }
-        // --- SİHİRLİ DOKUNUŞ: GRAFİKLERİ O ADIMA GERİ SAR! ---
-        if (typeof window.rebuildChartsForStep === 'function') {
-          window.rebuildChartsForStep(i);
-      }
-      } else {
-        if (!window.isAutoAnalyzing && !window.isAutoFixing && i <= 6) {
-           currentStep = i;
-           updateProgressUI(currentStep);
-  window.renderDynamicQuickActions();
-           await processAiSeoStep();
-        }
-      }
-    });
-    // We will set cursor pointer in CSS or dynamically below
-  }
-}
-
-resetChat(null);
-loadHistory();
-
-function saveTodo(domain, type, text, msgId, chatId) {
-   let todos = JSON.parse(localStorage.getItem('ag_seo_todos') || '{}');
-   if (!todos[domain]) todos[domain] = { tech: [], text: [], general: [] };
-   if (!todos[domain].general) todos[domain].general = [];
-   
-   // duplicate check
-   let isDuplicate = todos[domain][type].some(t => t.text === text);
-   if (!isDuplicate) {
-       todos[domain][type].push({ id: Date.now() + Math.random().toString(), text, msgId, chatId, done: false });
-       localStorage.setItem('ag_seo_todos', JSON.stringify(todos));
-   }
-}
-
-window.removeTodo = function(domain, type, id) {
-   let todos = JSON.parse(localStorage.getItem('ag_seo_todos') || '{}');
-   if (todos[domain] && todos[domain][type]) {
-       todos[domain][type] = todos[domain][type].filter(t => t.id !== id);
-       localStorage.setItem('ag_seo_todos', JSON.stringify(todos));
-       renderTodos();
-   }
-};
-
-window.renderTodos = function() {
-   const techContainer = document.getElementById('todo-list-tech');
-   const textContainer = document.getElementById('todo-list-text');
-   const generalContainer = document.getElementById('todo-list-general');
-   if (!techContainer || !textContainer || !generalContainer) return;
-   
-   techContainer.innerHTML = '';
-   textContainer.innerHTML = '';
-   generalContainer.innerHTML = '';
-   
-   let todos = JSON.parse(localStorage.getItem('ag_seo_todos') || '{}');
-   let hasTech = false;
-   let hasText = false;
-   let hasGeneral = false;
-
-   for (const [domain, domainTodos] of Object.entries(todos)) {
-       if (domainTodos.tech && domainTodos.tech.length > 0) {
-           hasTech = true;
-           const header = document.createElement('div');
-           header.style.fontWeight = '600';
-           header.style.fontSize = '12px';
-           header.style.marginTop = '12px';
-           header.style.marginBottom = '8px';
-           header.style.color = '#475569';
-           header.innerText = '🌐 ' + domain;
-           techContainer.appendChild(header);
-
-           domainTodos.tech.forEach(item => {
-               const div = document.createElement('div');
-               div.className = 'todo-item';
-               div.style.padding = '10px';
-               div.style.background = '#fff';
-               div.style.border = '1px solid var(--border)';
-               div.style.borderRadius = '6px';
-               div.style.display = 'flex';
-               div.style.alignItems = 'flex-start';
-               div.style.gap = '8px';
-               div.style.marginBottom = '6px';
-               div.innerHTML = `
-                   <input type="checkbox" style="margin-top:3px; cursor:pointer;" onclick="removeTodo('${domain}', 'tech', '${item.id}')">
-                   <div style="flex:1;">
-                      <span style="display:block; font-size:13px; line-height:1.5; color:#1e293b;">${item.text}</span>
-                      <a href="#" data-jump="${item.msgId}" data-chat="${item.chatId || ''}" style="display:inline-block; font-size:11px; margin-top:4px; color:#2563eb; font-weight:600; text-decoration:underline;">Sohbette Gör ➔</a>
-                   </div>
-               `;
-               techContainer.appendChild(div);
-           });
-       }
-       
-       if (domainTodos.text && domainTodos.text.length > 0) {
-           hasText = true;
-           const header = document.createElement('div');
-           header.style.fontWeight = '600';
-           header.style.fontSize = '12px';
-           header.style.marginTop = '12px';
-           header.style.marginBottom = '8px';
-           header.style.color = '#475569';
-           header.innerText = '🌐 ' + domain;
-           textContainer.appendChild(header);
-
-           domainTodos.text.forEach(item => {
-               const div = document.createElement('div');
-               div.className = 'todo-item';
-               div.style.padding = '10px';
-               div.style.background = '#fff';
-               div.style.border = '1px solid var(--border)';
-               div.style.borderRadius = '6px';
-               div.style.display = 'flex';
-               div.style.alignItems = 'flex-start';
-               div.style.gap = '8px';
-               div.style.marginBottom = '6px';
-               div.innerHTML = `
-                   <input type="checkbox" style="margin-top:3px; cursor:pointer;" onclick="removeTodo('${domain}', 'text', '${item.id}')">
-                   <div style="flex:1;">
-                      <span style="display:block; font-size:13px; line-height:1.5; color:#1e293b;">${item.text}</span>
-                      <a href="#" data-jump="${item.msgId}" data-chat="${item.chatId || ''}" style="display:inline-block; font-size:11px; margin-top:4px; color:#2563eb; font-weight:600; text-decoration:underline;">Sohbette Gör ➔</a>
-                   </div>
-               `;
-               textContainer.appendChild(div);
-           });
-       }
-       
-       if (domainTodos.general && domainTodos.general.length > 0) {
-           hasGeneral = true;
-           const header = document.createElement('div');
-           header.style.fontWeight = '600';
-           header.style.fontSize = '12px';
-           header.style.marginTop = '12px';
-           header.style.marginBottom = '8px';
-           header.style.color = '#475569';
-           header.innerText = '🌐 ' + domain;
-           generalContainer.appendChild(header);
-
-           domainTodos.general.forEach(item => {
-               const div = document.createElement('div');
-               div.className = 'todo-item';
-               div.style.padding = '10px';
-               div.style.background = '#fff';
-               div.style.border = '1px solid var(--border)';
-               div.style.borderRadius = '6px';
-               div.style.display = 'flex';
-               div.style.alignItems = 'flex-start';
-               div.style.gap = '8px';
-               div.style.marginBottom = '6px';
-               div.innerHTML = `
-                   <input type="checkbox" style="margin-top:3px; cursor:pointer;" onclick="removeTodo('${domain}', 'general', '${item.id}')">
-                   <div style="flex:1;">
-                      <span style="display:block; font-size:13px; line-height:1.5; color:#1e293b;">${item.text}</span>
-                      <a href="#" data-jump="${item.msgId}" data-chat="${item.chatId || ''}" style="display:inline-block; font-size:11px; margin-top:4px; color:#2563eb; font-weight:600; text-decoration:underline;">Sohbette Gör ➔</a>
-                   </div>
-               `;
-               generalContainer.appendChild(div);
-           });
-       }
-   }
-
-   if (!hasTech) techContainer.innerHTML = '<p class="empty-note" style="font-size:12px; color:var(--muted-2);">Henüz teknik eksiklik bulunamadı.</p>';
-   if (!hasText) textContainer.innerHTML = '<p class="empty-note" style="font-size:12px; color:var(--muted-2);">Henüz metin eksikliği bulunamadı.</p>';
-   if (!hasGeneral) generalContainer.innerHTML = '<p class="empty-note" style="font-size:12px; color:var(--muted-2);">Henüz genel görev bulunamadı.</p>';
-
-   // Bind jump links
-   document.querySelectorAll('[data-jump]').forEach(link => {
-      link.addEventListener('click', (e) => {
-        e.preventDefault();
-        const targetId = e.currentTarget.getAttribute('data-jump');
-        const targetChat = e.currentTarget.getAttribute('data-chat');
-        
-        if (!targetChat) {
-           alert('Bu görev eski bir kayda ait olduğu için orijinal sohbeti bulunamıyor. Lütfen listeden temizleyin veya silin.');
-           return;
-        }
-
-        if (typeof currentChatId !== 'undefined' && targetChat !== currentChatId) {
-           const historyDiv = document.querySelector(`.history-item[data-chat-id="${targetChat}"]`);
-           if (historyDiv) {
-               historyDiv.firstChild.click();
-           } else {
-               alert('Bu analiz geçmiş sohbetlerde bulunamadı. Sohbet geçmişten silinmiş veya henüz kaydedilmemiş olabilir. Lütfen 3. sekmedeki Kaydet butonuna basın.');
-               return;
-           }
-        }
-
-        document.querySelector('.nav__item[data-tab="3"]').click();
-        setTimeout(() => {
-          const targetNode = document.getElementById(targetId);
-          if (targetNode) {
-             const chatContainer = document.getElementById('copilot-chat-messages-container');
-             if (chatContainer) {
-                 const scrollOffset = targetNode.getBoundingClientRect().top - chatContainer.getBoundingClientRect().top + chatContainer.scrollTop;
-                 chatContainer.scrollTo({ top: scrollOffset - 10, behavior: 'smooth' });
-             }
-             targetNode.style.transition = 'background 0.3s ease';
-             targetNode.style.background = '#fef08a';
-             setTimeout(() => { targetNode.style.background = ''; }, 2000);
-          }
-        }, 300); // 300ms wait for chat rendering if it was just loaded
-      });
-   });
-};
-
-window.extractTodosAndSend = function() {
-  let currentDomain = 'Bilinmeyen Site';
-  if (typeof targetUrl !== 'undefined' && targetUrl) {
-     try { currentDomain = new URL(targetUrl).hostname; } catch(e) { currentDomain = targetUrl; }
-  } else {
-     const storedDomain = document.getElementById('sidebar-client-domain')?.innerText;
-     if (storedDomain) currentDomain = storedDomain;
-  }
-  
-  let activeChatId = (typeof currentChatId !== 'undefined') ? currentChatId : '';
-
-  document.querySelectorAll('.chat-msg.ai').forEach(msgNode => {
-    let textContent = msgNode.innerHTML;
-    
-    let parts = textContent.split(/(?=🚨|✍️|📌)/);
-    
-    parts.forEach(part => {
-        let type = null;
-        if (part.includes('🚨')) type = 'tech';
-        else if (part.includes('✍️')) type = 'text';
-        else if (part.includes('📌')) type = 'general';
-
-        if (type) {
-            let safeText = part.replace(/<([a-z0-9]+)[^>]*>(.*?)<\/\1>/gi, '&lt;$1&gt;$2&lt;/$1&gt;');
-            safeText = safeText.replace(/<([a-z0-9]+)[^>]*>/gi, '&lt;$1&gt;');
-            safeText = safeText.replace(/&lt;p&gt;|&lt;br&gt;|&lt;\/p&gt;|&lt;ul&gt;|&lt;\/ul&gt;|&lt;ol&gt;|&lt;\/ol&gt;|&lt;li&gt;|&lt;\/li&gt;|&lt;strong&gt;|&lt;\/strong&gt;|&lt;em&gt;|&lt;\/em&gt;/gi, ' ');
-            
-            // Kural değişikliği: 🚨 [TEKNİK - Modül: SSS] -> [SSS] şekline dönüştür
-            safeText = safeText.replace(/^(🚨|✍️|📌)\s*\[(?:TEKNİK|METİN|GENEL)\s*-\s*Modül:\s*([^\]]+)\]\s*[:-]?\s*/i, '[$2] ');
-            // Fallback for old formatting or if AI missed the module format
-            safeText = safeText.replace(/(🚨|✍️|📌)?\s*\[[^\]]*SEO[^\]]*\]\s*[:-]?\s*/gi, '');
-            safeText = safeText.replace(/^(🚨|✍️|📌)\s*/g, '');
-            
-            safeText = safeText.replace(/\s+/g, ' ').trim();
-            if (safeText.length > 180) {
-                safeText = safeText.substring(0, 180).replace(/\s+\S*$/, '') + '...';
-            }
-            if (safeText.length > 15) saveTodo(currentDomain, type, safeText, msgNode.id, activeChatId);
-        }
-    });
-  });
-
-  renderTodos();
-  document.querySelector('.nav__item[data-tab="4"]').click();
-};
-
-// Bind clear all
-const btnClearTodos = document.getElementById('btn-clear-todos');
-if (btnClearTodos) {
-  btnClearTodos.addEventListener('click', () => {
-     if (confirm('Tüm yapılacaklar listesi silinecek. Emin misiniz?')) {
-         localStorage.removeItem('ag_seo_todos');
-         renderTodos();
-     }
-  });
-}
-
-// Call initial render on load
-renderTodos();
-
-window.updateActiveHistoryItem = function() {
-   document.querySelectorAll('.history-item').forEach(el => {
-       el.style.background = '#f9fafb';
-       el.style.borderColor = 'var(--border)';
-   });
-   if (typeof currentChatId !== 'undefined' && currentChatId) {
-       const activeEl = document.querySelector(`.history-item[data-chat-id="${currentChatId}"]`);
-       if (activeEl) {
-           activeEl.style.background = '#e2e8f0';
-           activeEl.style.borderColor = '#475569';
-       }
-   }
-};
-
-// initial call
-updateActiveHistoryItem();
-});
-
-
-// ==============================================
-// BATTLE MODE (MODAL LOGIC)
-// ==============================================
-// ==============================================
-// BATTLE MODE (MODAL LOGIC) - EVENT DELEGATION
-// ==============================================
-document.addEventListener('click', async (e) => {
-  // 1. Open Modal
-  if (e.target && (e.target.id === 'btn-open-battle-mode' || e.target.closest('#btn-open-battle-mode'))) {
-      const battleModal = document.getElementById('battle-modal');
-      if (battleModal) {
-          battleModal.style.display = 'flex';
-          const battleTarget = document.getElementById('battle-target-url');
-          if (window.fetchedData && window.fetchedData.url) {
-              battleTarget.value = window.fetchedData.url;
-          } else if (document.getElementById('copilot-text-input')) {
-              const tv = document.getElementById('copilot-text-input').value;
-              if(tv && tv.startsWith('http')) battleTarget.value = tv;
-          }
-      }
-  }
-  
-  // 2. Close Modal
-  if (e.target && (e.target.id === 'battle-close' || e.target.closest('#battle-close'))) {
-      const battleModal = document.getElementById('battle-modal');
-      if (battleModal) battleModal.style.display = 'none';
-  }
-  
-  // 3. Start Battle
-  if (e.target && (e.target.id === 'battle-start-btn' || e.target.closest('#battle-start-btn'))) {
-      const battleStart = document.getElementById('battle-start-btn');
-      const battleTarget = document.getElementById('battle-target-url');
-      const battleComp = document.getElementById('battle-comp-url');
-      const battleResults = document.getElementById('battle-results');
-
-      const tUrl = battleTarget.value.trim();
-      const cUrl = battleComp.value.trim();
-
-      if (!tUrl || !cUrl) {
-          alert('Lütfen hem hedef hem rakip URL\'yi girin!');
-          return;
-      }
-
-      battleStart.disabled = true;
-      battleResults.innerHTML = '<div style="text-align:center; margin-top:40px; color:#64748b;">Analiz ediliyor, lütfen bekleyin... (Veriler çekilip AI\'a gönderiliyor)</div>';
-
-      try {
-          // Fetch both URLs
-          const [resT, resC] = await Promise.all([
-              fetch(`fetch_url.php?url=${encodeURIComponent(tUrl)}`),
-              fetch(`fetch_url.php?url=${encodeURIComponent(cUrl)}`)
-          ]);
-
-          const dataT = await resT.json();
-          const dataC = await resC.json();
-
-          if (dataT.error) throw new Error("Hedef URL Hatası: " + dataT.error);
-          if (dataC.error) throw new Error("Rakip URL Hatası: " + dataC.error);
-
-          // Build Prompt - Rakip Savaş Modu 2. PDF Uyumu
-          const prompt = `GERÇEK ZAMANLI RAKİP SAVAŞ MODU (BATTLE MODE) AKTİF!
-
-Site A:
-${(dataT.text || '').substring(0, 10000)}
-
-Site B (Rakip):
-${(dataC.text || '').substring(0, 10000)}
-
-Site A'nın rakibine göre eksiklerini analiz et ve YALNIZCA aşağıdaki JSON formatında yanıt ver:
-{
-  "rakip_ustunluk_nedenleri": "Rakip neden daha iyi...",
-  "charts_data": {
-    "site_a_skorlari": {"icerik": 60, "seo": 65, "eeat": 50},
-    "site_b_skorlari": {"icerik": 85, "seo": 90, "eeat": 88}
-  },
-  "action_plan_table": {
-    "icerik_derinligi": ["Eksik 1", "Eksik 2"],
-    "seo_kalitesi": ["Eksik 1", "Eksik 2"],
-    "eeat_sinyalleri": ["Eksik 1", "Eksik 2"]
-  }
-}`;
-
-          const aiRes = await fetch('form_submit.php', { 
-              method: 'POST', 
-              headers: { 'Content-Type': 'application/json' }, 
-              body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { temperature: 0.2 } }) 
-          });
-
-          const aiResult = await aiRes.json();
-          if (aiResult.error) throw new Error(aiResult.error.message || aiResult.error);
-
-          let aiText = aiResult.candidates[0].content.parts[0].text;
-          let htmlText = '';
-          const { cleanText, parsedData } = extractAndCleanJson(aiText);
-
-          if (parsedData) {
-              const analysis = parsedData.battle_mode_analysis || parsedData;
-              initOrUpdateCharts(analysis);
-
-              const formatArray = (arr) => arr && arr.length ? `<ul>${arr.map(item => `<li>${item}</li>`).join('')}</ul>` : 'Veri yok.';
-              
-              let eksiklerHtml = '';
-              if (analysis.action_plan_table) {
-                  const apt = analysis.action_plan_table;
-                  const icerikList = Array.isArray(apt.icerik_derinligi) ? apt.icerik_derinligi : [];
-                  const seoList = Array.isArray(apt.seo_kalitesi) ? apt.seo_kalitesi : [];
-                  const eeatList = Array.isArray(apt.eeat_sinyalleri) ? apt.eeat_sinyalleri : [];
-
-                  eksiklerHtml = `
-                      <div class="compare-cols" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; margin-top:20px;">
-                          <div class="col-box" style="background:#fff; border:1px solid #e2e8f0; border-radius:8px; padding:16px;">
-                              <h4 style="color:#2563eb; font-size:14px; margin-bottom:12px; border-bottom:1px solid #e2e8f0; padding-bottom:8px;">📚 İçerik Derinliği</h4>
-                              <div style="font-size:13px; color:#475569; line-height:1.6;">${typeof marked !== 'undefined' ? marked.parse(icerikList.join('\n\n')) : formatArray(icerikList)}</div>
-                          </div>
-                          <div class="col-box" style="background:#fff; border:1px solid #e2e8f0; border-radius:8px; padding:16px;">
-                              <h4 style="color:#10b981; font-size:14px; margin-bottom:12px; border-bottom:1px solid #e2e8f0; padding-bottom:8px;">🎯 SEO Kalitesi</h4>
-                              <div style="font-size:13px; color:#475569; line-height:1.6;">${typeof marked !== 'undefined' ? marked.parse(seoList.join('\n\n')) : formatArray(seoList)}</div>
-                          </div>
-                          <div class="col-box" style="background:#fff; border:1px solid #e2e8f0; border-radius:8px; padding:16px;">
-                              <h4 style="color:#f59e0b; font-size:14px; margin-bottom:12px; border-bottom:1px solid #e2e8f0; padding-bottom:8px;">🛡️ E-E-A-T Sinyalleri</h4>
-                              <div style="font-size:13px; color:#475569; line-height:1.6;">${typeof marked !== 'undefined' ? marked.parse(eeatList.join('\n\n')) : formatArray(eeatList)}</div>
-                          </div>
-                      </div>
-                  `;
-              }
-              
-              let ustunlukText = analysis.rakip_ustunluk_nedenleri || cleanText || '';
-              htmlText = `
-                  <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:20px;">
-                      <h3 style="font-size:16px; color:#1e293b; margin-bottom:10px; display:flex; align-items:center; gap:8px;">
-                          <span style="background:#dc2626; color:white; padding:4px 8px; border-radius:6px; font-size:12px; font-weight:bold;">RAKİP ÜSTÜNLÜĞÜ</span> Neden Rakip Daha İyi?
-                      </h3>
-                      <div style="font-size:14px; color:#334155; line-height:1.7;">
-                          ${typeof marked !== 'undefined' ? marked.parse(ustunlukText) : ustunlukText}
-                      </div>
-                      
-                      ${eksiklerHtml}
-                  </div>
-              `;
-          } else {
-              htmlText = typeof marked !== 'undefined' ? marked.parse(cleanText) : cleanText;
-          }
-
-          battleResults.innerHTML = htmlText;
-
-      } catch (err) {
-          battleResults.innerHTML = '<div style="color:#ef4444; font-weight:bold;">Hata: ' + err.message + '</div>';
-      } finally {
-          battleStart.disabled = false;
-      }
-  }
-});
-window.openLlmsGenerator = function() {
-  if (typeof switchTab === 'function') {
-      switchTab('tab4');
-      const t1 = document.getElementById('t1-content');
-      if (t1 && window.targetUrl) t1.value = window.targetUrl;
-      const btn = document.getElementById('t4-llmstxt-btn');
-      if (btn) btn.click();
-  } else {
-      alert('Master llms.txt oluşturmak için paneldeki ilgili sekmeyi kullanın.');
-  }
-};
+// ============================================================
+// INIT
+// ============================================================
 
 document.addEventListener('DOMContentLoaded', () => {
-    const btnReturn = document.getElementById('btn-return-dashboard');
-    if (btnReturn) {
-        btnReturn.addEventListener('click', () => {
-            const dbView = document.getElementById('ai-seo-dashboard-view');
-            const actionView = document.getElementById('copilot-action-view');
-            if(dbView && actionView) {
-                actionView.style.display = 'none';
-                dbView.style.display = 'block';
-            }
-        });
-    }
-});
-window.startFreshAnalysis = function() {
+
+  // localStorage'dan özel hizmetleri yükle
   try {
-      const dbView = document.getElementById('ai-seo-dashboard-view');
-      const actionView = document.getElementById('copilot-action-view');
-      if (dbView) dbView.style.display = 'none';
-      if (actionView) actionView.style.display = 'flex';
-      
-      if (typeof window._forceResetChat === 'function') {
-          window._forceResetChat(null, true);
-      } else {
-          alert('Error: _forceResetChat is not a function');
+    const saved = JSON.parse(localStorage.getItem(CUSTOM_SERVICES_KEY) || '[]');
+    saved.forEach(data => {
+      if (!customServicesRegistry.find(s => s.id === data.id)) {
+        customServicesRegistry.push(buildCustomServiceObj(data));
       }
-  } catch(e) {
-      alert("startFreshAnalysis error: " + e.message);
-      console.error("startFreshAnalysis error:", e);
+    });
+  } catch(e) {}
+
+  // URL submit
+  function handleSubmit() {
+    const val = (document.getElementById('aiseo-url-input')?.value || '').trim();
+    if (!val) return;
+    if (!val.startsWith('http')) { alert('Geçerli bir URL girin (http/https ile başlamalı).'); return; }
+    state.targetUrl = val;
+    detectAndFetchSite(val);
   }
-};
-window.startNewAnalysisFromDashboard = window.startFreshAnalysis;
+  document.getElementById('aiseo-url-submit')?.addEventListener('click', handleSubmit);
+  document.getElementById('aiseo-url-input')?.addEventListener('keypress', e => { if (e.key === 'Enter') handleSubmit(); });
+
+  // Sabit hizmet butonları
+  document.querySelectorAll('.aiseo-svc-btn[data-service]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const raw = btn.getAttribute('data-service');
+      window.runSingleService(isNaN(raw) ? raw : parseInt(raw, 10));
+    });
+  });
+
+  // Tüm Hizmetleri Yap
+  document.getElementById('btn-run-all-services')?.addEventListener('click', window.runAllServices);
+
+  // Yeni Analiz
+  document.getElementById('btn-new-analysis')?.addEventListener('click', () => resetAnalysis(true));
+
+  // History sidebar
+  const sidebar = document.getElementById('ai-history-sidebar');
+  document.getElementById('btn-toggle-history-sidebar')?.addEventListener('click', () => { if (sidebar) sidebar.style.right = '0'; });
+  document.getElementById('btn-close-history-sidebar')?.addEventListener('click', () =>  { if (sidebar) sidebar.style.right = '-380px'; });
+  document.getElementById('btn-clear-history-sidebar')?.addEventListener('click', async () => {
+    if (!confirm('Tüm geçmiş silinecek. Emin misiniz?')) return;
+    await fetch('ai_seo/api/save_chat.php?id=all', { method: 'DELETE' });
+    loadHistory();
+  });
+
+  // PDF butonu
+  document.getElementById('btn-download-pdf')?.addEventListener('click', () => {
+    if (!getAllServices().every(s => state.completedServices.has(s.id))) {
+      alert('Tüm hizmetler tamamlandığında rapor indirilebilir.'); return;
+    }
+    downloadPDF();
+  });
+
+  // + butonu ve özel hizmet butonları DOM'a ekle
+  customServicesRegistry.forEach(svc => renderCustomServiceButton(svc));
+  appendAddButton();
+
+  // İlk yükleme
+  resetAnalysis(true);
+  loadHistory();
+
+  // Eski uyumluluk stubs
+  window._forceResetChat               = () => resetAnalysis(true);
+  window.startFreshAnalysis            = () => resetAnalysis(true);
+  window.startNewAnalysisFromDashboard = () => resetAnalysis(true);
+  window.renderTodos                   = window.renderTodos          || function() {};
+  window.extractTodosAndSend           = window.extractTodosAndSend  || function() {};
+  window.agChatHistory                 = window.agChatHistory        || [];
+});
+
+// CSS inject: animasyonlar
+(function injectStyles() {
+  if (document.getElementById('ag-aiseo-styles')) return;
+  const s = document.createElement('style');
+  s.id = 'ag-aiseo-styles';
+  s.textContent = `
+    @keyframes ag-spin      { to { transform: rotate(360deg); } }
+    @keyframes ag-slide-down { from { opacity:0; transform:translateY(-12px); } to { opacity:1; transform:translateY(0); } }
+    .aiseo-accordion { animation: ag-slide-down .25s ease; }
+  `;
+  document.head.appendChild(s);
+})();

@@ -1,142 +1,8 @@
-/* Copilot Styles */
-.copilot-container {
-  background: #fdfdfd;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  display: flex;
-  flex-direction: column;
-  overflow: visible;
-  margin-top: 16px;
-}
-.copilot-header {
-  padding: 16px;
-  background: #f8f9fa;
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-.copilot-progress {
-  display: flex;
-  gap: 14px;
-  align-items: center;
-  flex-wrap: wrap;
-  padding-bottom: 34px;
-}
-.copilot-step {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  color: var(--muted-2);
-  font-weight: 500;
-  transition: all 0.3s;
-  position: relative;
-  cursor: pointer;
-}
-.copilot-step.active {
-  color: var(--primary);
-}
-.copilot-step.completed {
-  cursor: pointer;
-  color: #10b981;
-}
-.copilot-step-circle {
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #fff;
-  border: 1px solid var(--border);
-  font-size: 11px;
-  transition: all 0.3s;
-}
-.copilot-step.active .copilot-step-circle {
-  border-color: var(--primary);
-  background: #2563eb;
-  color: #fff;
-}
-.copilot-step.completed .copilot-step-circle {
-  border-color: #10b981;
-  background: #10b981;
-  color: #fff;
-}
-.copilot-step.completed svg {
-  display: block;
-}
-.copilot-step:not(.completed) svg {
-  display: none;
-}
-.copilot-step-circle .num {
-  display: block;
-}
-.copilot-step.completed .copilot-step-circle .num {
-  display: none;
-}
+/* ============================================================
+   AdresGezgini — AI SEO Hizmetleri Stilleri
+   ============================================================ */
 
-.copilot-chat {
-  padding: 20px;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  background: #fff;
-  scroll-behavior: smooth;
-}
-.chat-msg {
-  max-width: 85%;
-  padding: 14px 18px;
-  border-radius: 12px;
-  font-size: 13.5px;
-  line-height: 1.6;
-  animation: fadeIn 0.3s ease;
-}
-.chat-msg p {
-  margin-bottom: 10px;
-}
-.chat-msg p:last-child {
-  margin-bottom: 0;
-}
-.chat-msg ul, .chat-msg ol {
-  margin-left: 20px;
-  margin-bottom: 10px;
-}
-.chat-msg strong {
-  font-weight: 600;
-}
-.chat-msg.ai {
-  align-self: flex-start;
-  background: #f0f4f8;
-  color: #1f2937;
-  border-bottom-left-radius: 4px;
-}
-.chat-msg.user {
-  align-self: flex-end;
-  margin-left: auto;
-  width: fit-content;
-  background: #2563eb;
-  color: #fff;
-  border-bottom-right-radius: 4px;
-}
-.copilot-actions {
-  padding: 16px;
-  background: #fff;
-  border-top: 1px solid var(--border);
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-.copilot-actions button {
-  flex: 1;
-  min-width: 200px;
-  justify-content: center;
-}
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(5px); }
-  to { opacity: 1; transform: translateY(0); }
-}
+/* ── Typing indicator (URL tarama sırasında da kullanılıyor) ── */
 .typing-indicator {
   display: flex;
   align-items: center;
@@ -144,8 +10,8 @@
   padding: 4px 8px;
 }
 .typing-dot {
-  width: 6px;
-  height: 6px;
+  width: 7px;
+  height: 7px;
   background: #94a3b8;
   border-radius: 50%;
   animation: typing 1.4s infinite ease-in-out both;
@@ -156,191 +22,211 @@
   0%, 80%, 100% { transform: scale(0); }
   40% { transform: scale(1); }
 }
-.chat-msg { word-wrap: break-word; word-break: break-word; overflow-wrap: break-word; } .chat-msg pre { white-space: pre-wrap; overflow-x: auto; max-width: 100%; }
 
-
-/* Geçmiş Sohbetler kartındaki boş durum yazısının üst/alt boşluğunu daralt
-   (global .empty-note diğer yerlerde 18px padding ile kalsın diye scoped) */
-#copilot-history-list.empty-note,
-#copilot-history-list .empty-note {
-  padding: 4px 0;
-}
-
-/* 1. Tooltip & Interactive Steps */
-.step-label-wrapper {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+/* ── Tooltip (hizmet butonlarının üzerinde) ── */
+.has-tooltip {
   position: relative;
-  cursor: pointer; /* Change to pointer to show it's clickable */
-  transition: transform 0.2s ease, opacity 0.2s ease;
 }
-
-/* Hover effects for the step container */
-.copilot-step {
-  transition: transform 0.2s ease, background-color 0.2s ease;
-  border-radius: 8px;
-  padding: 4px;
-}
-.copilot-step:hover {
-  transform: translateY(-2px);
-  background-color: rgba(59, 130, 246, 0.05); /* Slight blue highlight */
-}
-
-/* Tooltip implementation */
 .has-tooltip:hover::after {
   content: attr(data-tooltip);
   position: absolute;
-  bottom: 120%;
+  bottom: calc(100% + 10px);
   left: 50%;
   transform: translateX(-50%);
   background: #1e293b;
-  color: #fff;
-  padding: 8px 12px;
-  border-radius: 6px;
+  color: #f8fafc;
+  padding: 10px 14px;
+  border-radius: 8px;
   font-size: 12px;
+  line-height: 1.5;
   width: max-content;
-  max-width: 220px;
+  max-width: 260px;
   white-space: pre-wrap;
-  z-index: 100;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  z-index: 200;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
   text-align: center;
   pointer-events: none;
-  line-height: 1.4;
+  font-weight: 400;
 }
-
-/* First line vs last line styling within the tooltip isn't purely possible with just attr() in standard CSS without JS injection, 
-   but white-space: pre-wrap and the \n\n in HTML attribute handles the line break. */
-
 .has-tooltip:hover::before {
   content: "";
   position: absolute;
-  bottom: 110%;
+  bottom: calc(100% + 4px);
   left: 50%;
   transform: translateX(-50%);
-  border: 5px solid transparent;
+  border: 6px solid transparent;
   border-top-color: #1e293b;
-  z-index: 100;
+  z-index: 200;
 }
 
-.info-icon {
-  opacity: 1; color: #64748b;
-  transition: opacity 0.2s, color 0.2s;
+/* ── Hizmet butonları ── */
+.aiseo-svc-btn {
+  transition: all 0.2s ease;
 }
-.step-label-wrapper:hover .info-icon {
-  opacity: 1;
-  color: #3b82f6 !important;
+.aiseo-svc-btn:hover {
+  border-color: #2563eb !important;
+  background: #eff6ff !important;
+  color: #1d4ed8 !important;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 10px rgba(37,99,235,0.12);
+}
+.aiseo-svc-btn:active {
+  transform: translateY(0);
 }
 
-/* 3. Progressive Disclosure (Accordions) */
-details.seo-details {
+/* ── Accordion wrapper ── */
+.aiseo-accordion {
+  animation: slideDown 0.3s ease;
+}
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Accordion header hover ── */
+.aiseo-accordion-header:hover {
+  filter: brightness(0.97);
+}
+
+/* ── Accordion body — markdown içerik stilleri ── */
+.aiseo-accordion-content h1,
+.aiseo-accordion-content h2 {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 20px 0 8px 0;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #e2e8f0;
+}
+.aiseo-accordion-content h3 {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1e40af;
+  margin: 16px 0 6px 0;
+}
+.aiseo-accordion-content h4 {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #334155;
+  margin: 12px 0 4px 0;
+}
+.aiseo-accordion-content p {
+  margin-bottom: 10px;
+  color: #334155;
+}
+.aiseo-accordion-content ul,
+.aiseo-accordion-content ol {
+  margin: 6px 0 12px 18px;
+}
+.aiseo-accordion-content li {
+  margin-bottom: 6px;
+  color: #475569;
+  line-height: 1.65;
+}
+.aiseo-accordion-content strong {
+  font-weight: 600;
+  color: #0f172a;
+}
+.aiseo-accordion-content em {
+  color: #64748b;
+}
+.aiseo-accordion-content code {
+  background: #f1f5f9;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 12.5px;
+  color: #2563eb;
+}
+.aiseo-accordion-content pre {
+  background: #f8fafc;
   border: 1px solid #e2e8f0;
   border-radius: 8px;
-  margin-top: 10px;
-  background: #f8fafc;
-}
-details.seo-details summary {
-  padding: 10px 14px;
-  font-weight: 600;
-  cursor: pointer;
-  outline: none;
-  color: #3b82f6;
-  list-style: none;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-details.seo-details summary::-webkit-details-marker {
-  display: none;
-}
-details.seo-details summary::before {
-  content: "▶";
-  font-size: 10px;
-  transition: transform 0.2s;
-}
-details.seo-details[open] summary::before {
-  transform: rotate(90deg);
-}
-details.seo-details .details-content {
-  padding: 0 14px 14px 14px;
-  font-size: 13px;
-  color: #475569;
-  border-top: 1px solid #e2e8f0;
-  margin-top: 6px;
-  padding-top: 10px;
-}
-
-/* 4. Empty States */
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  padding: 40px 20px;
-  color: #64748b;
-  height: 100%;
-}
-.empty-state svg {
-  color: #cbd5e1;
-  margin-bottom: 16px;
-}
-.empty-state p {
-  max-width: 300px;
-  margin-bottom: 16px;
-  line-height: 1.5;
-}
-
-/* 5. Quick Actions */
-.quick-actions {
-  display: flex;
-  gap: 8px;
-  padding: 10px 20px;
+  padding: 14px 16px;
   overflow-x: auto;
-  border-top: 1px solid #e2e8f0;
-  background: #f8fafc;
+  font-size: 12.5px;
+  line-height: 1.6;
+  margin: 12px 0;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
-.quick-action-btn {
-  white-space: nowrap;
-  background: #fff;
-  border: 1px solid #e2e8f0;
-  padding: 6px 12px;
-  border-radius: 16px;
-  font-size: 12px;
-  color: #3b82f6;
-  cursor: pointer;
-  transition: all 0.2s;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+.aiseo-accordion-content pre code {
+  background: none;
+  padding: 0;
+  color: #334155;
 }
-.quick-action-btn:hover {
+.aiseo-accordion-content blockquote {
+  border-left: 3px solid #2563eb;
+  margin: 10px 0;
+  padding: 6px 14px;
   background: #eff6ff;
-  border-color: #bfdbfe;
+  border-radius: 0 6px 6px 0;
+  color: #1e40af;
+  font-size: 13px;
 }
-.has-tooltip { position: relative; cursor: pointer; }
+.aiseo-accordion-content table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  margin: 12px 0;
+}
+.aiseo-accordion-content th {
+  background: #f1f5f9;
+  font-weight: 600;
+  padding: 10px 12px;
+  text-align: left;
+  border-bottom: 2px solid #e2e8f0;
+  color: #475569;
+}
+.aiseo-accordion-content td {
+  padding: 9px 12px;
+  border-bottom: 1px solid #f1f5f9;
+  color: #334155;
+  vertical-align: top;
+}
 
+/* ── URL giriş input hover/focus ── */
+#aiseo-url-input:focus {
+  outline: none;
+}
+#aiseo-url-submit:hover {
+  background: #1d4ed8 !important;
+  transform: scale(1.02);
+}
+#aiseo-url-submit:active {
+  transform: scale(0.98);
+}
 
-.quick-action-btn { display: inline-flex; align-items: center; justify-content: center; white-space: nowrap; flex-shrink: 0; }
-.logout-btn:hover { background-color: #fee2e2; color: #dc2626; }
+/* ── Geçmiş sidebar öğeleri ── */
+.history-item:hover {
+  background: #f1f5f9 !important;
+  border-color: #94a3b8 !important;
+}
+.history-item.active {
+  background: #e0f2fe !important;
+  border-color: #2563eb !important;
+}
 
+/* ── Boş durum notu ── */
+.empty-note {
+  color: #94a3b8;
+  font-size: 13px;
+  text-align: center;
+  padding: 20px;
+}
 
-.copilot-step.has-tooltip { position: relative; }
+/* ── Tüm Hizmetleri Yap butonu hover ── */
+#btn-run-all-services:not(:disabled):hover {
+  background: #059669 !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(16,185,129,0.3) !important;
+}
 
-
-/* Client Presentation Mode */
+/* ── Sunum modu (dış kullanım için) ── */
 body.client-presentation-mode .sidebar { display: none !important; }
 body.client-presentation-mode .main-content { margin-left: 0 !important; max-width: 100% !important; }
-body.client-presentation-mode .copilot-input-area,
-body.client-presentation-mode .quick-actions,
-body.client-presentation-mode #btn-open-battle-mode,
-body.client-presentation-mode #btn-send-to-todos,
-body.client-presentation-mode #copilot-manual-save-btn,
-body.client-presentation-mode #copilot-reset-btn,
-body.client-presentation-mode .card__hint,
-body.client-presentation-mode .copilot-step-nav { display: none !important; }
-body.client-presentation-mode .copilot-container { height: auto; min-height: 100vh; }
-body.client-presentation-mode .copilot-messages { font-size: 1.1em; }
 
-
+/* ── Toggle switch ── */
 .switch { position: relative; display: inline-block; width: 34px; height: 20px; }
 .switch input { opacity: 0; width: 0; height: 0; }
 .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .4s; border-radius: 20px; }
@@ -348,55 +234,59 @@ body.client-presentation-mode .copilot-messages { font-size: 1.1em; }
 input:checked + .slider { background-color: #3b82f6; }
 input:checked + .slider:before { transform: translateX(14px); }
 
-
-.quick-action-btn.has-tooltip:hover::after {
-  bottom: auto;
-  top: 120%;
-}
-.quick-action-btn.has-tooltip:hover::before {
-  bottom: auto;
-  top: 110%;
-  border-top-color: transparent;
-  border-bottom-color: #1e293b;
+/* ── Spin animasyonu (servis yüklenirken) ── */
+@keyframes spin360 {
+  to { transform: rotate(360deg); }
 }
 
-/* Info Tooltip */
-.info-tooltip {
-  position: relative;
+/* ── Card genel ── */
+.card {
+  background: #fff;
+  border: 1px solid var(--border);
 }
-.info-tooltip .tooltip-text {
-  visibility: hidden;
-  opacity: 0;
-  position: absolute;
-  bottom: 120%;
-  left: 50%;
-  transform: translateX(-50%) translateY(10px);
-  background: #1e293b;
-  color: #f8fafc;
-  padding: 12px;
-  border-radius: 8px;
-  font-size: 13px;
-  line-height: 1.5;
-  white-space: normal;
-  width: 250px;
-  text-align: center;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  z-index: 100;
-  transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease;
-  pointer-events: none;
+
+/* ── Özel hizmet + butonu ── */
+#btn-add-custom-service {
+  transition: all 0.2s ease;
 }
-.info-tooltip .tooltip-text::after {
-  content: "";
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  margin-left: -6px;
-  border-width: 6px;
-  border-style: solid;
-  border-color: #1e293b transparent transparent transparent;
+
+/* ── Özel hizmet modal overlay ── */
+#custom-svc-modal {
+  animation: fadeInOverlay 0.2s ease;
 }
-.info-tooltip:hover .tooltip-text {
-  visibility: visible;
-  opacity: 1;
-  transform: translateX(-50%) translateY(0);
+@keyframes fadeInOverlay {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ── Modal içi input/textarea ortak stiller ── */
+#custom-svc-name,
+#custom-svc-desc {
+  width: 100%;
+  box-sizing: border-box;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+#custom-svc-name:focus,
+#custom-svc-desc:focus {
+  border-color: #2563eb !important;
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+}
+#custom-svc-save:hover:not(:disabled) {
+  background: #1d4ed8 !important;
+}
+#custom-svc-cancel:hover {
+  background: #e2e8f0 !important;
+}
+
+/* ── Özel hizmet butonu (yıldızlı) stilleri ── */
+.aiseo-svc-btn[data-service^="custom_"] {
+  border-color: #a78bfa;
+  color: #5b21b6;
+}
+.aiseo-svc-btn[data-service^="custom_"]:hover {
+  border-color: #7c3aed !important;
+  background: #f5f3ff !important;
+  color: #4c1d95 !important;
 }
