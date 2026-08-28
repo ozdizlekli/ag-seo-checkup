@@ -636,10 +636,10 @@ Kurallar:
     listContainer.appendChild(card);
   });
   
-  appendAddButton();
+  appendModalAddButton();
 }
 
-function appendAddButton() {
+function appendModalAddButton() {
   let container = document.getElementById('customize-plus-btn-area');
   if (!container) {
       // Failsafe: if the area is somehow missing, prepend to list
@@ -647,11 +647,11 @@ function appendAddButton() {
   }
   if (!container) return;
 
-  const old = document.getElementById('btn-add-custom-service');
+  const old = document.getElementById('btn-modal-add-custom-service');
   if (old) old.remove();
 
   const btn = document.createElement('button');
-  btn.id    = 'btn-add-custom-service';
+  btn.id    = 'btn-modal-add-custom-service';
   btn.title = 'Özel hizmet ekle (Alt sekmeleri buraya sürükleyip bırakabilirsiniz)';
   // Kullanıcının mutlaka görmesi gereken devasa belirgin yeni özel sekme (artı) kutusu
   btn.style.cssText = 'display:flex; align-items:center; justify-content:center; width:100%; padding:16px; margin:0; background:#fff; border:2px dashed #94A3B8; border-radius:8px; cursor:pointer; color:#475569; transition:all .15s; font-family:Inter, sans-serif; gap:12px;';
@@ -1170,7 +1170,7 @@ function renderServiceAccordion(service, status, htmlContent, errorMsg) {
     for (const svc of getAllServices()) {
       if (!state.completedServices.has(svc.id)) {
         await window.runSingleService(svc.id);
-        await new Promise(r => setTimeout(r, 2000));
+        await new Promise(r => setTimeout(r, 4500)); // Dakikadaki 15 istek sınırına (429) takılmamak için bekleme süresi artırıldı
       }
     }
   
@@ -1283,10 +1283,10 @@ function renderServiceAccordion(service, status, htmlContent, errorMsg) {
     btn.addEventListener('click', () => window.runSingleService(svc.id));
     container.appendChild(btn);
   
-    appendAddButton();
+    appendMainAddButton();
   }
   
-  function appendAddButton() {
+  function appendMainAddButton() {
     const container = document.getElementById('aiseo-service-buttons');
     if (!container) return;
   
@@ -1311,7 +1311,7 @@ function openAddCustomServiceModal() {
   
     const modal = document.createElement('div');
     modal.id = 'custom-svc-modal';
-    modal.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:100000;display:flex;align-items:center;justify-content:center;padding:20px;';
     modal.innerHTML = `
       <div style="background:#fff;border-radius:10px;border-top:3px solid #312F4D;padding:32px;max-width:480px;width:100%;box-shadow:0 10px 30px rgba(31,29,48,.18);animation:ag-slide-down .25s ease;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">
@@ -1470,7 +1470,7 @@ function openAddCustomServiceModal() {
   
     const modal = document.createElement('div');
     modal.id = 'custom-svc-modal';
-    modal.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:100000;display:flex;align-items:center;justify-content:center;padding:20px;';
     modal.innerHTML = `
       <div style="background:#fff;border-radius:10px;border-top:3px solid #312F4D;padding:32px;max-width:480px;width:100%;box-shadow:0 10px 30px rgba(31,29,48,.18);animation:ag-slide-down .25s ease;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">
