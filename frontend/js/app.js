@@ -223,14 +223,26 @@ document.getElementById('client-select')?.addEventListener('change', async (e) =
   const domainEl = document.getElementById('sidebar-client-domain');
   const explorerEl = document.getElementById('sidebar-site-explorer');
   
+  const headerName = document.getElementById('top-header-client-name');
+  if (state.currentClient) {
+    if (headerName) headerName.textContent = state.currentClient.name;
+  } else {
+    if (headerName) headerName.textContent = 'Bekleniyor...';
+  }
+
   if(state.currentClient && state.currentClient.domain_url) {
     domainEl.style.display = 'block';
     domainEl.textContent = 'Ana Domain: ' + state.currentClient.domain_url;
-    // Sitemap Explorer artık kendi pure-PHP api/sitemap.php endpoint'imizi
-    // kullanıyor (eskiden var olmayan localhost:3000 Node servisine
-    // bağımlıydı, bu yüzden her zaman "Failed to fetch" veriyordu).
+    
     explorerEl.style.display = 'block';
     loadClientSitemap(state.currentClient.domain_url);
+    
+    // Auto-fill AI SEO URL input
+    const aiSeoInput = document.getElementById('aiseo-url-input');
+    if (aiSeoInput) aiSeoInput.value = state.currentClient.domain_url;
+    const wcSeoInput = document.getElementById('wc-url-input');
+    if (wcSeoInput) wcSeoInput.value = state.currentClient.domain_url;
+    
   } else {
     domainEl.style.display = 'none';
     domainEl.textContent = '';
@@ -3352,3 +3364,65 @@ document.getElementById('t8-pdf-btn')?.addEventListener('click', () => {
 });
 
 })();
+
+// UPDATE HEADER CLIENT/URL DYNAMICALLY
+document.addEventListener('input', (e) => {
+  // Sadece URL inputlarını dinle
+  if (e.target && e.target.tagName === 'INPUT' && (e.target.type === 'url' || e.target.id.toLowerCase().includes('url'))) {
+    const val = e.target.value.trim();
+    const headerName = document.getElementById('top-header-client-name');
+    if (headerName) {
+      // Eğer bir müşteri seçiliyse (dropdown üzerinden) ismi kalsın
+      if (state.currentClient && state.currentClient.name) {
+        headerName.textContent = state.currentClient.name;
+        return;
+      }
+      
+      if (!val) {
+        headerName.textContent = 'Bekleniyor...';
+        return;
+      }
+
+      // Girilen URL, kayıtlı müşterilerden birinin URL'siyle eşleşiyor mu?
+      // (Birebir eşleşme veya http/https farklılıklarını bir nebze tolere edelim)
+      let matchedClient = null;
+      if (state.clients && state.clients.length > 0) {
+         matchedClient = state.clients.find(c => {
+           if (!c.domain_url) return false;
+           // Basit domain eşleştirmesi (protokolü görmezden gelerek)
+           let domain1 = c.domain_url.replace(/^https?:\/\//, '').replace(/\/$/, '');
+           let domain2 = val.replace(/^https?:\/\//, '').replace(/\/$/, '');
+           return domain2.startsWith(domain1);
+         });
+      }
+
+      if (matchedClient) {
+        headerName.textContent = matchedClient.name;
+      } else {
+        // Eşleşme yoksa direkt URL'yi yaz
+        headerName.textContent = val;
+      }
+    }
+  }
+});
+
+// GITHUB STYLE HAMBURGER MENU LOGIC
+document.addEventListener('DOMContentLoaded', () => {
+  const hamburger = document.getElementById('gh-hamburger-btn');
+  const sidebar = document.getElementById('gh-sidebar');
+  const overlay = document.getElementById('gh-sidebar-overlay');
+  const closeBtn = document.getElementById('gh-sidebar-close');
+  
+  function openSidebar() {
+    sidebar.classList.add('open');
+    overlay.classList.add('show');
+  }
+  function closeSidebar() {
+    sidebar.classList.remove('open');
+    overlay.classList.remove('show');
+  }
+  
+  if (hamburger) hamburger.addEventListener('click', openSidebar);
+  if (closeBtn) closeBtn.addEventListener('click', closeSidebar);
+  if (overlay) overlay.addEventListener('click', closeSidebar);
+});

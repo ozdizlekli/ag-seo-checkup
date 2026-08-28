@@ -83,7 +83,7 @@
           <p style="font-size:12px; color:#6B6E82; margin:0;">Hizmete tıklayarak AI analizi başlatın</p>
         </div>
         <button id="btn-run-all-services"
-  style="display:inline-flex; align-items:center; gap:6px; background:#64748b; color:#fff; border:none; border-radius:6px; padding:10px 20px; font-size:13px; font-weight:600; cursor:pointer; transition:background 0.2s;">
+  style="display:inline-flex; align-items:center; gap:6px; background:#4b5563; color:#fff; border:none; border-radius:6px; padding:10px 20px; font-size:13px; font-weight:600; cursor:pointer; transition:background 0.2s;">
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
     <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
   </svg>
