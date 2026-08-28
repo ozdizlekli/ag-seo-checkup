@@ -367,8 +367,11 @@ function buildPromptForService(svc, data) {
 
 function renderAllServiceButtons() {
   let modal = document.getElementById('customization-modal');
-  if (!modal) {
-     modal = document.createElement('div');
+  if (modal) {
+      modal.remove(); // Force completely fresh modal on every open
+  }
+  
+  modal = document.createElement('div');
      modal.id = 'customization-modal';
      modal.style.cssText = 'display:none; position:fixed; inset:0; background:rgba(15,23,42,.6); z-index:99999; align-items:center; justify-content:center; padding:20px;';
      modal.innerHTML = `
@@ -377,14 +380,52 @@ function renderAllServiceButtons() {
                <h3 style="margin:0; font-size:16px; font-weight:700; color:#1F1D30;">Hizmetleri Özelleştir</h3>
                <button onclick="document.getElementById('customization-modal').style.display='none'" style="background:none; border:none; font-size:20px; cursor:pointer; color:#64748B;">&times;</button>
            </div>
+           <div style="background:#F8FAFC; border-bottom:1px solid #E2E8F0; padding:16px 20px;">
+               <div id="customize-plus-btn-area"></div>
+           </div>
            <div style="padding:20px; overflow-y:auto; flex:1; background:#F1F5F9;">
-               <div id="customize-plus-btn-area" style="margin-bottom:16px;"></div>
                <div id="customize-services-list" style="display:flex; flex-direction:column; gap:12px;"></div>
+           </div>
+           <div style="padding:16px 20px; border-top:1px solid #E2E8F0; background:#F8FAFC; display:flex; justify-content:flex-end; gap:12px; align-items:center;">
+               <button id="btn-reset-customization" style="background:none; border:none; color:#EF4444; font-size:13px; font-weight:600; cursor:pointer; padding:8px 12px; border-radius:6px; transition:background .15s;">Sıfırla (Varsayılan)</button>
+               <button id="btn-save-customization" style="background:#10B981; color:#fff; border:none; font-size:14px; font-weight:600; cursor:pointer; padding:10px 20px; border-radius:8px; box-shadow:0 2px 4px rgba(16,185,129,0.2); transition:all .15s;">Değişiklikleri Kaydet</button>
            </div>
         </div>
      `;
      document.body.appendChild(modal);
-  }
+     
+     document.getElementById('btn-reset-customization').onclick = () => {
+         if (confirm('Tüm özelleştirmeleri silip orijinal varsayılan ayarlara dönmek istediğinize emin misiniz?')) {
+             localStorage.removeItem('ag_custom_seo_services_v2'); // CUSTOM_SERVICES_KEY
+             customServicesRegistry.length = 0; // Clear all custom ones
+             // Clear all overrides in built-in ones
+             getAllServices().forEach(svc => {
+                if(svc.subtasks) {
+                   svc.subtasks.forEach(st => st.selected = true);
+                }
+             });
+             renderAllServiceButtons();
+             renderIdleAccordions(true);
+             getAllServices().forEach(svc => {
+                 const key = String(svc.id);
+                 if (state.completedServices.has(svc.id) && state.serviceResults[key]) {
+                     renderServiceAccordion(svc, 'done', state.serviceResults[key].html || state.serviceResults[key].raw || '');
+                 }
+             });
+         }
+     };
+     
+     document.getElementById('btn-save-customization').onclick = () => {
+         document.getElementById('customization-modal').style.display = 'none';
+         renderIdleAccordions(true); // BU DEĞİŞİKLİKLERİ UYGULA
+         // Tamamlanmış olanları geri yükle
+         getAllServices().forEach(svc => {
+             const key = String(svc.id);
+             if (state.completedServices.has(svc.id) && state.serviceResults[key]) {
+                 renderServiceAccordion(svc, 'done', state.serviceResults[key].html || state.serviceResults[key].raw || '');
+             }
+         });
+     };
 
   const listContainer = modal.querySelector('#customize-services-list');
   listContainer.innerHTML = '';
@@ -475,6 +516,22 @@ function renderAllServiceButtons() {
         item.draggable = true;
         item.ondragstart = (e) => {
           e.dataTransfer.setData('text/plain', JSON.stringify({ parentId: svc.id, subtaskId: st.id }));
+          
+          const dragGhost = item.cloneNode(true);
+          dragGhost.style.opacity = '1';
+          dragGhost.style.background = '#fff';
+          dragGhost.style.padding = '8px 12px';
+          dragGhost.style.border = '1px solid #10B981';
+          dragGhost.style.borderRadius = '8px';
+          dragGhost.style.boxShadow = '0 8px 16px rgba(0,0,0,0.1)';
+          dragGhost.style.width = item.offsetWidth + 'px';
+          dragGhost.style.position = 'absolute';
+          dragGhost.style.top = '-1000px';
+          document.body.appendChild(dragGhost);
+          
+          e.dataTransfer.setDragImage(dragGhost, 15, 15);
+          setTimeout(() => { if (dragGhost.parentNode) dragGhost.remove(); }, 100);
+          
           item.style.opacity = '0.5';
         };
         item.ondragend = () => { item.style.opacity = '1'; };
@@ -579,21 +636,28 @@ Kurallar:
     listContainer.appendChild(card);
   });
   
-  appendAddButton();
+  appendModalAddButton();
 }
 
-function appendAddButton() {
-  const container = document.getElementById('customize-plus-btn-area');
+function appendModalAddButton() {
+  let container = document.getElementById('customize-plus-btn-area');
+  if (!container) {
+      // Failsafe: if the area is somehow missing, prepend to list
+      container = document.getElementById('customize-services-list');
+  }
   if (!container) return;
 
-  const old = document.getElementById('btn-add-custom-service');
+  const old = document.getElementById('btn-modal-add-custom-service');
   if (old) old.remove();
 
   const btn = document.createElement('button');
-  btn.id    = 'btn-add-custom-service';
+  btn.id    = 'btn-modal-add-custom-service';
   btn.title = 'Özel hizmet ekle (Alt sekmeleri buraya sürükleyip bırakabilirsiniz)';
-  btn.style.cssText = 'display:flex; align-items:center; justify-content:center; gap:8px; width:100%; padding:12px; background:#fff; border:2px dashed #94A3B8; border-radius:8px; cursor:pointer; font-size:14px; font-weight:600; color:#475569; transition:all .15s;';
-  btn.innerHTML = '<span>+</span> Yeni Özel Hizmet Ekle veya Sürükle Bırak';
+  // Kullanıcının mutlaka görmesi gereken devasa belirgin yeni özel sekme (artı) kutusu
+  btn.style.cssText = 'display:flex; align-items:center; justify-content:center; width:100%; padding:16px; margin:0; background:#fff; border:2px dashed #94A3B8; border-radius:8px; cursor:pointer; color:#475569; transition:all .15s; font-family:Inter, sans-serif; gap:12px;';
+  btn.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;width:32px;height:32px;background:#F1F5F9;border-radius:50%;color:#334155;font-size:22px;line-height:1;">+</div><div style="text-align:left;"><div style="font-weight:600;font-size:14px;color:#1F2937;">Yeni Ana Hizmet / Sekme Ekle</div><div style="font-size:12px;color:#64748B;margin-top:2px;">Sıfırdan oluşturmak için tıklayın veya bir alt başlığı buraya sürükleyin.</div></div>';
+  btn.addEventListener('mouseenter', () => { btn.style.borderColor='#FBBA00'; btn.style.borderStyle='solid'; btn.style.color='#312F4D'; btn.style.background='#FFF6DF'; });
+  btn.addEventListener('mouseleave', () => { btn.style.borderColor='#9A9DAE'; btn.style.borderStyle='dashed'; btn.style.color='#6B6E82'; btn.style.background='#fff'; });
   
   // Drag and drop event listeners
   btn.addEventListener('dragover', (e) => {
@@ -643,12 +707,611 @@ function appendAddButton() {
 }
 
 
+  async function callGemini(prompt, temperature = 0.3) {
+    const res = await fetch('form_submit.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { temperature }
+      })
+    });
+    if (!res.ok) throw new Error('Sunucu hatası: ' + res.status);
+    const result = await res.json();
+    if (result.error) throw new Error(result.error.message || JSON.stringify(result.error));
+    const text = result?.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!text) throw new Error('AI yanıt vermedi.');
+    return text;
+  }
+  
+  async function fetchSiteData(url) {
+    const res = await fetch('fetch_url.php?url=' + encodeURIComponent(url));
+    if (!res.ok) throw new Error('Site verileri alınamadı: ' + res.status);
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    return {
+      title:       data.title       || '',
+      description: data.description || '',
+      text:        data.text        || '',
+      schemas:     Array.isArray(data.schemas) ? data.schemas : []
+    };
+  }
+  
+  function mdToHtml(md) {
+    if (typeof marked !== 'undefined') {
+      try { return marked.parse(md); } catch(e) {}
+    }
+    // Basit fallback
+    return md
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+      .replace(/^## (.+)$/gm,  '<h2>$1</h2>')
+      .replace(/^# (.+)$/gm,   '<h1>$1</h1>')
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/`([^`]+)`/g, '<code>$1</code>')
+      .replace(/^[-*] (.+)$/gm, '<li>$1</li>')
+      .replace(/(<li>[\s\S]*?<\/li>)/g, '<ul>$1</ul>')
+      .replace(/\n\n+/g, '</p><p>')
+      .replace(/^([^<\n].+)$/gm, '<p>$1</p>');
+  }
+  
+  function updateServiceButtonState(serviceId, status) {
+    const btn  = document.querySelector(`.aiseo-svc-btn[data-service="${serviceId}"]`);
+    const span = document.querySelector(`.svc-status[data-svc="${serviceId}"]`);
+    if (!btn) return;
+    const styles = {
+      loading: { border: '#f59e0b', bg: '#fffbeb', color: '#92400e' },
+      done:    { border: '#10b981', bg: '#f0fdf4', color: '#065f46' },
+      error:   { border: '#ef4444', bg: '#fef2f2', color: '#991b1b' },
+      idle:    { border: '#e2e8f0', bg: '#fff',    color: '#334155' }
+    };
+    const s = styles[status] || styles.idle;
+    btn.style.borderColor = s.border;
+    btn.style.background  = s.bg;
+    btn.style.color       = s.color;
+    if (span) {
+      if (status === 'loading') {
+        span.innerHTML = '<span style="display:inline-block;width:10px;height:10px;border:2px solid #f59e0b;border-top-color:transparent;border-radius:50%;animation:ag-spin .8s linear infinite;vertical-align:middle;margin-left:4px;"></span>';
+      } else if (status === 'done') {
+        span.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="3" style="vertical-align:middle;margin-left:4px;"><polyline points="20 6 9 17 4 12"/></svg>';
+      } else {
+        span.innerHTML = status === 'error' ? ' ⚠️' : '';
+      }
+    }
+  }
+  
+  function updateBadges() {
+    const ub = document.getElementById('aiseo-url-badge');
+    const tb = document.getElementById('aiseo-type-badge');
+    if (ub) { ub.textContent = state.targetUrl ? '🌐 ' + state.targetUrl : ''; ub.style.display = state.targetUrl ? 'inline-flex' : 'none'; }
+    if (tb) { tb.textContent = state.siteType  ? '📌 ' + state.siteType  : ''; tb.style.display = state.siteType  ? 'inline-flex' : 'none'; }
+  }
+  
+  function updateRunAllBtn() {
+    const btn = document.getElementById('btn-run-all-services');
+    if (!btn) return;
+    const all  = getAllServices();
+    const left = all.filter(s => !state.completedServices.has(s.id)).length;
+    if (left === 0 && all.length > 0) {
+      btn.textContent = '✅ Tüm Hizmetler Tamamlandı';
+      btn.disabled = true; btn.style.background = '#64748b'; btn.style.cursor = 'default';
+    } else {
+      btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:6px;flex-shrink:0;"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>Tüm Hizmetleri Yap${left < all.length ? ' (' + left + ' kalan)' : ''}`;
+      btn.disabled = false; btn.style.background = '#10b981'; btn.style.cursor = 'pointer';
+    }
+  }
+  
+  function updateDownloadBtn() {
+    const btn = document.getElementById('btn-download-pdf');
+    if (!btn) return;
+    const all    = getAllServices();
+    const allDone = all.length > 0 && all.every(s => state.completedServices.has(s.id));
+    btn.disabled  = !allDone;
+    btn.style.opacity = allDone ? '1' : '0.5';
+    btn.style.cursor  = allDone ? 'pointer' : 'not-allowed';
+    btn.title = allDone ? 'PDF Rapor İndir' : 'Tüm hizmetler tamamlandığında aktif olur';
+    btn.onclick = allDone ? downloadPDF : null;
+  }
+  
+  // ============================================================
+  // ACCORDION
+  // ============================================================
+  
+  function renderIdleAccordions(force = false) {
+  const area = document.getElementById('aiseo-results-area');
+  if (!area) return;
+  if (force) area.innerHTML = '';
+  
+  const all = getAllServices();
+  all.forEach(svc => {
+    const domId = 'aiseo-accordion-' + svc.id;
+    let wrap = document.getElementById(domId);
+    if (!wrap) {
+       wrap = document.createElement('div');
+       wrap.id = domId;
+       wrap.className = 'aiseo-accordion';
+       wrap.style.cssText = 'margin-bottom:12px; border:1px solid #E2E8F0; border-radius:8px; background:#fff; overflow:hidden;';
+       
+       wrap.innerHTML = `
+         <div class="acc-header" onclick="window.handleAccClick(event, '${svc.id}')" style="padding:16px 20px; display:flex; align-items:center; justify-content:space-between; cursor:pointer; background:#fff; transition:background 0.2s;">
+            <div>
+               <h3 style="margin:0; font-size:15px; font-weight:700; color:#1F1D30; display:flex; align-items:center; gap:8px;">
+                  <span style="font-size:18px;">${svc.icon}</span> ${svc.title}
+               </h3>
+               <p style="margin:4px 0 0 26px; font-size:12px; color:#64748B;">${svc.description}</p>
+            </div>
+            <div class="acc-status-indicator">
+               <span style="display:inline-block; padding:4px 8px; font-size:12px; font-weight:600; color:#64748B; background:#F1F5F9; border-radius:4px;">▶</span>
+            </div>
+         </div>
+         <div class="acc-body" style="display:none; padding:0 20px 20px 20px; border-top:1px solid #E2E8F0;">
+         </div>
+       `;
+       area.appendChild(wrap);
+    }
+  });
+}
+
+function renderServiceAccordion(service, status, htmlContent, errorMsg) {
+    htmlContent = htmlContent || '';
+    errorMsg    = errorMsg    || '';
+
+    try {
+      // Panel + results area görünür olsun
+      const panel = document.getElementById('aiseo-services-panel');
+      if (panel) panel.style.display = 'block';
+
+      const area = document.getElementById('aiseo-results-area');
+      if (!area) { console.error('[AI SEO] aiseo-results-area DOM\'da bulunamadı — accordion çizilemedi.'); return; }
+
+      const domId = 'aiseo-accordion-' + service.id;
+      let wrap = document.getElementById(domId);
+      if (!wrap) {
+        wrap = document.createElement('div');
+        wrap.id        = domId;
+        wrap.className = 'aiseo-accordion';
+      }
+      if (wrap.parentElement !== area) {
+        area.appendChild(wrap);
+        setTimeout(() => wrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 200);
+      }
+
+      const colors = {
+        done:    { border: '#10b981', bg: '#f0fdf4', bodyBorder: '#d1fae5' },
+        loading: { border: '#f59e0b', bg: '#fffbeb', bodyBorder: '#fde68a' },
+        error:   { border: '#ef4444', bg: '#fef2f2', bodyBorder: '#fecaca' }
+      };
+      const c = colors[status] || colors.loading;
+
+      const icon = status === 'done'
+        ? `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>`
+        : status === 'loading'
+          ? `<span style="display:inline-block;width:14px;height:14px;border:2px solid #f59e0b;border-top-color:transparent;border-radius:50%;animation:ag-spin .8s linear infinite;"></span>`
+          : `<span style="font-size:14px;">⚠️</span>`;
+
+      let body = '';
+      if (status === 'loading') {
+        body = `<div style="padding:20px 24px;display:flex;align-items:center;gap:12px;color:#64748b;border-top:1px solid ${c.bodyBorder};">
+          <div class="typing-indicator" style="padding:0;flex-shrink:0;"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>
+          <span style="font-size:13px;">Yapay zeka analiz yapıyor, lütfen bekleyin...</span>
+        </div>`;
+      } else if (status === 'error') {
+        body = `<div style="padding:20px 24px;color:#dc2626;font-size:13px;border-top:1px solid ${c.bodyBorder};">
+          <strong>⚠️ Hata:</strong> ${errorMsg || 'Bilinmeyen bir hata oluştu.'}<br><br>
+          <button onclick="window.runSingleService(${JSON.stringify(service.id)})" style="background:#ef4444;color:#fff;border:none;border-radius:8px;padding:7px 16px;font-size:12px;font-weight:600;cursor:pointer;">🔄 Tekrar Dene</button>
+        </div>`;
+      } else if (!htmlContent || !htmlContent.trim()) {
+        // AI'dan boş cevap geldi — sessizce hiçbir şey göstermek yerine kullanıcıyı bilgilendir
+        console.warn('[AI SEO] Servis ' + service.id + ' için AI cevabı boş geldi.');
+        body = `<div style="padding:20px 24px;color:#92400e;font-size:13px;border-top:1px solid ${c.bodyBorder};background:#fffbeb;">
+          <strong>⚠️ Boş cevap:</strong> Yapay zeka bu hizmet için içerik döndürmedi. Lütfen tekrar deneyin.<br><br>
+          <button onclick="window.runSingleService(${JSON.stringify(service.id)})" style="background:#f59e0b;color:#fff;border:none;border-radius:8px;padding:7px 16px;font-size:12px;font-weight:600;cursor:pointer;">🔄 Tekrar Dene</button>
+        </div>`;
+      } else {
+        // Parse the single HTML content into subtask blocks!
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = htmlContent || '';
+        
+        // Find all H3 elements and group content
+        const chunks = {};
+        let currentHeader = null;
+        let currentContent = [];
+        
+        Array.from(tempDiv.children).forEach(child => {
+            if (child.tagName.match(/^H[2-4]$/)) {
+                if (currentHeader) {
+                    chunks[currentHeader] = currentContent.map(el => el.outerHTML).join('');
+                }
+                currentHeader = child.innerText.trim().toLowerCase().replace(/[^a-z0-9ğüşıöç]/gi, '');
+                currentContent = [];
+            } else {
+                if (currentHeader) {
+                    currentContent.push(child);
+                }
+            }
+        });
+        if (currentHeader) {
+            chunks[currentHeader] = currentContent.map(el => el.outerHTML).join('');
+        }
+        
+        // Now build the accordion body using service.subtasks
+        let subtasksHtml = '';
+        if (Object.keys(chunks).length === 0) {
+            // No H2/H3/H4 headers found. This might be an old history item or unformatted output.
+            subtasksHtml = htmlContent;
+        } else if (service.subtasks && service.subtasks.length > 0) {
+            const activeSubtasks = service.subtasks.filter(st => st.selected !== false);
+            activeSubtasks.forEach(st => {
+                const title = st.title.trim();
+                const normTitle = title.toLowerCase().replace(/[^a-z0-9ğüşıöç]/gi, '');
+                const content = chunks[normTitle] || '<p style="color:#64748B;font-style:italic;">Bu başlık için içerik üretilmedi.</p>';
+                subtasksHtml += `
+                    <details style="border-bottom:1px solid #E2E8F0;">
+                        <summary style="padding:16px 24px; display:flex; justify-content:space-between; align-items:center; background:#FAFAFA; cursor:pointer; list-style:none;">
+                            <span style="font-weight:600; font-size:14px; color:#1F2937;">${title}</span>
+                            <span style="color:#10B981; font-size:13px; font-weight:700;"> Tamamlandı</span>
+                        </summary>
+                        <div style="padding:20px 24px; font-size:14px; color:#374151; background:#fff; line-height:1.7;">
+                            ${content}
+                        </div>
+                    </details>
+                `;
+            });
+        } else {
+            subtasksHtml = `<div style="padding:20px 24px 28px;font-size:13.5px;line-height:1.75;color:#334155;">${htmlContent}</div>`;
+        }
+        
+        body = `<div class="aiseo-accordion-content" style="border-top:1px solid ${c.bodyBorder};">${subtasksHtml}</div>`;
+      }
+
+      const bodyOpen   = status !== 'error';
+      const toggleRot  = bodyOpen ? 'rotate(180deg)' : '';
+
+      wrap.innerHTML = `
+        <div style="border:1px solid ${c.border};border-radius:8px;overflow:hidden;background:#fff;box-shadow:0 1px 4px rgba(31,29,48,0.05);">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;background:${c.bg};cursor:pointer;user-select:none;gap:12px;"
+               onclick="window.handleAccClick(event, ${JSON.stringify(service.id)})">
+            <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;">
+              <span style="font-size:20px;flex-shrink:0;">${service.icon}</span>
+              <div style="min-width:0;">
+                <div style="font-size:14px;font-weight:700;color:#1F1D30;">${service.title}</div>
+                <div style="font-size:12px;color:#6B6E82;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${service.description}</div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+              ${icon}
+              <div id="aiseo-toggle-${service.id}" style="width:24px;height:24px;border-radius:50%;background:rgba(0,0,0,0.06);display:flex;align-items:center;justify-content:center;transition:transform .25s;transform:${toggleRot};">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#475569" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+              </div>
+            </div>
+          </div>
+          <div id="aiseo-body-${service.id}" style="display:${bodyOpen ? 'block' : 'none'};">
+            ${body}
+          </div>
+        </div>`;
+
+      console.log('[AI SEO] Accordion çizildi → servis:', service.id, 'durum:', status, 'içerik uzunluğu:', htmlContent.length);
+
+    } catch (renderErr) {
+      // Accordion oluştururken beklenmedik bir hata olursa sessizce yutmak yerine konsola yaz
+      console.error('[AI SEO] renderServiceAccordion HATASI:', renderErr, { serviceId: service && service.id, status });
+    }
+  }
+  
+  window.toggleAccordion = function(serviceId) {
+    const body   = document.getElementById('aiseo-body-' + serviceId);
+    const toggle = document.getElementById('aiseo-toggle-' + serviceId);
+    if (!body) return;
+    const open = body.style.display !== 'none';
+    body.style.display          = open ? 'none' : 'block';
+    if (toggle) toggle.style.transform = open ? '' : 'rotate(180deg)';
+  };
+  
+  // ============================================================
+  // HİZMET ÇALIŞTIR
+  // ============================================================
+  
+  let accClickTimers = {};
+  window.handleAccClick = function(e, id) {
+     if (!state.completedServices.has(id) && !state.completedServices.has('loading_' + id)) {
+         window.runSingleService(id);
+         return;
+     }
+     const wrap = document.getElementById('aiseo-accordion-' + id);
+     if (!wrap) return;
+     const body = wrap.querySelector('.acc-body') || document.getElementById('aiseo-body-' + id);
+     if (!body) return;
+     
+     if (e.detail === 1) {
+         accClickTimers[id] = setTimeout(() => {
+             const toggle = document.getElementById('aiseo-toggle-' + id);
+             if (body.style.display === 'none' || body.style.display === '') {
+                 body.style.display = 'block';
+                 if (toggle) toggle.style.transform = 'rotate(180deg)';
+             } else {
+                 let anyOpen = false;
+                 wrap.querySelectorAll('details').forEach(d => { if(d.open) anyOpen = true; });
+                 if (anyOpen) { 
+                     wrap.querySelectorAll('details').forEach(d => d.open = false); 
+                 } else { 
+                     body.style.display = 'none'; 
+                     if (toggle) toggle.style.transform = '';
+                 }
+             }
+         }, 250);
+     } else if (e.detail === 2) {
+         clearTimeout(accClickTimers[id]);
+         const toggle = document.getElementById('aiseo-toggle-' + id);
+         body.style.display = 'block';
+         if (toggle) toggle.style.transform = 'rotate(180deg)';
+         wrap.querySelectorAll('details').forEach(d => d.open = true);
+     }
+  };
+
+  window.runSingleService = async function(rawId) {
+    // id hem integer hem string olabilir — tip-güvenli karşılaştırma
+    const serviceId = (typeof rawId === 'string' && !rawId.startsWith('custom_'))
+      ? parseInt(rawId, 10) : rawId;
+  
+    const service = getAllServices().find(s => String(s.id) === String(serviceId));
+    if (!service) {
+      console.error('Hizmet bulunamadı:', serviceId, 'Mevcut:', getAllServices().map(s => s.id));
+      return;
+    }
+    if (!state.fetchedData) {
+      alert('Lütfen önce bir URL girin ve analiz ettirin.');
+      return;
+    }
+  
+    // Hali hazırda yükleniyorsa tekrar tetikleme
+    const loadKey = 'loading_' + String(serviceId);
+    if (state.completedServices.has(loadKey)) return;
+    state.completedServices.add(loadKey);
+  
+    updateServiceButtonState(serviceId, 'loading');
+    renderServiceAccordion(service, 'loading');
+  
+    try {
+      const siteData = {
+        url:         state.targetUrl,
+        title:       state.fetchedData.title,
+        description: state.fetchedData.description,
+        text:        state.fetchedData.text,
+        schemas:     state.fetchedData.schemas,
+        siteType:    state.siteType
+      };
+  
+      console.log('[AI SEO] Servis çalıştırılıyor:', serviceId, service.title);
+      const aiText = await callGemini(buildPromptForService(service, siteData), 0.25);
+      console.log('[AI SEO] AI cevabı alındı, uzunluk:', (aiText || '').length);
+      let htmlContent = mdToHtml(aiText);
+      
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = htmlContent;
+      tempDiv.querySelectorAll('pre').forEach(pre => {
+          const wrapper = document.createElement('div');
+          wrapper.className = 'ai-code-block';
+          pre.parentNode.insertBefore(wrapper, pre);
+          wrapper.appendChild(pre);
+          
+          const copyBtn = document.createElement('button');
+          copyBtn.className = 'ai-copy-btn';
+          const iconCopy = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px; vertical-align:middle;"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`;
+          const iconDone = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px; vertical-align:middle;"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+          copyBtn.innerHTML = iconCopy + 'Kopyala';
+          copyBtn.onclick = (e) => {
+              e.stopPropagation();
+              const codeEl = pre.querySelector('code');
+              let codeText = '';
+              if (codeEl) {
+                  codeText = codeEl.innerText || codeEl.textContent;
+              } else {
+                  // clone pre and remove the button so we don't copy the button text
+                  const clone = pre.cloneNode(true);
+                  const btnInClone = clone.querySelector('button');
+                  if(btnInClone) btnInClone.remove();
+                  codeText = clone.innerText || clone.textContent;
+              }
+              
+              // Fallback for clipboard API if not in secure context
+              if (navigator.clipboard && window.isSecureContext) {
+                  navigator.clipboard.writeText(codeText).then(() => {
+                      copyBtn.innerHTML = iconDone + 'Kopyalandı';
+                      copyBtn.style.backgroundColor = '#10b981'; copyBtn.style.color = '#fff';
+                      setTimeout(() => { copyBtn.innerHTML = iconCopy + 'Kopyala'; copyBtn.style.backgroundColor = ''; copyBtn.style.color = ''; }, 2000);
+                  }).catch(err => { console.error('Kopyalama başarısız:', err); });
+              } else {
+                  const textArea = document.createElement('textarea');
+                  textArea.value = codeText;
+                  textArea.style.position = 'fixed';
+                  textArea.style.left = '-9999px';
+                  document.body.appendChild(textArea);
+                  textArea.focus();
+                  textArea.select();
+                  try {
+                      document.execCommand('copy');
+                      copyBtn.innerHTML = iconDone + 'Kopyalandı';
+                      copyBtn.style.backgroundColor = '#10b981'; copyBtn.style.color = '#fff';
+                      setTimeout(() => { copyBtn.innerHTML = iconCopy + 'Kopyala'; copyBtn.style.backgroundColor = ''; copyBtn.style.color = ''; }, 2000);
+                  } catch (err) {
+                      console.error('Kopyalama fallback başarısız:', err);
+                  }
+                  document.body.removeChild(textArea);
+              }
+          };
+          pre.appendChild(copyBtn);
+      });
+      htmlContent = tempDiv.innerHTML;
+      
+      console.log('[AI SEO] Markdown → HTML dönüşümü tamam, uzunluk:', (htmlContent || '').length);
+  
+      state.completedServices.delete(loadKey);
+      state.serviceResults[String(serviceId)] = { html: htmlContent, raw: aiText };
+      state.completedServices.add(serviceId);
+  
+      renderServiceAccordion(service, 'done', htmlContent);
+      updateServiceButtonState(serviceId, 'done');
+      updateRunAllBtn();
+      updateDownloadBtn();
+      saveAnalysis().catch(e => console.warn('Kayıt hatası:', e));
+  
+    } catch (err) {
+      state.completedServices.delete(loadKey);
+      renderServiceAccordion(service, 'error', '', err.message);
+      updateServiceButtonState(serviceId, 'error');
+      console.error('[AI SEO] Hizmet hatası [' + serviceId + ']:', err);
+    }
+  };
+  
+  window.runAllServices = async function() {
+    const btn = document.getElementById('btn-run-all-services');
+    if (btn) { btn.disabled = true; btn.style.opacity = '0.8'; }
+  
+    for (const svc of getAllServices()) {
+      if (!state.completedServices.has(svc.id)) {
+        await window.runSingleService(svc.id);
+        await new Promise(r => setTimeout(r, 4500)); // Dakikadaki 15 istek sınırına (429) takılmamak için bekleme süresi artırıldı
+      }
+    }
+  
+    if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
+    updateRunAllBtn();
+  };
+  
+  // ============================================================
+  // PDF
+  // ============================================================
+  
+  function downloadPDF() {
+    if (typeof html2pdf === 'undefined') { alert('PDF kütüphanesi yüklenemedi.'); return; }
+    const date = new Date().toLocaleDateString('tr-TR');
+    let pages  = '';
+    getAllServices().forEach(svc => {
+      const res = state.serviceResults[String(svc.id)];
+      pages += `<div style="padding:40px;min-height:1100px;background:#fff;page-break-after:always;position:relative;">
+        <div style="border-bottom:3px solid #FBBA00;padding-bottom:14px;margin-bottom:24px;">
+          <h2 style="font-size:20px;color:#1F1D30;margin:0;font-weight:800;">${svc.icon} ${svc.title}</h2>
+          <p style="font-size:12px;color:#6B6E82;margin:5px 0 0;">${svc.description}</p>
+        </div>
+        <div style="font-size:13px;line-height:1.7;color:#334155;">${res ? res.html : '<p style="color:#94a3b8;">Analiz yapılmadı.</p>'}</div>
+        <div style="position:absolute;bottom:18px;left:40px;right:40px;border-top:1px solid #e2e8f0;padding-top:8px;font-size:10px;color:#94a3b8;display:flex;justify-content:space-between;">
+          <span>AdresGezgini — Yapay Zeka SEO Raporu</span><span>${date}</span>
+        </div>
+      </div>`;
+    });
+  
+    const el = document.createElement('div');
+    el.innerHTML = `<div style="font-family:Arial,sans-serif;">
+      <div style="height:1100px;display:flex;flex-direction:column;justify-content:center;align-items:center;background:linear-gradient(135deg,#312F4D,#1F1D30);color:#fff;text-align:center;padding:40px;page-break-after:always;">
+        <div style="font-size:36px;font-weight:800;margin-bottom:14px;color:#FBBA00;">AdresGezgini</div>
+        <div style="font-size:44px;font-weight:800;line-height:1.1;margin-bottom:24px;">YAPAY ZEKA<br>SEO RAPORU</div>
+        <div style="background:rgba(255,255,255,.12);padding:10px 26px;border-radius:6px;font-size:15px;font-family:monospace;margin-bottom:12px;">${state.targetUrl}</div>
+        <div style="font-size:13px;opacity:.8;">Site Türü: ${state.siteType}</div>
+        <div style="margin-top:auto;font-size:12px;opacity:.6;">${date}</div>
+      </div>${pages}</div>`;
+  
+    html2pdf().set({ margin: 0, filename: 'AG_AI_SEO_Raporu.pdf', image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'px', format: [794, 1123], orientation: 'portrait' } }).from(el).save();
+  }
+  
+  // ============================================================
+  // URL FETCH + SİTE TÜRÜ TESPİTİ
+  // ============================================================
+  
+  async function detectAndFetchSite(url) {
+    const indicator = document.getElementById('aiseo-scan-indicator');
+    const scanText  = document.getElementById('aiseo-scan-text');
+    const submitBtn = document.getElementById('aiseo-url-submit');
+  
+    if (indicator) indicator.style.display = 'block';
+    if (scanText)  scanText.textContent = 'Site verileri çekiliyor...';
+    if (submitBtn) { submitBtn.disabled = true; submitBtn.style.opacity = '0.6'; }
+  
+    try {
+      state.fetchedData = await fetchSiteData(url);
+      if (scanText) scanText.textContent = 'Yapay zeka site türünü tespit ediyor...';
+  
+      const typeText = await callGemini(
+        `Bu web sitesini analiz et ve sadece şu iki seçenekten birini yaz, başka HİÇBİR ŞEY EKLEME:\n- Ürün / E-Ticaret\n- Hizmet / Kurumsal\n\nURL: ${url}\nBaşlık: ${state.fetchedData.title}\nAçıklama: ${state.fetchedData.description}\nMetin (ilk 1000 karakter): ${state.fetchedData.text.substring(0, 1000)}`,
+        0.1
+      );
+      state.siteType = typeText.trim().includes('Ürün') ? 'Ürün / E-Ticaret' : 'Hizmet / Kurumsal';
+  
+      updateBadges();
+      if (indicator) indicator.style.display = 'none';
+  
+      document.getElementById('aiseo-url-card').style.display     = 'none';
+      document.getElementById('aiseo-services-panel').style.display = 'block';
+      
+      const btnC = document.getElementById('btn-customize-services');
+      if (btnC) btnC.style.display = 'inline-flex';
+      const btnN = document.getElementById('btn-new-analysis');
+      if (btnN) btnN.style.display = 'inline-flex';
+      const btnP = document.getElementById('btn-download-pdf');
+      if (btnP) btnP.style.display = 'inline-flex';
+      
+      renderIdleAccordions(true);
+  
+      updateRunAllBtn();
+      updateDownloadBtn();
+  
+    } catch (err) {
+      if (indicator) indicator.style.display = 'none';
+      alert('Hata: ' + err.message);
+    } finally {
+      if (submitBtn) { submitBtn.disabled = false; submitBtn.style.opacity = '1'; }
+    }
+  }
+  
+  // ============================================================
+  // ÖZEL HİZMET EKLE (+ butonu)
+  // ============================================================
+  
+  function renderCustomServiceButton(svc) {
+    const container = document.getElementById('aiseo-service-buttons');
+    if (!container) return;
+  
+    // Eski + butonunu çıkar
+    const addBtn = document.getElementById('btn-add-custom-service');
+    if (addBtn) addBtn.remove();
+  
+    const btn = document.createElement('button');
+    btn.className = 'aiseo-svc-btn has-tooltip';
+    btn.setAttribute('data-service', svc.id);
+    btn.setAttribute('data-tooltip', svc.description);
+    btn.style.cssText = 'display:inline-flex;align-items:center;gap:6px;background:#fff;border:1px solid #FBBA00;border-radius:6px;padding:8px 16px;font-size:13px;font-weight:500;color:#312F4D;cursor:pointer;transition:all .15s;';
+    btn.innerHTML = `<span>${svc.icon}</span> ${svc.title}<span class="svc-status" data-svc="${svc.id}"></span>`;
+    btn.addEventListener('click', () => window.runSingleService(svc.id));
+    container.appendChild(btn);
+  
+    appendMainAddButton();
+  }
+  
+  function appendMainAddButton() {
+    const container = document.getElementById('aiseo-service-buttons');
+    if (!container) return;
+  
+    const old = document.getElementById('btn-add-custom-service');
+    if (old) old.remove();
+  
+    const btn = document.createElement('button');
+    btn.id    = 'btn-add-custom-service';
+    btn.title = 'Özel hizmet ekle';
+    btn.style.cssText = 'display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;background:#fff;border:1.5px dashed #9A9DAE;border-radius:6px;cursor:pointer;font-size:20px;color:#6B6E82;transition:all .15s;flex-shrink:0;line-height:1;';
+    btn.textContent = '+';
+    btn.addEventListener('mouseenter', () => { btn.style.borderColor='#FBBA00'; btn.style.borderStyle='solid'; btn.style.color='#312F4D'; btn.style.background='#FFF6DF'; });
+    btn.addEventListener('mouseleave', () => { btn.style.borderColor='#9A9DAE'; btn.style.borderStyle='dashed'; btn.style.color='#6B6E82'; btn.style.background='#fff'; });
+    btn.addEventListener('click', openAddCustomServiceModal);
+    container.appendChild(btn);
+  }
+  
+
+
 function openAddCustomServiceModal() {
     document.getElementById('custom-svc-modal')?.remove();
   
     const modal = document.createElement('div');
     modal.id = 'custom-svc-modal';
-    modal.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:100000;display:flex;align-items:center;justify-content:center;padding:20px;';
     modal.innerHTML = `
       <div style="background:#fff;border-radius:10px;border-top:3px solid #312F4D;padding:32px;max-width:480px;width:100%;box-shadow:0 10px 30px rgba(31,29,48,.18);animation:ag-slide-down .25s ease;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">
@@ -807,7 +1470,7 @@ function openAddCustomServiceModal() {
   
     const modal = document.createElement('div');
     modal.id = 'custom-svc-modal';
-    modal.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:100000;display:flex;align-items:center;justify-content:center;padding:20px;';
     modal.innerHTML = `
       <div style="background:#fff;border-radius:10px;border-top:3px solid #312F4D;padding:32px;max-width:480px;width:100%;box-shadow:0 10px 30px rgba(31,29,48,.18);animation:ag-slide-down .25s ease;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">
@@ -971,19 +1634,19 @@ function loadFromHistory(item) {
     );
     updateBadges();
     document.getElementById('aiseo-url-card').style.display      = 'none';
-          document.getElementById('aiseo-services-panel').style.display = 'block';
+    document.getElementById('aiseo-services-panel').style.display = 'block';
+    
+    // Üst butonları görünür yap (Geçmişten gelince de çıksınlar)
+    const btnC = document.getElementById('btn-customize-services');
+    if (btnC) btnC.style.display = 'inline-flex';
+    const btnN = document.getElementById('btn-new-analysis');
+    if (btnN) btnN.style.display = 'inline-flex';
+    const btnP = document.getElementById('btn-download-pdf');
+    if (btnP) btnP.style.display = 'inline-flex';
       
-      // Setup Customization Toggle
+    // Setup Customization Toggle
       
-      const custBtn = document.getElementById('btn-customize-services');
-      if (custBtn) {
-         custBtn.onclick = () => {
-            let modal = document.getElementById('customization-modal');
-            if(modal) {
-               modal.style.display = 'flex';
-            }
-         };
-      }
+
       
       // Render the idle skeleton accordions
       renderIdleAccordions();
@@ -1019,6 +1682,13 @@ function loadFromHistory(item) {
     if (panel)   panel.style.display   = showUrlCard ? 'none'  : 'block';
     if (input) { input.value = ''; if (showUrlCard) setTimeout(() => input.focus(), 100); }
     updateDownloadBtn();
+    
+    // URL ekraniysa dugmeleri gizle
+    if (showUrlCard) {
+       document.getElementById('btn-customize-services').style.display = 'none';
+       document.getElementById('btn-new-analysis').style.display = 'none';
+       document.getElementById('btn-download-pdf').style.display = 'none';
+    }
   }
   
   // ============================================================
@@ -1082,6 +1752,16 @@ function loadFromHistory(item) {
   
     // + butonu ve özel hizmet butonları DOM'a ekle
     renderAllServiceButtons();
+  
+    const custBtn = document.getElementById('btn-customize-services');
+    if (custBtn) {
+        custBtn.onclick = () => {
+            const modal = document.getElementById('customization-modal');
+            if(modal) {
+               modal.style.display = 'flex';
+            }
+        };
+    }
   
     // İlk yükleme
     resetAnalysis(true);

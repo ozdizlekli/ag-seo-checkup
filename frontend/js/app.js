@@ -287,6 +287,13 @@ document.getElementById('client-select')?.addEventListener('change', async (e) =
   const domainEl = document.getElementById('sidebar-client-domain');
   const explorerEl = document.getElementById('sidebar-site-explorer');
   
+  const headerName = document.getElementById('top-header-client-name');
+  if (state.currentClient) {
+    if (headerName) headerName.textContent = state.currentClient.name;
+  } else {
+    if (headerName) headerName.textContent = 'Bekleniyor...';
+  }
+
   if(state.currentClient && state.currentClient.domain_url) {
     domainEl.style.display = 'block';
     domainEl.textContent = 'Ana Domain: ' + state.currentClient.domain_url;
@@ -295,6 +302,13 @@ document.getElementById('client-select')?.addEventListener('change', async (e) =
     // bağımlıydı, bu yüzden her zaman "Failed to fetch" veriyordu).
     explorerEl.hidden = false;
     loadClientSitemap(state.currentClient.domain_url);
+    
+    // Auto-fill AI SEO URL input
+    const aiSeoInput = document.getElementById('aiseo-url-input');
+    if (aiSeoInput) aiSeoInput.value = state.currentClient.domain_url;
+    const wcSeoInput = document.getElementById('wc-url-input');
+    if (wcSeoInput) wcSeoInput.value = state.currentClient.domain_url;
+    
   } else {
     sitemapLoadSequence++;
     domainEl.style.display = 'none';
@@ -870,7 +884,7 @@ document.getElementById('t1-fetch-btn')?.addEventListener('click', async () => {
 
     const textForAnalysis = rawText.substring(0, 4000);
 
-    if(document.getElementById('t1-content')) { document.getElementById('t1-content').value = rawText; }
+    if(document.getElementById('t1-content')) { if(document.getElementById('t1-content')) { document.getElementById('t1-content').value = rawText; } }
     document.getElementById('t1-related-urls').value = Array.from(internalLinks).slice(0, 5).join('\n'); 
     
     // Temel verileri (Title ve Meta) hemen doldur
@@ -2242,9 +2256,9 @@ async function computeAndRenderScore(){
   }
 
   const wrap = document.getElementById('t6-sub-scores');
-  if (wrap) wrap.innerHTML = '';
-  subs.forEach(s => {
-    if (!wrap) return;
+  if (wrap) {
+    wrap.innerHTML = '';
+    subs.forEach(s => {
     const st = scoreStatusLabel(s.value);
     const row = document.createElement('div');
     row.className = 'meter-row';
@@ -2254,6 +2268,7 @@ async function computeAndRenderScore(){
       '<div class="meter-track"><div class="meter-fill fill-' + (s.value>=80?'good':s.value>=55?'mid':'bad') + '" style="width:' + s.value + '%;"></div></div>';
     wrap.appendChild(row);
   });
+  } // end if wrap
 
   // UPSELL (SATIŞ) BANNER GÖSTERİMİ
   const banner = document.getElementById('t6-upsell-banner');
@@ -3288,7 +3303,7 @@ document.getElementById('t7-export-word')?.addEventListener('click', () => {
 });
 
 /* Set default report date to today */
-if(document.getElementById('t7-date')) { document.getElementById('t7-date').value = new Date().toISOString().slice(0,10); }
+if(document.getElementById('t7-date')) { if(document.getElementById('t7-date')) { document.getElementById('t7-date').value = new Date().toISOString().slice(0,10); } }
 
 /* ============================================================
    İLK YÜKLEME — Supabase'den verileri çek
@@ -3450,3 +3465,65 @@ document.getElementById('t8-pdf-btn')?.addEventListener('click', () => {
 });
 
 })();
+
+// UPDATE HEADER CLIENT/URL DYNAMICALLY
+document.addEventListener('input', (e) => {
+  // Sadece URL inputlarını dinle
+  if (e.target && e.target.tagName === 'INPUT' && (e.target.type === 'url' || e.target.id.toLowerCase().includes('url'))) {
+    const val = e.target.value.trim();
+    const headerName = document.getElementById('top-header-client-name');
+    if (headerName) {
+      // Eğer bir müşteri seçiliyse (dropdown üzerinden) ismi kalsın
+      if (state.currentClient && state.currentClient.name) {
+        headerName.textContent = state.currentClient.name;
+        return;
+      }
+      
+      if (!val) {
+        headerName.textContent = 'Bekleniyor...';
+        return;
+      }
+
+      // Girilen URL, kayıtlı müşterilerden birinin URL'siyle eşleşiyor mu?
+      // (Birebir eşleşme veya http/https farklılıklarını bir nebze tolere edelim)
+      let matchedClient = null;
+      if (state.clients && state.clients.length > 0) {
+         matchedClient = state.clients.find(c => {
+           if (!c.domain_url) return false;
+           // Basit domain eşleştirmesi (protokolü görmezden gelerek)
+           let domain1 = c.domain_url.replace(/^https?:\/\//, '').replace(/\/$/, '');
+           let domain2 = val.replace(/^https?:\/\//, '').replace(/\/$/, '');
+           return domain2.startsWith(domain1);
+         });
+      }
+
+      if (matchedClient) {
+        headerName.textContent = matchedClient.name;
+      } else {
+        // Eşleşme yoksa direkt URL'yi yaz
+        headerName.textContent = val;
+      }
+    }
+  }
+});
+
+// GITHUB STYLE HAMBURGER MENU LOGIC
+document.addEventListener('DOMContentLoaded', () => {
+  const hamburger = document.getElementById('gh-hamburger-btn');
+  const sidebar = document.getElementById('gh-sidebar');
+  const overlay = document.getElementById('gh-sidebar-overlay');
+  const closeBtn = document.getElementById('gh-sidebar-close');
+  
+  function openSidebar() {
+    sidebar.classList.add('open');
+    overlay.classList.add('show');
+  }
+  function closeSidebar() {
+    sidebar.classList.remove('open');
+    overlay.classList.remove('show');
+  }
+  
+  if (hamburger) hamburger.addEventListener('click', openSidebar);
+  if (closeBtn) closeBtn.addEventListener('click', closeSidebar);
+  if (overlay) overlay.addEventListener('click', closeSidebar);
+});

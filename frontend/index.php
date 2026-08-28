@@ -48,14 +48,494 @@ require_once __DIR__ . '/db.php';
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jsdiff/7.0.0/diff.min.js"></script>
 <link rel="stylesheet" href="src/TextSeo/css/text-seo.css">
 <link rel="stylesheet" href="src/TextSeo/css/text-seo-pdf.css">
+
+<style>
+  /* Uygulama düzenini dikey (yan yana) yerine yatay (alt alta) yapıyoruz */
+  .app {
+    display: flex !important;
+    flex-direction: column !important;
+    min-height: 100vh;
+  }
+  .main {
+    width: 100% !important;
+    margin-left: 0 !important;
+  }
+
+  /* ==========================================================
+     KURUMSAL TOP HEADER
+     Marka renkleri korunarak daha sade, teslim edilebilir bir
+     "enterprise dashboard" görünümüne kavuşturuldu.
+  ========================================================== */
+  :root {
+    --ag-navy: #1F1D30;
+    --ag-navy-2: #312F4D;
+    --ag-gold: #FBBA00;
+    --ag-slate: #475569;
+    --ag-slate-light: #94A3B8;
+    --ag-border: #E2E8F0;
+    --ag-bg-soft: #F8FAFC;
+  }
+
+  .ag-top-header {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    background-color: #ffffff;
+    border-bottom: 1px solid var(--ag-border);
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    z-index: 1000;
+  }
+
+
+  /* Hamburger and GitHub-like Sidebar */
+  .ag-hamburger {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    border: 1px solid var(--ag-border);
+    background: transparent;
+    cursor: pointer;
+    color: var(--ag-slate);
+    transition: all 0.2s;
+  }
+  .ag-hamburger:hover {
+    background: var(--ag-bg-soft);
+    color: var(--ag-navy);
+  }
+  
+  .github-sidebar {
+    position: fixed;
+    top: 0;
+    left: -320px;
+    width: 320px;
+    height: 100vh;
+    background-color: #2F3146; /* Screenshot 2 background */
+    color: #fff;
+    z-index: 999999;
+    box-shadow: 4px 0 15px rgba(0,0,0,0.2);
+    transition: left 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+  }
+  .github-sidebar.open {
+    left: 0;
+  }
+  
+  .github-sidebar-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15,23,42,0.6);
+    z-index: 999998;
+    display: none;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .github-sidebar-overlay.show {
+    display: block;
+    opacity: 1;
+  }
+  
+  .gh-sidebar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+  
+  .gh-sidebar-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .gh-sidebar-brand img {
+    width: 48px;
+    border-radius: 8px;
+  }
+  .gh-sidebar-brand .title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.2;
+  }
+  .gh-sidebar-brand .badge {
+    display: inline-block;
+    background: #FBBA00;
+    color: #1F1D30;
+    font-size: 10px;
+    font-weight: 800;
+    padding: 2px 8px;
+    border-radius: 12px;
+    margin-top: 4px;
+  }
+
+  .gh-sidebar-close {
+    background: none;
+    border: none;
+    color: #94A3B8;
+    cursor: pointer;
+    font-size: 24px;
+  }
+  
+  .gh-sidebar-section {
+    padding: 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+  .gh-sidebar-section-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: #94A3B8;
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+  }
+  
+  .gh-client-select {
+    width: 100%;
+    background: rgba(0,0,0,0.2);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: #fff;
+    padding: 10px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    margin-bottom: 12px;
+    outline: none;
+  }
+  .gh-client-select option {
+    background: #2F3146;
+    color: #fff;
+  }
+  
+  .gh-btn-group {
+    display: flex;
+    gap: 6px;
+  }
+  .gh-btn {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: #E2E8F0;
+    padding: 8px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    gap: 6px;
+  }
+  .gh-btn:hover {
+    background: rgba(255,255,255,0.1);
+  }
+  
+  .gh-sitemap-box {
+    background: rgba(0,0,0,0.15);
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.05);
+    padding: 12px;
+    margin: 20px;
+  }
+  
+
+  /* İnce marka çizgisi: kurumsal kimliği vurgulayan üst şerit */
+  .ag-top-header::before {
+    content: "";
+    display: block;
+    height: 3px;
+    background: linear-gradient(90deg, var(--ag-navy) 0%, var(--ag-navy-2) 45%, var(--ag-gold) 100%);
+  }
+
+  .ag-header-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 72px;
+    padding: 0 40px;
+    gap: 24px;
+  }
+
+  .ag-header-left {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    gap: 14px;
+    flex-shrink: 0;
+  }
+
+  .ag-logo-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    background: var(--ag-bg-soft);
+    border: 1px solid var(--ag-border);
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  .ag-logo-badge img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transform: scale(1.55);
+  }
+
+  .ag-header-left .brand-text .name {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--ag-navy);
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+  }
+
+  .ag-header-left .brand-text .sub {
+    font-family: 'Inter', sans-serif;
+    font-size: 10.5px;
+    font-weight: 600;
+    color: var(--ag-slate-light);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-top: 2px;
+  }
+
+  /* Orta Menü (Sekmeler) */
+  .ag-header-center {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    min-width: 0;
+  }
+
+  .ag-header-center ul {
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    gap: 6px;
+  }
+
+  .ag-header-center .nav__item {
+    position: relative;
+    background: none;
+    border: none;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ag-slate);
+    cursor: pointer;
+    padding: 10px 16px;
+    border-radius: 8px;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+  }
+
+  .ag-header-center .nav__item:hover {
+    color: var(--ag-navy);
+    background: var(--ag-bg-soft);
+  }
+
+  .ag-header-center .nav__item.active {
+    color: var(--ag-navy);
+    background: #FFF6DC;
+  }
+
+  .ag-header-center .nav__item.active::after {
+    content: "";
+    position: absolute;
+    left: 16px;
+    right: 16px;
+    bottom: 3px;
+    height: 2px;
+    border-radius: 2px;
+    background: var(--ag-gold);
+  }
+
+  /* Eski tasarımdaki numara ve ikonları gizleyip temiz bir görünüm veriyoruz */
+  .ag-header-center .nav__item svg,
+  .ag-header-center .nav__item .num {
+    display: none;
+  }
+
+  /* Sağ Taraf (Müşteri Seçimi ve Çıkış) */
+  .ag-header-right {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-shrink: 0;
+  }
+
+  .ag-header-divider {
+    width: 1px;
+    height: 28px;
+    background: var(--ag-border);
+  }
+
+  .ag-client-compact {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--ag-bg-soft);
+    padding: 6px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--ag-border);
+  }
+
+  .ag-client-label {
+    font-family: 'Inter', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--ag-slate-light);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+  }
+
+  .ag-client-compact select {
+    border: 1px solid var(--ag-border);
+    background: #fff;
+    border-radius: 6px;
+    padding: 5px 8px;
+    font-family: 'Inter', sans-serif;
+    font-size: 12.5px;
+    color: var(--ag-navy);
+    outline: none;
+    max-width: 170px;
+  }
+
+  .ag-client-compact .client-actions {
+    display: flex;
+    gap: 4px;
+  }
+
+  .ag-client-compact button {
+    width: 26px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fff;
+    border: 1px solid var(--ag-border);
+    border-radius: 6px;
+    padding: 0;
+    cursor: pointer;
+    color: var(--ag-slate);
+    font-size: 12px;
+    transition: all 0.15s ease;
+  }
+
+  .ag-client-compact button:hover {
+    background: var(--ag-navy);
+    border-color: var(--ag-navy);
+    color: #fff;
+  }
+
+  .btn-panel {
+    background: var(--ag-navy);
+    color: #fff;
+    border-radius: 8px;
+    padding: 9px 18px;
+    font-family: 'Inter', sans-serif;
+    font-size: 12.5px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background 0.15s ease;
+  }
+
+  .btn-panel:hover {
+    background: var(--ag-navy-2);
+  }
+
+  .btn-outline {
+    background: #fff;
+    border: 1px solid var(--ag-border);
+    color: var(--ag-navy);
+    border-radius: 8px;
+    padding: 9px 16px;
+    font-family: 'Inter', sans-serif;
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .btn-outline:hover {
+    border-color: var(--ag-navy);
+    background: var(--ag-bg-soft);
+  }
+
+  @media (max-width: 1180px) {
+    .ag-header-inner { padding: 0 20px; }
+    .ag-header-center ul { gap: 2px; }
+    .ag-header-left .brand-text .sub { display: none; }
+    .ag-client-label { display: none; }
+  }
+</style>
 </head>
+
 <body>
+
+<!-- GITHUB STYLE OFFCANVAS SIDEBAR -->
+<div class="github-sidebar-overlay" id="gh-sidebar-overlay"></div>
+<aside class="github-sidebar" id="gh-sidebar">
+  <div class="gh-sidebar-header">
+    <div class="gh-sidebar-brand">
+      <img src="image.png" alt="Logo">
+      <div>
+        <div class="title " style="font-weight:500 ">AG SEO Check Up</div>
+       
+      </div>
+    </div>
+    <button class="gh-sidebar-close" id="gh-sidebar-close">&times;</button>
+  </div>
+  
+  <div class="gh-sidebar-section">
+    <div class="gh-sidebar-section-title">AKTİF MÜŞTERİ</div>
+    <select class="gh-client-select" id="client-select">
+      <option value="">— Müşteri seçin —</option>
+    </select>
+    <div id="sidebar-client-domain" style="font-size: 11px; color: #94A3B8; margin-bottom: 12px; display: none;"></div>
+    
+    <div class="gh-btn-group">
+      <button class="gh-btn" id="client-add-btn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Ekle
+      </button>
+      <button class="gh-btn" id="client-edit-btn" title="Düzenle">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+      </button>
+      <button class="gh-btn" id="client-delete-btn" title="Sil">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+      </button>
+    </div>
+  </div>
+  
+  <div class="gh-sitemap-box" id="sidebar-site-explorer" style="display:none;">
+    <div style="font-size: 10.5px; font-weight: 700; color: #94A3B8; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.05em; display: flex; justify-content: space-between; align-items: center;">
+      SİTEMAP EXPLORER
+      <button id="refresh-sitemap-btn" style="background:none; border:none; color:#FBBA00; cursor:pointer; font-size:12px;" title="Yenile">&#x21bb;</button>
+    </div>
+    <div id="site-explorer-tree" style="max-height: 400px; overflow-y: auto; font-size: 12px; line-height: 2; color: #E4E7EE;">
+       <span style="font-size:11px;">Müşteri seçin...</span>
+    </div>
+  </div>
+</aside>
+<!-- /GITHUB STYLE OFFCANVAS SIDEBAR -->
+
 
 <!-- KARŞILAMA EKRANI (Welcome Overlay) -->
 <div id="welcome-overlay">
   <div class="welcome-container">
     <div class="welcome-header">
-      <h1>AG_seo_check_up'a Hoş Geldiniz</h1>
+      <h1>AG Seo Checkup'a Hoş Geldiniz</h1>
       <p>Yapay zeka destekli SEO ve İçerik Yönetim Platformu. Bugün neye odaklanmak istersiniz?</p>
     </div>
     
@@ -105,38 +585,42 @@ require_once __DIR__ . '/db.php';
   <!-- ============================================================
        SIDEBAR
   ============================================================ -->
-  <aside class="sidebar">
-    <div class="sidebar__brand">
-      <div class="brand-mark" style="width: 64px; height: 64px;">
-        <img src="image.png" alt="AG SEO Check Up" style="width: 100%; height: 100%; object-fit: contain; border-radius: 8px;">
+  <header class="ag-top-header">
+    <div class="ag-header-inner">
+      <!-- SOL: Hamburger, Logo ve Marka -->
+      <div class="ag-header-left">
+        <button class="ag-hamburger" id="gh-hamburger-btn">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+        </button>
+        <a href="#" style="display:flex; align-items:center; text-decoration:none; gap:12px; margin-left:12px;">
+          <img src="image.png" alt="Logo" style="width:40px; height:40px; border-radius:6px; border: 1px solid var(--ag-border);">
+          <div style="display:flex; flex-direction:column; justify-content:center; gap:4px;">
+            <div style="font-family:'Space Grotesk', sans-serif; font-weight:700; font-size:16px; color:#1F1D30; line-height:1; letter-spacing:-0.3px;">AG SEO Check Up</div>
+            <div style="font-family:'JetBrains Mono', monospace; font-size:12px; color:#6B6E82; display:flex; align-items:center; gap:6px; line-height:1;">
+              <span><?php echo htmlspecialchars($_SESSION['username'] ?? 'ozdizlekli'); ?></span>
+              <span style="color:#94A3B8;">/</span>
+              <span style="font-weight:700; color:#1F1D30;" id="top-header-client-name">Bekleniyor...</span>
+            </div>
+          </div>
+        </a>
       </div>
-      <div class="brand-text">
-        <div class="name">AG SEO Check Up</div>
-        <div class="sub">Admin Paneli</div>
-      </div>
-    </div>
 
-    <div class="client-box">
-      <label for="client-select-input">Aktif Müşteri</label>
-      <div class="search-select search-select--client" id="client-searchselect">
-        <input type="text" class="client-select-dark" id="client-select-input" placeholder="— Müşteri seçin —" autocomplete="off">
-        <input type="hidden" id="client-select" value="">
-        <svg class="search-select__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
-        <div class="search-select__list search-select__list--dark hidden" id="client-select-list"></div>
-      </div>
-      <div id="sidebar-client-domain" style="font-size: 11px; color: var(--muted-2); margin-bottom: 8px; display: none; cursor: pointer;" title="Ana domaine git / kopyala"></div>
-      
-      <div style="display:flex; gap:4px;">
-        <button class="btn btn--sidebar btn--sm" id="client-add-btn" style="flex:1;">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          Ekle
-        </button>
-        <button class="btn btn--sidebar btn--sm" id="client-edit-btn" style="flex:1;" title="Müşteriyi Düzenle">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-        </button>
-        <button class="btn btn--sidebar btn--sm" id="client-delete-btn" style="flex:1;" title="Müşteriyi Sil">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-        </button>
+      <!-- ORTA: Navigasyon Menüsü -->
+      <nav class="ag-header-center">
+        <ul id="nav-list">
+          <li><button class="nav__item active" data-tab="1">Metin Bazlı SEO</button></li>
+          <li><button class="nav__item" data-tab="2">Teknik SEO</button></li>
+          <li><button class="nav__item" data-tab="3">AI SEO Hizmetleri</button></li>
+          <!-- <li><button class="nav__item" data-tab="4">Yapılacaklar</button></li> -->
+        </ul>
+      </nav>
+
+      <!-- SAĞ: Müşteri Seçimi ve İşlem Butonları -->
+      <div class="ag-header-right">
+        <!-- Müşteri yönetimi artık soldaki Hamburger menüye taşındı -->
+
+        <button id="btn-reopen-welcome" class="btn-outline">Hızlı Asistan</button>
+        <a href="logout.php" onclick="sessionStorage.removeItem('ag_welcome_seen');" class="btn-panel">Çıkış Yap</a>
       </div>
     </div>
 
@@ -195,7 +679,7 @@ require_once __DIR__ . '/db.php';
        MAIN
   ============================================================ -->
   <main class="main">
-    <header class="topbar" id="topbar">
+    <header class="topbar" id="topbar" style="display:none;">
       <div class="topbar__eyebrow" id="topbar-eyebrow">01 · İÇERİK</div>
       <h1 id="topbar-title">İçerik &amp; İç Linkleme</h1>
       <p class="topbar__desc" id="topbar-desc">Metni hedef kelimeye göre optimize edin, mevcut blog yazılarınıza otomatik iç linkler önerin.</p>
@@ -656,5 +1140,80 @@ require_once __DIR__ . '/db.php';
 <!-- Text SEO Scripts -->
 <script src="src/TextSeo/js/text-seo-pdf.js"></script>
 <script src="src/TextSeo/js/text-seo.js"></script>
+
+<script>
+// FORCE UI UPDATES TO BYPASS ANY APP.JS CONFLICTS
+document.addEventListener('DOMContentLoaded', () => {
+    
+    // 1. URL Input Listener
+    document.addEventListener('input', (e) => {
+      if (e.target && e.target.tagName === 'INPUT' && (e.target.type === 'url' || e.target.id.toLowerCase().includes('url'))) {
+        const val = e.target.value.trim();
+        const headerName = document.getElementById('top-header-client-name');
+        if (!headerName) return;
+        
+        // Ensure state is accessible
+        if (typeof state === 'undefined') return;
+
+        // If a client is actively selected in the dropdown, keep its name
+        const clientSelect = document.getElementById('client-select');
+        if (clientSelect && clientSelect.value && state.currentClient) {
+            headerName.textContent = state.currentClient.name;
+            return;
+        }
+        
+        if (!val) {
+            headerName.textContent = 'Bekleniyor...';
+            return;
+        }
+
+        // Try to match the typed URL with an existing client
+        let matchedClient = null;
+        if (state.clients) {
+             matchedClient = state.clients.find(c => {
+               if (!c.domain_url) return false;
+               let domain1 = c.domain_url.replace(/^https?:\/\//, '').replace(/\/$/, '');
+               let domain2 = val.replace(/^https?:\/\//, '').replace(/\/$/, '');
+               return domain2.startsWith(domain1);
+             });
+        }
+        
+        if (matchedClient) {
+            headerName.textContent = 'Eşleşti: ' + matchedClient.name;
+        } else {
+            headerName.textContent = val;
+        }
+      }
+    });
+
+    // 2. Client Select Listener (Overrides and augments app.js)
+    const clientSelect = document.getElementById('client-select');
+    if (clientSelect) {
+        clientSelect.addEventListener('change', (e) => {
+            setTimeout(() => { // wait for app.js to update state
+                if (typeof state === 'undefined') return;
+                
+                const headerName = document.getElementById('top-header-client-name');
+                if (state.currentClient) {
+                    if (headerName) headerName.textContent = state.currentClient.name;
+                    
+                    // Forcefully populate AI SEO input if it exists
+                    const aiSeoInput = document.getElementById('aiseo-url-input');
+                    if (aiSeoInput && state.currentClient.domain_url) {
+                        aiSeoInput.value = state.currentClient.domain_url;
+                        // Trigger input event to update other potential listeners
+                        // aiSeoInput.dispatchEvent(new Event('input', { bubbles: true })); // kapattım çünkü sonsuz döngü yaratabiliyor bazen
+                    }
+                } else {
+                    if (headerName) headerName.textContent = 'Bekleniyor...';
+                    const aiSeoInput = document.getElementById('aiseo-url-input');
+                    if (aiSeoInput) aiSeoInput.value = '';
+                }
+            }, 100); // slight delay
+        });
+    }
+});
+</script>
 </body>
+
 </html>

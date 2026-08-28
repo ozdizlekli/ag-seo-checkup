@@ -157,8 +157,8 @@ while (true) {
     curl_setopt($ch, CURLOPT_FOLLOWLOCATION, false);       // Redirect elle yönetiliyor
     curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (compatible; AGSEOBot/1.0)');
     curl_setopt($ch, CURLOPT_TIMEOUT, 10);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
     curl_setopt($ch, CURLOPT_PROTOCOLS, CURLPROTO_HTTP | CURLPROTO_HTTPS);
     curl_setopt($ch, CURLOPT_HEADER, true);               // Header'ı yanıta dahil et
 
@@ -169,7 +169,7 @@ while (true) {
         curl_close($ch);
         error_log("fetch_url.php cURL hatası: " . $errMsg);
         http_response_code(502);
-        echo json_encode(['error' => 'URL çekilemedi.']);
+        echo json_encode(['error' => 'URL çekilemedi (cURL Hatası): ' . $errMsg]);
         exit;
     }
 
@@ -300,8 +300,8 @@ if (!isset($llmsVal['error'])) {
     curl_setopt($ch_llms, CURLOPT_TIMEOUT, 3);
     curl_setopt($ch_llms, CURLOPT_FOLLOWLOCATION, false);
     curl_setopt($ch_llms, CURLOPT_USERAGENT, 'Mozilla/5.0 (compatible; AGSEOBot/1.0)');
-    curl_setopt($ch_llms, CURLOPT_SSL_VERIFYPEER, true);
-    curl_setopt($ch_llms, CURLOPT_SSL_VERIFYHOST, 2);
+    curl_setopt($ch_llms, CURLOPT_SSL_VERIFYPEER, false);
+    curl_setopt($ch_llms, CURLOPT_SSL_VERIFYHOST, 0);
     curl_exec($ch_llms);
     $llms_code = curl_getinfo($ch_llms, CURLINFO_HTTP_CODE);
     curl_close($ch_llms);

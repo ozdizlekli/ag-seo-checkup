@@ -13,19 +13,19 @@
     <div style="display:flex; gap:6px; align-items:center;">
       <button id="btn-download-pdf"
         title="Tüm analiz adımları tamamlandıktan sonra indirilebilir."
-        style="display:inline-flex; align-items:center; background:#64748b; color:white; border:none; opacity:0.5; cursor:not-allowed; padding:6px 12px; font-size:12px; border-radius:6px;">
+        style="display:none; align-items:center; background:#64748b; color:white; border:none; opacity:0.5; cursor:not-allowed; padding:6px 12px; font-size:12px; border-radius:6px;">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
         Rapor
       </button>
             <button id="btn-customize-services"
         title="Hizmet alt başlıklarını özelleştirin"
-        style="display:inline-flex; align-items:center; gap:4px; padding:6px 12px; font-size:12px; font-weight:600; color:#312F4D; border:1px solid #DCDAE6; background:#fff; cursor:pointer; border-radius:6px; margin-right:4px;">
+        style="display:none; align-items:center; gap:4px; padding:6px 12px; font-size:12px; font-weight:600; color:#312F4D; border:1px solid #DCDAE6; background:#fff; cursor:pointer; border-radius:6px; margin-right:4px;">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
         Hizmetleri Özelleştir
       </button>
       <button id="btn-new-analysis" 
         title="Yeni URL analizi başlatır."
-        style="display:inline-flex; align-items:center; gap:4px; padding:6px 12px; font-size:12px; font-weight:600; color:var(--muted); border:none; background:none; cursor:pointer; border-radius:6px;">
+        style="display:none; align-items:center; gap:4px; padding:6px 12px; font-size:12px; font-weight:600; color:var(--muted); border:none; background:none; cursor:pointer; border-radius:6px;">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
         Yeni Analiz
       </button>
@@ -47,15 +47,18 @@
       <p style="color:#6B6E82; font-size:14px; margin:0 0 28px 0;">Müşterinizin web sitesini analiz etmek için URL'yi girin. Yapay zeka site türünü otomatik tespit eder.</p>
 
       <div style="display:flex; align-items:center; background:#F7F7F9; border:1px solid #E4E3EC; border-radius:8px; padding:6px 8px 6px 22px;">
-        <input type="text" id="aiseo-url-input"
-          placeholder="Örn: https://www.musteri-sitesi.com"
-          style="flex:1; border:none; outline:none; background:transparent; font-size:15px; color:#1F1D30; padding:10px 0; box-shadow:none; min-width:0;">
-        <button id="aiseo-url-submit"
-          style="background:#312F4D; color:#fff; border:none; border-radius:6px; padding:10px 22px; font-size:14px; font-weight:600; cursor:pointer; white-space:nowrap; transition:background 0.2s; flex-shrink:0;">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:middle; margin-right:4px;"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
-          Analiz Et
-        </button>
-      </div>
+  <input type="text" id="aiseo-url-input"
+    placeholder="Örn: https://www.musteri-sitesi.com"
+    style="flex:1; border:none; outline:none; background:transparent; font-size:15px; color:#1F1D30; padding:10px 0; box-shadow:none; min-width:0;">
+  <button id="aiseo-url-submit"
+    style="display:inline-flex; align-items:center; justify-content:center; gap:6px; background:#312F4D; color:#fff; border:none; border-radius:6px; padding:10px 24px; font-size:14px; font-weight:600; cursor:pointer; white-space:nowrap; transition:background 0.2s; flex-shrink:0;">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+      <line x1="12" y1="19" x2="12" y2="5"></line>
+      <polyline points="5 12 12 5 19 12"></polyline>
+    </svg>
+    Analiz Et
+  </button>
+</div>
       <p style="font-size:11px; color:#9A9DAE; margin-top:10px;">Yapay zeka site türünü otomatik algılar • Gemini API ile güçlendirilmiştir</p>
 
       <!-- Tarama göstergesi -->
@@ -80,10 +83,12 @@
           <p style="font-size:12px; color:#6B6E82; margin:0;">Hizmete tıklayarak AI analizi başlatın</p>
         </div>
         <button id="btn-run-all-services"
-          style="display:inline-flex; align-items:center; gap:6px; background:#312F4D; color:#fff; border:none; border-radius:6px; padding:10px 20px; font-size:13px; font-weight:600; cursor:pointer; transition:background 0.2s;">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FBBA00" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
-          Tüm Hizmetleri Yap
-        </button>
+  style="display:inline-flex; align-items:center; gap:6px; background:#4b5563; color:#fff; border:none; border-radius:6px; padding:10px 20px; font-size:13px; font-weight:600; cursor:pointer; transition:background 0.2s;">
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+  </svg>
+  Tüm Hizmetleri Yap
+</button>
       </div>
 
       <div id="aiseo-service-buttons" style="display:none; flex-wrap:wrap; gap:8px; margin-top: 12px; padding-top: 12px; border-top: 1px solid #E2E8F0;">
