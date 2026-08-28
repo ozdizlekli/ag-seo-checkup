@@ -624,56 +624,11 @@ require_once __DIR__ . '/db.php';
       </div>
     </div>
 
-    <div id="sidebar-site-explorer" class="t3-sitemap" hidden>
-      <div class="t3-sitemap__head">
-        <span class="t3-sitemap__title">Sitemap Explorer <span class="t3-sitemap__badge" id="sitemap-url-count" hidden>0</span></span>
-        <button id="refresh-sitemap-btn" class="t3-sitemap__refresh" type="button" aria-label="Sitemap'i yenile" title="Sitemap'i yenile"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20 11a8 8 0 1 0 2 5"/><polyline points="20 4 20 11 13 11"/></svg><span class="sr-only">Yenile</span></button>
-      </div>
-      <div id="site-explorer-tree" class="t3-sitemap__body" aria-live="polite"><div class="t3-sitemap__empty">Müşteri seçiniz...</div></div>
-      <!-- Auto-Pilot Başlat / Gece 3'te Çalıştır butonları kaldırıldı
-           (kullanıcı isteği). js/app.js'deki ilgili kod (runEnterpriseAutoPilot,
-           schedule-night-btn tıklama dinleyicisi, routeUrlToActiveTab'deki
-           apBtn/schedBtn referansları) hepsi ?.addEventListener veya if(el)
-           koruması kullandığı için bu elementler DOM'dan kalkınca güvenle
-           no-op oluyor, hiçbir yerde hata üretmiyor. -->
+    <!-- JavaScript'in hata vermemesi için gizli tutulan eski sidebar elemanları -->
+    <div style="display:none;">
+      <div id="google-auth-status"></div>
     </div>
-
-    <div style="padding: 0 20px 16px 20px;">
-      <button class="btn btn--sidebar" id="btn-reopen-welcome" style="width: 100%; font-size:12px; justify-content:center;">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:6px;"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-        Hızlı Asistan'ı Aç
-      </button>
-    </div>
-
-    <ul class="nav" id="nav-list">
-      <li><button class="nav__item active" data-tab="1"><span class="num">01</span>
-        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h12l4 4v12H4z"/><path d="M16 4v4h4"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="16" x2="14" y2="16"/></svg>
-        Metin Bazlı SEO</button></li>
-      <li><button class="nav__item" data-tab="2"><span class="num">02</span>
-        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22a10 10 0 1 1 7.07-2.93"/><path d="M12 12l4-3"/><circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none"/></svg>
-        Teknik SEO</button></li>
-      <li><button class="nav__item" data-tab="3"><span class="num">03</span>
-        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-        AI SEO Hizmetleri</button></li>
-      <li><button class="nav__item" data-tab="4"><span class="num">04</span>
-        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-        Yapılacaklar</button></li>
-    </ul>
-
-    <div class="sidebar__footer">
-      
-      <a href="logout.php" onclick="sessionStorage.removeItem('ag_welcome_seen');" class="btn btn--sidebar btn--sm logout-btn" style="text-decoration:none; display:flex; align-items:center; justify-content:center; gap:8px; padding:12px 16px; border-radius:8px; transition:all 0.2s;">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
-        <span style="font-weight: 500;">Çıkış Yap</span>
-    </a>
-<!-- 
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20Z"/><line x1="2" y1="12" x2="22" y2="12"/></svg>
-        -->
-      <div class="google-status" id="google-auth-status"><span class="dot"></span> Bağlı değil</div>
-      <span class="env mt-8" style="display:flex;"><span class="led"></span> Prototip Ortamı</span>
-      <span>v1.0 — Agency OS</span>
-    </div>
-  </aside>
+  </header>
 
   <!-- ============================================================
        MAIN
@@ -701,7 +656,7 @@ require_once __DIR__ . '/db.php';
         </div>
 
         <div id="t3-live-view">
-        <div class="card t3-audit-compact">
+        <div class="card">
           <div class="card__head">
             <div class="card__title">Yeni Teknik Denetim</div>
             <!-- Rapor, html2pdf.js/jsPDF gibi harici bir kutuphane KULLANMADAN,
@@ -714,7 +669,9 @@ require_once __DIR__ . '/db.php';
               <span>Rapor Oluştur (PDF)</span>
             </button>
           </div>
-          <div class="t3-audit-row mt-12">
+          <div class="small muted mt-8">Web sitesi adresini girin; kayıtlı bir müşteriyle eşleşirse otomatik bağlanır.</div>
+
+          <div class="t3-audit-row mt-16">
             <div class="field" style="margin-bottom:0;">
               <input class="input" id="t3-url" type="text" placeholder="https://www.musterisitesi.com" aria-label="Web Sitesi URL'si">
             </div>
@@ -727,20 +684,24 @@ require_once __DIR__ . '/db.php';
           <!-- Kompakt musteri otomatik-eslesme durumu - JS (renderClientMatchStatus)
                tarafindan doldurulur. Yesil = domain kayitli bir musteriyle
                eslesti, notr = eslesme yok + manuel secim linki. -->
-          <div class="t3-audit-meta"><div class="t3-client-match" id="t3-client-match-status"></div><span class="small muted" id="t3-last-analysis-date">Henüz analiz yapılmadı</span></div>
+          <div class="t3-client-match mt-12" id="t3-client-match-status"></div>
 
           <!-- Manuel musteri secici - varsayilan gizli, "değiştir"/"Müşteri seç"
                linkine tiklaninca aciliyor (bkz. js/technical-seo.js). Ayni
                search-select bileseni Skor Gecmisi sekmesinde de kullaniliyor. -->
-          <details class="t3-secondary-actions mt-8">
-            <summary>Diğer işlemler</summary>
-            <div class="search-select hidden mt-8" id="t3-history-client-searchselect" style="position:relative; max-width:320px;">
-              <input type="text" class="input" id="t3-history-client-select-input" placeholder="Müşteri ara..." autocomplete="off">
-              <input type="hidden" id="t3-history-client-select" value="">
-              <div class="search-select__list hidden" id="t3-history-client-select-list"></div>
-            </div>
-            <div class="t3-autosave-row mt-8"><label class="t3-autosave-toggle" for="t3-history-autosave-checkbox"><input type="checkbox" id="t3-history-autosave-checkbox"> Analiz tamamlandığında geçmişe kaydet</label><button class="btn btn--ghost btn--sm" id="t3-history-save-btn" disabled title="Kaydetmek için önce bir denetim tamamlanmalı">Şimdi Kaydet</button></div>
-          </details>
+          <div class="search-select hidden mt-8" id="t3-history-client-searchselect" style="position:relative; max-width:320px;">
+            <input type="text" class="input" id="t3-history-client-select-input" placeholder="Müşteri ara..." autocomplete="off">
+            <input type="hidden" id="t3-history-client-select" value="">
+            <div class="search-select__list hidden" id="t3-history-client-select-list"></div>
+          </div>
+
+          <div class="t3-autosave-row mt-16">
+            <label class="t3-autosave-toggle" for="t3-history-autosave-checkbox">
+              <input type="checkbox" id="t3-history-autosave-checkbox">
+              Analiz tamamlandığında geçmişe kaydet
+            </label>
+            <button class="btn btn--ghost btn--sm" id="t3-history-save-btn" disabled title="Kaydetmek için önce bir denetim tamamlanmalı">Şimdi Kaydet</button>
+          </div>
         </div>
 
         <div class="card mt-20 hidden" id="t3-fullcrawl-card">
@@ -756,42 +717,17 @@ require_once __DIR__ . '/db.php';
           </div>
         </div>
 
-        <div class="t3-scan-overlay hidden" id="t3-progress-card" role="dialog" aria-modal="true" aria-labelledby="t3-scan-title" aria-describedby="t3-scan-current" aria-live="polite" aria-busy="false" aria-hidden="true">
-          <div class="t3-scan-overlay__panel" tabindex="-1">
-            <div id="t3-scan-running">
-              <div class="t3-scan-overlay__scan-dot" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9" stroke-dasharray="18 8"/></svg></div>
-              <div class="t3-scan-overlay__title" id="t3-scan-title">Teknik analiz sürüyor</div>
-              <div class="t3-scan-overlay__current" id="t3-scan-current">Analiz hazırlanıyor…</div>
-              <div class="t3-scan-overlay__bar" role="progressbar" aria-label="Analiz ilerlemesi" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="t3-scan-overlay__bar-fill" id="t3-scan-progress-fill"></div></div>
-              <div class="t3-scan-overlay__steps" id="t3-progress-body"></div>
-            </div>
-            <div class="t3-scan-overlay__done hidden" id="t3-scan-done" role="status"><div class="t3-scan-overlay__done-icon" aria-hidden="true">✓</div><div class="t3-scan-overlay__done-text">Analiz tamamlandı. Sonuçlar hazırlanıyor…</div></div>
-            <div class="t3-scan-overlay__error hidden" id="t3-scan-error" role="alert"><div class="t3-scan-overlay__error-icon" aria-hidden="true">!</div><div class="t3-scan-overlay__error-text" id="t3-scan-error-text"></div><div class="t3-scan-overlay__error-actions"><button class="btn btn--primary btn--sm" id="t3-scan-retry" type="button">Tekrar Dene</button><button class="btn btn--ghost btn--sm" id="t3-scan-close" type="button">Kapat</button></div></div>
-          </div>
-        </div>
-
-        <div class="card mt-20 hidden t3-overview" id="t3-overview-card">
-          <div class="card__head"><div><div class="card__title">Genel Bakış</div><div class="small muted" id="t3-overview-meta"></div></div></div>
-          <div class="t3-overview__stats" id="t3-overview-stats"></div>
-          <div class="t3-priority mt-16" id="t3-overview-priority"></div>
-        </div>
-
-        <div class="card mt-20 hidden" id="t3-findings-card">
+        <div class="card mt-20 hidden" id="t3-progress-card">
           <div class="card__head">
-            <div class="card__title">Sorunlar</div>
-            <span class="small muted" id="t3-findings-subtitle">önce önem derecesi (yüksek → orta → düşük), sonra aynı derece içinde etkilenen sayfa oranı × güven seviyesine göre sıralanmıştır</span>
+            <div class="card__title">Analiz Sürüyor…</div>
+            <span class="small muted">Şu an hangi kontrolün yapıldığını aşağıda canlı olarak görebilirsiniz</span>
           </div>
-          <div class="mt-16" id="t3-findings-body"></div>
-        </div>
-
-        <div class="card mt-20 hidden" id="t3-solutions-card">
-          <div class="card__head"><div><div class="card__title">Hazır Çıktılar</div><div class="small muted">Önizleyin, kopyalayın veya dosya olarak indirin. Hiçbir değişiklik siteye otomatik uygulanmaz.</div></div></div>
-          <div class="mt-16" id="t3-solutions-body"></div>
+          <div class="mt-16" id="t3-progress-body"></div>
         </div>
 
         <div class="card mt-20" id="t3-output-card">
           <div class="card__head">
-            <div class="card__title">Performans ve PageSpeed</div>
+            <div class="card__title">Lighthouse & PageSpeed Denetim Sonuçları</div>
             <span class="small muted" id="t3-audit-url">Henüz bir tarama yapılmadı...</span>
           </div>
 
@@ -875,27 +811,11 @@ require_once __DIR__ . '/db.php';
               <div class="meter-track"><div class="meter-fill" id="t3-inp-fill" style="width:0%;"></div></div>
             </div>
           </div>
-          <div class="t3-psi-details mt-20" id="t3-psi-details"></div>
-        </div>
-
-        <div class="card mt-20 hidden" id="t3-composite-score-card">
-          <div class="card__head">
-            <div class="card__title">Kategori Sağlığı</div>
-            <span class="small muted">Tarama, güvenlik, site yapısı, schema ve mobil uyum</span>
-          </div>
-          <div class="flex gap-24 mt-16" style="align-items:center; flex-wrap:wrap;">
-            <div class="svg-wrap" style="width:110px; height:110px; flex-shrink:0;">
-              <svg viewBox="0 0 36 36"><circle class="bg" cx="18" cy="18" r="15.9155"/><circle class="fill" id="t3-final-score-circle" cx="18" cy="18" r="15.9155" stroke-dasharray="100 100" stroke-dashoffset="100"/></svg>
-              <div class="val" id="t3-final-score-val" style="font-size:22px;">—</div>
-            </div>
-            <div style="flex:1; min-width:260px;" id="t3-gates-warning"></div>
-          </div>
-          <div class="mt-16" id="t3-category-breakdown"></div>
         </div>
 
         <div class="card mt-20 hidden" id="t3-quick-audit-card">
           <div class="card__head">
-            <div class="card__title">Tarama Durumları</div>
+            <div class="card__title">Hızlı Teknik Denetim (Sunucu Taraflı)</div>
             <span class="small muted">robots.txt, sitemap.xml, SSL, canonical</span>
           </div>
           <div class="table-wrap mt-16">
@@ -934,6 +854,28 @@ require_once __DIR__ . '/db.php';
           </div>
         </div>
 
+        <div class="card mt-20 hidden" id="t3-composite-score-card">
+          <div class="card__head">
+            <div class="card__title">Genel Teknik SEO Skoru</div>
+            <span class="small muted">Ağırlıklı kategori ortalaması + kritik kapı kontrolleri — Lighthouse un düz ortalaması DEĞİLDİR</span>
+          </div>
+          <div class="flex gap-24 mt-16" style="align-items:center; flex-wrap:wrap;">
+            <div class="svg-wrap" style="width:110px; height:110px; flex-shrink:0;">
+              <svg viewBox="0 0 36 36"><circle class="bg" cx="18" cy="18" r="15.9155"/><circle class="fill" id="t3-final-score-circle" cx="18" cy="18" r="15.9155" stroke-dasharray="100 100" stroke-dashoffset="100"/></svg>
+              <div class="val" id="t3-final-score-val" style="font-size:22px;">—</div>
+            </div>
+            <div style="flex:1; min-width:260px;" id="t3-gates-warning"></div>
+          </div>
+          <div class="mt-16" id="t3-category-breakdown"></div>
+        </div>
+
+        <div class="card mt-20 hidden" id="t3-findings-card">
+          <div class="card__head">
+            <div class="card__title">Önceliklendirilmiş Teknik SEO Bulguları</div>
+            <span class="small muted" id="t3-findings-subtitle">önce önem derecesi (yüksek → orta → düşük), sonra aynı derece içinde etkilenen sayfa oranı × güven seviyesine göre sıralanmıştır</span>
+          </div>
+          <div class="mt-16" id="t3-findings-body"></div>
+        </div>
         </div><!-- /#t3-live-view -->
 
         <div id="t3-history-view" class="hidden">
