@@ -2,9 +2,10 @@
 #welcome-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.85); /* Koyu lacivert yarı saydam */
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: rgba(15, 23, 42, 0.4);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  
   z-index: 9999;
   display: flex;
   align-items: center;
@@ -14,10 +15,14 @@
 }
 
 .welcome-container {
-  max-width: 900px;
+  max-width: 1000px;
   width: 90%;
-  color: #fff;
+  color: #1F1D30;
   text-align: center;
+  background: #ffffff;
+  padding: 40px;
+  border-radius: 20px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.1);
   animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
@@ -27,29 +32,29 @@
 }
 
 .welcome-header h1 {
-  font-size: 36px;
+  font-size: 32px;
   font-weight: 700;
   margin-bottom: 12px;
-  background: linear-gradient(135deg, #fff, #94a3b8);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: #1F1D30;
+  background: none;
+  -webkit-text-fill-color: initial;
 }
 
 .welcome-header p {
   font-size: 16px;
-  color: #cbd5e1;
-  margin-bottom: 40px;
+  color: #64748B;
+  margin-bottom: 24px;
 }
 
 .welcome-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 20px;
 }
 
 .wc-card {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
   border-radius: 16px;
   padding: 24px;
   text-align: left;
@@ -62,10 +67,10 @@
 }
 
 .wc-card:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: #fff;
   transform: translateY(-4px);
-  border-color: rgba(59, 130, 246, 0.5); /* Primary renk mavi parlaması */
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  border-color: #3b82f6;
+  box-shadow: 0 10px 20px rgba(59, 130, 246, 0.1);
 }
 
 .wc-card-icon {
@@ -83,12 +88,12 @@
   font-size: 18px;
   font-weight: 600;
   margin-bottom: 8px;
-  color: #fff;
+  color: #1F1D30;
 }
 
 .wc-card p {
   font-size: 13.5px;
-  color: #94a3b8;
+  color: #64748B;
   line-height: 1.5;
   margin-bottom: 0;
   flex-grow: 1;
@@ -144,3 +149,9 @@
     grid-template-columns: 1fr;
   }
 }
+
+
+
+
+
+

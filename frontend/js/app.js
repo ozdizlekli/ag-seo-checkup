@@ -87,6 +87,8 @@ const state = {
 /* ============================================================
    TOAST
 ============================================================ */
+window.appState = state;
+
 function showToast(message, type){
   const container = document.getElementById('toast-container');
   const toast = document.createElement('div');
@@ -3527,4 +3529,5 @@ document.addEventListener('DOMContentLoaded', () => {
   if (closeBtn) closeBtn.addEventListener('click', closeSidebar);
   if (overlay) overlay.addEventListener('click', closeSidebar);
 });
+
 
