@@ -15,7 +15,7 @@ require_once __DIR__ . '/db.php';
 <title>AG SEO Check Up - Admin Panel</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@300;400;700;900&display=swap" rel="stylesheet">
 
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -289,7 +289,7 @@ require_once __DIR__ . '/db.php';
   }
 
   .ag-header-left .brand-text .name {
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: 'Source Sans Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     font-size: 16px;
     font-weight: 700;
     color: var(--ag-navy);
@@ -298,7 +298,7 @@ require_once __DIR__ . '/db.php';
   }
 
   .ag-header-left .brand-text .sub {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Source Sans Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     font-size: 10.5px;
     font-weight: 600;
     color: var(--ag-slate-light);
@@ -327,7 +327,7 @@ require_once __DIR__ . '/db.php';
     position: relative;
     background: none;
     border: none;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Source Sans Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     font-size: 13px;
     font-weight: 600;
     color: var(--ag-slate);
@@ -390,7 +390,7 @@ require_once __DIR__ . '/db.php';
   }
 
   .ag-client-label {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Source Sans Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     font-size: 10px;
     font-weight: 700;
     color: var(--ag-slate-light);
@@ -404,7 +404,7 @@ require_once __DIR__ . '/db.php';
     background: #fff;
     border-radius: 6px;
     padding: 5px 8px;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Source Sans Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     font-size: 12.5px;
     color: var(--ag-navy);
     outline: none;
@@ -443,7 +443,7 @@ require_once __DIR__ . '/db.php';
     color: #fff;
     border-radius: 8px;
     padding: 9px 18px;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Source Sans Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     font-size: 12.5px;
     font-weight: 600;
     text-decoration: none;
@@ -460,7 +460,7 @@ require_once __DIR__ . '/db.php';
     color: var(--ag-navy);
     border-radius: 8px;
     padding: 9px 16px;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Source Sans Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     font-size: 12.5px;
     font-weight: 600;
     cursor: pointer;
@@ -595,8 +595,8 @@ require_once __DIR__ . '/db.php';
         <a href="#" style="display:flex; align-items:center; text-decoration:none; gap:12px; margin-left:12px;">
           <img src="image.png" alt="Logo" style="width:40px; height:40px; border-radius:6px; border: 1px solid var(--ag-border);">
           <div style="display:flex; flex-direction:column; justify-content:center; gap:4px;">
-            <div style="font-family:'Space Grotesk', sans-serif; font-weight:700; font-size:16px; color:#1F1D30; line-height:1; letter-spacing:-0.3px;">AG SEO Check Up</div>
-            <div style="font-family:'JetBrains Mono', monospace; font-size:12px; color:#6B6E82; display:flex; align-items:center; gap:6px; line-height:1;">
+            <div style="font-family: 'Source Sans Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; font-weight:700; font-size:16px; color:#1F1D30; line-height:1; letter-spacing:-0.3px;">AG SEO Check Up</div>
+            <div style="font-family: 'Source Sans Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; font-size:12px; color:#6B6E82; display:flex; align-items:center; gap:6px; line-height:1;">
               <span><?php echo htmlspecialchars($_SESSION['username'] ?? 'ozdizlekli'); ?></span>
               <span style="color:#94A3B8;">/</span>
               <span style="font-weight:700; color:#1F1D30;" id="top-header-client-name">Bekleniyor...</span>
@@ -642,7 +642,7 @@ require_once __DIR__ . '/db.php';
 
     <div class="content">
 <section class="tab-panel active" id="tab-1">
-  <?php include __DIR__ . '/src/TextSeo/views/tab1_view.php'; ?>
+  <?php include __DIR__ . '/src/textseo/index.php'; ?>
 </section>
 
       <!-- ==========================================================

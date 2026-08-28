@@ -34,9 +34,9 @@
   --shadow-sm:0 1px 2px rgba(18,21,31,.05), 0 1px 3px rgba(18,21,31,.06);
   --shadow-md:0 4px 14px rgba(18,21,31,.08);
 
-  --font-display:'Space Grotesk', sans-serif;
-  --font-body:'Inter', sans-serif;
-  --font-mono:'JetBrains Mono', monospace;
+  --font-display:'Source Sans Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-body:'Source Sans Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono:'Source Sans Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 
   /* --- Adres Gezgini kurumsal marka renkleri (bkz. medya kiti) --- */
   --ag-yellow:#FBBA00;
@@ -931,3 +931,4 @@ tbody td input.input{ padding:7px 9px; font-size:12.5px; }
      ofsetlerine gore degil, dogrudan tam ekrana gore ayarliyoruz. */
   .t3-scan-overlay{ left:0 !important; padding:16px; }
 }
+

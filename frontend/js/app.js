@@ -2107,7 +2107,7 @@ document.getElementById('t3-schema-audit-btn')?.addEventListener('click', async 
     
     htmlOut += `<div id="t3-schema-fixed-wrap" class="mt-12 hidden">
                   <strong>Onarılan / Üretilen JSON-LD Kodları:</strong>
-                  <textarea class="input mt-8" id="t3-schema-fixed-output" rows="10" style="font-family:'SF Mono',monospace; font-size:12px;"></textarea>
+                  <textarea class="input mt-8" id="t3-schema-fixed-output" rows="10" style="font-family:\'Source Sans Pro\', -apple-system, BlinkMacSystemFont, \'Segoe UI\', Roboto, \'Helvetica Neue\', Arial, sans-serif; font-size:12px;"></textarea>
                   <button class="btn btn--ghost btn--sm mt-8" id="t3-schema-fixed-copy">Kodu Kopyala</button>
                 </div>`;
                 
@@ -2774,7 +2774,7 @@ function statCellHtml(label, value){
   return (
     '<td style="border:1px solid #E3E6EC;padding:14px 12px;width:25%;vertical-align:top;">' +
       '<div style="font-size:9.5pt;letter-spacing:.03em;text-transform:uppercase;color:#8A8F9C;margin-bottom:4px;">' + escapeHtml(label) + '</div>' +
-      '<div style="font-size:19pt;font-weight:700;color:#12151F;font-family:Georgia,\'Times New Roman\',serif;">' + escapeHtml(String(value)) + '</div>' +
+      '<div style="font-size:19pt;font-weight:700;color:#12151F;font-family:\'Source Sans Pro\', -apple-system, BlinkMacSystemFont, \'Segoe UI\', Roboto, \'Helvetica Neue\', Arial, sans-serif;">' + escapeHtml(String(value)) + '</div>' +
     '</td>'
   );
 }
@@ -2782,8 +2782,8 @@ function statCellHtml(label, value){
 function sectionTitleHtml(num, title){
   return (
     '<table cellpadding="0" cellspacing="0" style="width:100%;margin:26px 0 12px 0;border:none;"><tr>' +
-      '<td style="border:none;width:34px;font-family:Georgia,\'Times New Roman\',serif;font-size:15pt;font-weight:700;color:#B8C2FF;vertical-align:top;">' + num + '</td>' +
-      '<td style="border:none;font-family:Georgia,\'Times New Roman\',serif;font-size:15pt;font-weight:700;color:#12151F;border-bottom:1.5px solid #12151F;padding-bottom:6px;">' + escapeHtml(title) + '</td>' +
+      '<td style="border:none;width:34px;font-family:\'Source Sans Pro\', -apple-system, BlinkMacSystemFont, \'Segoe UI\', Roboto, \'Helvetica Neue\', Arial, sans-serif;font-size:15pt;font-weight:700;color:#B8C2FF;vertical-align:top;">' + num + '</td>' +
+      '<td style="border:none;font-family:\'Source Sans Pro\', -apple-system, BlinkMacSystemFont, \'Segoe UI\', Roboto, \'Helvetica Neue\', Arial, sans-serif;font-size:15pt;font-weight:700;color:#12151F;border-bottom:1.5px solid #12151F;padding-bottom:6px;">' + escapeHtml(title) + '</td>' +
     '</tr></table>'
   );
 }
@@ -2818,7 +2818,7 @@ function buildReportHtml(){
     '<table cellpadding="0" cellspacing="0" style="width:100%;border:none;margin-bottom:6px;"><tr>' +
       '<td style="border:none;">' +
         '<div style="font-size:9.5pt;letter-spacing:.12em;text-transform:uppercase;color:#8A8F9C;margin-bottom:6px;">SEO Danışmanlığı &middot; Aylık Performans Raporu</div>' +
-        '<div style="font-family:Georgia,\'Times New Roman\',serif;font-size:26pt;font-weight:700;color:#12151F;line-height:1.15;">' + escapeHtml(customer) + '</div>' +
+        '<div style="font-family:\'Source Sans Pro\', -apple-system, BlinkMacSystemFont, \'Segoe UI\', Roboto, \'Helvetica Neue\', Arial, sans-serif;font-size:26pt;font-weight:700;color:#12151F;line-height:1.15;">' + escapeHtml(customer) + '</div>' +
       '</td>' +
       '<td style="border:none;text-align:right;vertical-align:bottom;width:170px;">' +
         '<div style="font-size:10pt;color:#8A8F9C;">Rapor Tarihi</div>' +
@@ -2834,7 +2834,7 @@ function buildReportHtml(){
     bodyHtml +=
       '<table cellpadding="0" cellspacing="0" style="width:100%;border:none;margin-bottom:8px;"><tr>' +
         '<td style="border:none;width:120px;vertical-align:middle;">' +
-          '<div style="font-family:Georgia,\'Times New Roman\',serif;font-size:38pt;font-weight:700;color:' + scoreColor(s.overall) + ';">' + s.overall + '</div>' +
+          '<div style="font-family:\'Source Sans Pro\', -apple-system, BlinkMacSystemFont, \'Segoe UI\', Roboto, \'Helvetica Neue\', Arial, sans-serif;font-size:38pt;font-weight:700;color:' + scoreColor(s.overall) + ';">' + s.overall + '</div>' +
           '<div style="font-size:9.5pt;color:#8A8F9C;margin-top:-6px;">/ 100 &middot; genel ortalama</div>' +
         '</td>' +
         '<td style="border:none;vertical-align:middle;">' +
@@ -2987,7 +2987,7 @@ function buildReportHtml(){
     "<!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom></w:WordDocument></xml><![endif]-->" +
     "<style>" +
       "@page{size:21cm 29.7cm;margin:2.2cm 2cm;}" +
-      "body{font-family:Calibri,Arial,sans-serif;font-size:10.5pt;color:#12151F;}" +
+      "body{font-family:\'Source Sans Pro\', -apple-system, BlinkMacSystemFont, \'Segoe UI\', Roboto, \'Helvetica Neue\', Arial, sans-serif;font-size:10.5pt;color:#12151F;}" +
       "table{border-collapse:collapse;}" +
     "</style>" +
     "</head><body>" +
@@ -3527,3 +3527,4 @@ document.addEventListener('DOMContentLoaded', () => {
   if (closeBtn) closeBtn.addEventListener('click', closeSidebar);
   if (overlay) overlay.addEventListener('click', closeSidebar);
 });
+
