@@ -168,6 +168,127 @@ function buildSitemapSolution(bool $found, string $xml, array $existingUrls, arr
     ];
 }
 
+/**
+ * Deterministik robots.txt çözümü; AI teknik kararlara dahil edilmez.
+ * Üç durumu ele alır: (a) robots.txt hiç yok -> minimal, izin veren bir
+ * varsayılan önerilir; (b) robots.txt sitenin tamamını engelliyor -> SADECE
+ * '*' grubundaki, kökü (/) engelleyen Disallow satır(lar)ı ham metinden
+ * ayıklanır, geri kalan HER ŞEY (yorumlar dahil) olduğu gibi korunur
+ * (minimal diff); (c) robots.txt sorunsuz ama Sitemap: bildirimi eksik ->
+ * ham metnin sonuna tek satır eklenir. Hiçbir durumda otomatik olarak
+ * canlı siteye yazılmaz - sadece önizleme/kopyala/indir için üretilir.
+ */
+function buildRobotsSolution(bool $found, string $rawBody, array $parsed, bool $blocksSite, ?string $sitemapUrlToDeclare): array
+{
+    if (!$found) {
+        $lines = ['User-agent: *', 'Allow: /'];
+        if ($sitemapUrlToDeclare) {
+            $lines[] = '';
+            $lines[] = 'Sitemap: ' . $sitemapUrlToDeclare;
+        }
+        return [
+            'available' => true,
+            'mode' => 'create',
+            'reason' => 'robots.txt bulunamadı.',
+            'content' => implode("\n", $lines) . "\n",
+            'note' => 'Kök dizine (/robots.txt) eklenmesi önerilen, hiçbir yolu engellemeyen minimal bir dosya.',
+        ];
+    }
+
+    $hasSitemapDeclared = !empty($parsed['sitemaps']);
+
+    if ($blocksSite) {
+        $blanketPaths = ['/', '/*', '/**'];
+        $rawLines = preg_split('/\r\n|\n|\r/', $rawBody) ?: [];
+        $currentAgents = [];
+        $groupHasRules = false;
+        $removedCount = 0;
+        $outputLines = [];
+        foreach ($rawLines as $line) {
+            $stripped = trim(preg_replace('/#.*$/', '', $line) ?? '');
+            if ($stripped !== '' && str_contains($stripped, ':')) {
+                [$rawField, $rawValue] = explode(':', $stripped, 2);
+                $fieldLower = strtolower(trim($rawField));
+                $value = trim($rawValue);
+                if ($fieldLower === 'user-agent') {
+                    if ($groupHasRules) {
+                        $currentAgents = [];
+                        $groupHasRules = false;
+                    }
+                    $currentAgents[] = strtolower($value);
+                } elseif (in_array($fieldLower, ['disallow', 'allow'], true)) {
+                    $groupHasRules = true;
+                    if ($fieldLower === 'disallow' && $value !== '' && in_array($value, $blanketPaths, true) && in_array('*', $currentAgents, true)) {
+                        $removedCount++;
+                        continue;
+                    }
+                }
+            }
+            $outputLines[] = $line;
+        }
+        $content = rtrim(implode("\n", $outputLines)) . "\n";
+        return [
+            'available' => $removedCount > 0,
+            'mode' => 'unblock',
+            'removed_rule_count' => $removedCount,
+            'content' => $content,
+            'note' => $removedCount > 0
+                ? 'Sitenin tamamını engelleyen ' . $removedCount . ' kural kaldırıldı; diğer tüm satırlar (yorumlar dahil) olduğu gibi korundu.'
+                : 'Engelleme tespit edildi ancak kural otomatik olarak ayıklanamadı - manuel inceleme gerekli.',
+        ];
+    }
+
+    if ($sitemapUrlToDeclare && !$hasSitemapDeclared) {
+        $trimmed = rtrim($rawBody);
+        $content = ($trimmed !== '' ? $trimmed . "\n\n" : '') . 'Sitemap: ' . $sitemapUrlToDeclare . "\n";
+        return [
+            'available' => true,
+            'mode' => 'append_sitemap',
+            'content' => $content,
+            'note' => 'Mevcut robots.txt içeriği korunarak sonuna Sitemap bildirimi eklendi.',
+        ];
+    }
+
+    return [
+        'available' => false,
+        'mode' => 'noop',
+        'reason' => 'robots.txt sorunsuz görünüyor; otomatik bir değişiklik önerisi yok.',
+    ];
+}
+
+/**
+ * Deterministik canonical çözümü (SADECE ana sayfa kapsamında); AI teknik
+ * kararlara dahil edilmez. Çok sayfalı canonical-çakışma sistemi
+ * (OnPageContentChecker::findCanonicalIssues) bu fonksiyonun kapsamı DıŞıNDA
+ * bırakılmıştır - o çok sayfa arası çakışma tespiti yapar, bu ise sadece
+ * ana sayfanın kendi canonical etiketini kontrol eder.
+ */
+function buildCanonicalSolution(array $canonical, string $finalUrl): array
+{
+    if (($canonical['present'] ?? false) === true && ($canonical['is_self_referencing'] ?? false) === true) {
+        return [
+            'available' => false,
+            'mode' => 'noop',
+            'reason' => 'Ana sayfada zaten kendine referans veren bir canonical etiketi var.',
+        ];
+    }
+
+    $mode = ($canonical['present'] ?? false) === true ? 'fix_target' : 'add';
+    $snippet = '<link rel="canonical" href="' . htmlspecialchars($finalUrl, ENT_QUOTES, 'UTF-8') . '" />';
+
+    return [
+        'available' => true,
+        'mode' => $mode,
+        'scope' => 'homepage_only',
+        'target_url' => $finalUrl,
+        'current_canonical' => $canonical['canonical_url'] ?? null,
+        'snippet' => $snippet,
+        'note' => $mode === 'add'
+            ? 'Ana sayfanın <head> bölümüne bu canonical etiketi eklenmesi önerilir.'
+            : 'Mevcut canonical etiketi kendine referans vermiyor; href değeri ana sayfanın kendi URL’si ile değiştirilmelidir.',
+    ];
+}
+
 $config = require __DIR__ . '/../src/TechnicalSeo/Bootstrap.php';
 
 try {
@@ -249,9 +370,10 @@ try {
     });
 
     // 3) robots.txt
-    runStep('robots', 'robots.txt kontrol ediliyor', function () use ($crawler, $origin, $indexChecker, &$robotsFound, &$robotsParsed, &$robotsBlocksSite) {
+    runStep('robots', 'robots.txt kontrol ediliyor', function () use ($crawler, $origin, $indexChecker, &$robotsFound, &$robotsParsed, &$robotsBlocksSite, &$robotsRawBody) {
         $robotsResult = $crawler->fetch($origin . '/robots.txt');
         $robotsFound = $robotsResult['error'] === null && $robotsResult['status_code'] === 200;
+        $robotsRawBody = $robotsFound ? (string) $robotsResult['body'] : '';
         $robotsParsed = $indexChecker->parseRobotsTxt($robotsFound ? $robotsResult['body'] : null);
         $robotsBlocksSite = $robotsFound && $indexChecker->blocksEntireSite($robotsParsed['groups']);
     });
@@ -476,6 +598,8 @@ try {
     }
 
     $sitemapSolution = buildSitemapSolution($sitemapFound, $sitemapXml, $sitemapUrls, $siteStructure['pages'], $crossRef['orphan_pages']);
+    $robotsSolution = buildRobotsSolution($robotsFound, $robotsRawBody, $robotsParsed, $robotsBlocksSite, $sitemapFound ? $sitemapUrl : null);
+    $canonicalSolution = buildCanonicalSolution($canonical, $finalUrl);
 
     sendEvent([
         'type' => 'result',
@@ -506,7 +630,7 @@ try {
         'link_check' => $linkCheckResult,
         'mobile_parity' => $mobileParity,
         'schema' => ['detected_json_ld_count' => count($jsonLdBlocks), 'issues' => $schemaIssues],
-        'solutions' => ['sitemap' => $sitemapSolution],
+        'solutions' => ['sitemap' => $sitemapSolution, 'robots' => $robotsSolution, 'canonical' => $canonicalSolution],
     ]);
 } catch (\Throwable $e) {
     if (!headers_sent()) {

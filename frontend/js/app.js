@@ -141,6 +141,7 @@ function wireSidebarClientSearchSelect() {
   const input = document.getElementById('client-select-input');
   const hidden = document.getElementById('client-select');
   const list = document.getElementById('client-select-list');
+  const wrap = document.getElementById('client-searchselect');
   if (!input || !hidden || !list) return;
 
   const renderList = (query) => {
@@ -154,8 +155,11 @@ function wireSidebarClientSearchSelect() {
       : '<div class="search-select__item search-select__item--empty">Eşleşen müşteri yok</div>';
   };
 
-  input.addEventListener('focus', () => { renderList(''); list.classList.remove('hidden'); });
-  input.addEventListener('input', () => { hidden.value = ''; renderList(input.value); list.classList.remove('hidden'); });
+  // wrap'a 'is-open' eklenip cikarilmasi SADECE gorsel - acilir listenin
+  // ok ikonunu (search-select__chevron, bkz. css) dondurmek icin; liste
+  // acma/kapama mantiginin kendisini etkilemiyor.
+  input.addEventListener('focus', () => { renderList(''); list.classList.remove('hidden'); wrap?.classList.add('is-open'); });
+  input.addEventListener('input', () => { hidden.value = ''; renderList(input.value); list.classList.remove('hidden'); wrap?.classList.add('is-open'); });
   list.addEventListener('mousedown', (e) => {
     const item = e.target.closest('.search-select__item[data-id]');
     if (!item) return;
@@ -163,11 +167,13 @@ function wireSidebarClientSearchSelect() {
     input.value = item.dataset.name;
     hidden.value = item.dataset.id;
     list.classList.add('hidden');
+    wrap?.classList.remove('is-open');
     hidden.dispatchEvent(new Event('change'));
   });
   document.addEventListener('click', (e) => {
     if (e.target === input || list.contains(e.target)) return;
     list.classList.add('hidden');
+    wrap?.classList.remove('is-open');
   });
 }
 wireSidebarClientSearchSelect();
@@ -235,9 +241,9 @@ function resetAllForms() {
   document.querySelectorAll('.code-block code').forEach(el => el.textContent = '');
   document.querySelectorAll('.cluster-col').forEach(el => el.innerHTML = '');
   document.querySelectorAll('.num').forEach(el => el.innerHTML = '—');
-  document.getElementById('t4-output-wrap').classList.add('hidden');
-  document.getElementById('t3-schema-results').classList.add('hidden');
-  document.getElementById('t4-master-llmstxt-wrap').classList.add('hidden');
+  document.getElementById('t4-output-wrap')?.classList.add('hidden');
+  document.getElementById('t3-schema-results')?.classList.add('hidden');
+  document.getElementById('t4-master-llmstxt-wrap')?.classList.add('hidden');
 }
 
 document.getElementById('client-delete-btn')?.addEventListener('click', async () => {
@@ -2236,8 +2242,9 @@ async function computeAndRenderScore(){
   }
 
   const wrap = document.getElementById('t6-sub-scores');
-  wrap.innerHTML = '';
+  if (wrap) wrap.innerHTML = '';
   subs.forEach(s => {
+    if (!wrap) return;
     const st = scoreStatusLabel(s.value);
     const row = document.createElement('div');
     row.className = 'meter-row';

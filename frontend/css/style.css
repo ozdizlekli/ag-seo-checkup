@@ -357,6 +357,17 @@ textarea.tall{ min-height:180px; }
 .search-select__list--dark .search-select__item:hover{ background:rgba(251,186,0,.12); }
 .search-select__list--dark .search-select__item--empty{ color:var(--muted-2); }
 
+/* Musteri secicideki (search-select--client) gorsel "acilir liste" oku -
+   davranis zaten yazarak arama + tiklayinca tam liste acma seklindeydi,
+   ama kutunun da bir kombo-kutusu oldugunu belli eden bir ok yoktu. Ok
+   dekoratif (pointer-events:none) - tiklama/yazma input'a gecer. */
+.search-select--client .client-select-dark{ padding-right:30px; }
+.search-select__chevron{
+  position:absolute; top:50%; right:11px; transform:translateY(-50%);
+  color:var(--muted-2); pointer-events:none; transition:transform .15s, color .15s;
+}
+.search-select--client.is-open .search-select__chevron{ transform:translateY(-50%) rotate(180deg); color:var(--ag-yellow); }
+
 /* Teknik SEO - "Yeni Teknik Denetim" kompakt karti: URL + buton ayni satirda
    (masaustu), musteri otomatik-eslesme durumu ince bir satirda, "kaydet"
    artik buyuk bir buton degil kucuk bir checkbox+link. */
@@ -728,35 +739,40 @@ tbody td input.input{ padding:7px 9px; font-size:12.5px; }
 /* ============================================================
    SIDEBAR - SITEMAP EXPLORER (bkz. js/app.js: loadClientSitemap)
    ============================================================ */
-.t3-sitemap{ margin:0 20px 16px; padding:12px 10px 10px; background:rgba(0,0,0,.18); border-radius:10px; border:1px solid rgba(255,255,255,.06); }
-.t3-sitemap__head{ display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:8px; padding:0 2px; }
-.t3-sitemap__title{ display:flex; align-items:center; gap:6px; font-size:10.5px; font-weight:700; color:var(--muted-2); text-transform:uppercase; letter-spacing:.05em; }
-.t3-sitemap__badge{ display:inline-flex; align-items:center; justify-content:center; min-width:17px; height:17px; padding:0 5px; border-radius:999px; background:rgba(251,186,0,.18); color:var(--ag-yellow); font-size:10px; font-weight:700; font-family:var(--font-mono); }
-.t3-sitemap__refresh{ background:none; border:none; padding:4px; border-radius:6px; color:var(--muted-2); display:flex; cursor:pointer; transition:background .15s, color .15s; }
-.t3-sitemap__refresh:hover{ background:rgba(255,255,255,.08); color:#fff; }
+.t3-sitemap{
+  margin:0 20px 16px; padding:14px 13px 12px; background:rgba(0,0,0,.2);
+  border-radius:10px; border:1px solid rgba(255,255,255,.06);
+  border-top:3px solid var(--ag-yellow); box-shadow:0 2px 8px rgba(0,0,0,.16);
+}
+.t3-sitemap__head{ display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:10px; padding:0 2px; }
+.t3-sitemap__title{ display:flex; align-items:center; gap:7px; font-size:10.5px; font-weight:700; color:var(--muted-2); text-transform:uppercase; letter-spacing:.06em; }
+.t3-sitemap__badge{ display:inline-flex; align-items:center; justify-content:center; min-width:18px; height:18px; padding:0 5px; border-radius:999px; background:rgba(251,186,0,.18); color:var(--ag-yellow); font-size:10px; font-weight:700; font-family:var(--font-mono); }
+.t3-sitemap__refresh{ background:none; border:none; padding:5px; border-radius:7px; color:var(--muted-2); display:flex; cursor:pointer; transition:background .15s, color .15s; }
+.t3-sitemap__refresh:hover{ background:rgba(251,186,0,.12); color:var(--ag-yellow); }
 .t3-sitemap__refresh.is-loading svg{ animation:spin .7s linear infinite; }
-.t3-sitemap__body{ max-height:220px; overflow-y:auto; font-size:11.5px; line-height:1.7; color:#E4E7EE; scrollbar-width:thin; scrollbar-color:rgba(255,255,255,.16) transparent; }
+.t3-sitemap__body{ max-height:224px; overflow-y:auto; font-size:12px; line-height:1.85; color:#E4E7EE; scrollbar-width:thin; scrollbar-color:rgba(255,255,255,.16) transparent; }
 .t3-sitemap__body::-webkit-scrollbar{ width:5px; }
 .t3-sitemap__body::-webkit-scrollbar-track{ background:transparent; }
 .t3-sitemap__body::-webkit-scrollbar-thumb{ background:rgba(255,255,255,.16); border-radius:999px; }
-.t3-sitemap__empty{ padding:14px 4px; text-align:center; color:var(--muted-2); font-style:italic; }
-.t3-sitemap__error{ padding:8px 4px; color:#F3A3A5; }
-.t3-sitemap__home{ display:flex; align-items:center; gap:6px; padding:4px 4px; margin-bottom:2px; color:var(--ag-yellow); text-decoration:none; font-weight:600; border-radius:6px; }
-.t3-sitemap__home:hover{ background:rgba(255,255,255,.06); }
-.t3-sitemap__home svg{ flex:none; }
+.t3-sitemap__empty{ padding:20px 6px; text-align:center; color:var(--muted-2); font-style:italic; }
+.t3-sitemap__error{ padding:10px 6px; color:#F3A3A5; }
+.t3-sitemap__home{ display:flex; align-items:center; gap:7px; padding:6px 7px; margin-bottom:4px; color:var(--ag-yellow); text-decoration:none; font-weight:600; border-radius:7px; transition:background .15s; }
+.t3-sitemap__home:hover{ background:rgba(251,186,0,.1); }
+.t3-sitemap__home svg{ flex:none; width:13px; height:13px; }
 .t3-sitemap__row{ position:relative; }
-.t3-sitemap__folder{ display:flex; align-items:center; gap:5px; padding:4px 4px; color:#B9BFD6; font-weight:600; cursor:pointer; border-radius:6px; user-select:none; }
+.t3-sitemap__folder{ display:flex; align-items:center; gap:7px; padding:6px 7px; color:#B9BFD6; font-weight:600; cursor:pointer; border-radius:7px; user-select:none; transition:background .15s, color .15s; }
 .t3-sitemap__folder{ width:100%; border:0; background:transparent; font:inherit; text-align:left; min-width:0; }
 .t3-sitemap__folder span{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.t3-sitemap__folder:hover{ background:rgba(255,255,255,.05); color:#fff; }
-.t3-sitemap__folder svg:first-child{ flex:none; transition:transform .15s; }
-.t3-sitemap__folder[aria-expanded="true"] svg:first-child{ transform:rotate(90deg); }
-.t3-sitemap__children{ margin-left:9px; padding-left:9px; border-left:1px solid rgba(255,255,255,.1); }
-.t3-sitemap__link{ display:flex; align-items:center; gap:5px; padding:4px 4px; color:var(--muted-2); text-decoration:none; border-radius:6px; overflow:hidden; }
+.t3-sitemap__folder:hover{ background:rgba(255,255,255,.06); color:#fff; }
+.t3-sitemap__folder svg:first-child{ flex:none; transition:transform .15s; color:var(--muted-2); width:11px; height:11px; }
+.t3-sitemap__folder[aria-expanded="true"] svg:first-child{ transform:rotate(90deg); color:var(--ag-yellow); }
+.t3-sitemap__folder svg:not(:first-child){ width:13px; height:13px; }
+.t3-sitemap__children{ margin-left:10px; padding-left:11px; border-left:1px solid rgba(251,186,0,.16); }
+.t3-sitemap__link{ display:flex; align-items:center; gap:7px; padding:6px 7px; color:var(--muted-2); text-decoration:none; border-radius:7px; overflow:hidden; transition:background .15s, color .15s; }
 .t3-sitemap__link span{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.t3-sitemap__link svg{ flex:none; }
+.t3-sitemap__link svg{ flex:none; width:12px; height:12px; }
 .t3-sitemap__link:hover{ background:rgba(255,255,255,.06); color:#fff; }
-.t3-sitemap__link.is-active{ background:rgba(251,186,0,.14); color:var(--ag-yellow); }
+.t3-sitemap__link.is-active{ background:rgba(251,186,0,.14); color:var(--ag-yellow); font-weight:600; }
 .t3-sitemap__link.is-active svg{ color:var(--ag-yellow); }
 
 /* Teknik SEO sonuç bilgi mimarisi */
@@ -786,6 +802,68 @@ tbody td input.input{ padding:7px 9px; font-size:12.5px; }
 .t3-sitemap-decision span{ font:700 18px var(--font-display); margin-top:3px; }
 .finding-card__actions{ display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
 .finding-card.is-highlighted{ box-shadow:0 0 0 3px rgba(251,186,0,.35); }
+
+/* Teknik SEO kompakt panel düzeni */
+#tab-2{ max-width:1440px; margin-inline:auto; }
+.t3-audit-compact{ padding:16px 18px; }
+.t3-audit-compact .card__head{ margin-bottom:0; }
+.t3-audit-compact>.small.muted{ display:none; }
+.t3-audit-meta{ display:flex; justify-content:space-between; gap:12px; align-items:center; min-height:24px; margin-top:8px; }
+.t3-secondary-actions{ width:max-content; max-width:100%; color:var(--muted); font-size:12px; }
+.t3-secondary-actions>summary{ cursor:pointer; font-weight:600; }
+.t3-secondary-actions[open]{ width:100%; padding-top:6px; }
+.t3-overview__stats{ grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; }
+.t3-summary-card{ min-height:126px; padding:16px; border:1px solid var(--border); border-radius:12px; background:#fff; box-shadow:var(--shadow-sm); }
+.t3-summary-card>small{ display:block; color:var(--muted); font-weight:650; }
+.t3-summary-card>strong{ display:block; margin:12px 0 5px; color:var(--ag-navy); font:700 30px/1 var(--font-display); }
+.t3-summary-card>span{ color:var(--muted); font-size:11.5px; }
+.t3-summary-card__split{ display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:12px 0 5px; }
+.t3-summary-card__split strong{ color:var(--ag-navy); font:700 24px/1 var(--font-display); }
+.t3-summary-card__split em{ display:block; margin-top:5px; color:var(--muted); font:500 10px var(--font-body); font-style:normal; }
+.t3-executive-summary{ padding:13px 15px; border-left:3px solid var(--ag-yellow); background:#FFF9E8; border-radius:0 10px 10px 0; color:var(--ag-navy); font-size:13px; line-height:1.55; }
+.t3-priority__row{ grid-template-columns:26px 70px minmax(0,1fr) 90px auto; padding:9px 0; }
+.t3-severity-text{ font-size:11px; font-weight:700; color:var(--muted); }
+.t3-issue-toolbar{ display:grid; grid-template-columns:minmax(180px,1fr) 170px 190px auto; gap:8px; align-items:center; margin-bottom:12px; }
+.t3-issue-toolbar .input{ padding:9px 10px; margin:0; }
+.t3-filter-check{ display:flex; gap:6px; align-items:center; color:var(--ink-soft); font-size:12px; white-space:nowrap; }
+.t3-issue-list{ border:1px solid var(--border); border-radius:12px; overflow:hidden; }
+.t3-issue-row{ display:grid; grid-template-columns:72px minmax(220px,1fr) 160px 90px 80px 18px; gap:10px; align-items:center; width:100%; padding:12px 14px; border:0; border-bottom:1px solid var(--border-soft); background:#fff; color:var(--ink-soft); text-align:left; }
+.t3-issue-row:last-child{ border-bottom:0; }
+.t3-issue-row:hover{ background:#FAFBFC; }
+.t3-issue-row>span{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--muted); font-size:11.5px; }
+.t3-issue-severity{ display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:700; }
+.t3-issue-severity::before{ content:''; width:7px; height:7px; border-radius:50%; background:var(--muted-2); }
+.t3-issue-severity[data-severity="critical"]::before{ background:var(--danger); }
+.t3-issue-severity[data-severity="major"]::before{ background:var(--warn); }
+.t3-issue-group:last-child .t3-issue-row{ border-bottom:0; }
+.t3-issue-chevron{ display:inline-block; transition:transform .15s; color:var(--muted); }
+.t3-issue-row[aria-expanded="true"] .t3-issue-chevron{ transform:rotate(180deg); }
+.t3-issue-detail:not(.hidden){ padding:14px 16px 18px; background:#FAFBFC; border-bottom:1px solid var(--border-soft); font-size:13px; line-height:1.6; }
+.t3-issue-group:last-child .t3-issue-detail{ border-bottom:0; }
+
+/* CrUX (gercek kullanici) veri karti - bkz. js/technical-seo.js renderCruxSection() */
+.t3-crux-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:8px; }
+.t3-crux-row{ display:flex; flex-direction:column; gap:4px; padding:10px; background:var(--paper); border-radius:8px; }
+.t3-crux-row__label{ color:var(--muted); font-size:11px; font-weight:650; text-transform:uppercase; letter-spacing:.03em; }
+.t3-crux-row__value{ font:700 18px var(--font-display); color:var(--ag-navy); }
+.t3-crux-empty{ padding:12px; border:1px dashed var(--border); border-radius:var(--radius); }
+
+/* "Sorunu Gor" / "Incele" butonlariyla ilgili satira atlarken (bkz.
+   jumpToFinding/jumpToAudit) satiri gecici olarak vurgulamak icin. */
+.t3-issue-row.is-highlighted,.t3-audit-row-detail.is-highlighted{ animation:t3-flash 2s ease-out; }
+@keyframes t3-flash{ 0%{ background:rgba(251,186,0,.35); } 100%{ background:transparent; } }
+.t3-finding-meta{ display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin:0 0 16px; }
+.t3-finding-meta div{ padding:9px; background:var(--paper); border-radius:8px; }
+.t3-finding-meta dt{ color:var(--muted); font-size:10px; }
+.t3-finding-meta dd{ margin:3px 0 0; font-weight:650; font-size:12px; }
+.t3-drawer-urls{ max-height:260px; overflow:auto; }
+.t3-drawer-urls>div{ display:flex; justify-content:space-between; gap:10px; padding:7px 0; border-bottom:1px solid var(--border-soft); font-size:11px; }
+.t3-drawer-urls a{ min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--info); }
+.t3-psi-impact__action{ display:flex; align-items:center; gap:8px; flex:none; color:var(--warn); font-size:11px; font-weight:650; }
+.t3-advanced-details{ margin-top:16px; }
+#t3-composite-score-card>.flex{ display:none; }
+#t3-category-breakdown{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px 20px; }
+#t3-quick-audit-card .table td{ padding:9px 10px!important; }
 
 /* Teknik SEO - bulgu kartindaki "AI ile Acikla" paneli (bkz. js/technical-seo.js:
    handleAiExplainClick/renderAiExplainPanel). Deterministik bulgu/cozüm alanlarina
@@ -819,6 +897,28 @@ tbody td input.input{ padding:7px 9px; font-size:12.5px; }
   .t3-priority__row .btn{ grid-column:2; justify-self:start; }
   .t3-sitemap-decision{ grid-template-columns:1fr; }
   .t3-scan-overlay__panel{ padding:20px 16px; max-height:calc(100vh - 32px); }
+}
+
+@media (max-width:1100px){
+  .t3-overview__stats{ grid-template-columns:repeat(2,1fr); }
+  .t3-issue-toolbar{ grid-template-columns:1fr 1fr; }
+  .t3-issue-row{ grid-template-columns:70px minmax(180px,1fr) 100px 18px; }
+  .t3-issue-row>span:nth-of-type(2),.t3-issue-row>span:nth-of-type(4){ display:none; }
+}
+@media (max-width:760px){
+  .t3-audit-compact .card__head{ align-items:flex-start; }
+  .t3-audit-meta{ align-items:flex-start; flex-direction:column; }
+  .t3-priority__row{ grid-template-columns:26px 62px minmax(0,1fr); }
+  .t3-priority__row>.small,.t3-priority__row>.btn{ grid-column:3; justify-self:start; }
+  #t3-category-breakdown{ grid-template-columns:1fr; }
+}
+@media (max-width:640px){
+  .t3-overview__stats{ grid-template-columns:1fr 1fr; }
+  .t3-summary-card{ min-height:112px; padding:13px; }
+  .t3-issue-toolbar{ grid-template-columns:1fr; }
+  .t3-issue-row{ grid-template-columns:64px minmax(0,1fr) 16px; padding:11px; }
+  .t3-issue-row>span:not(.t3-issue-severity):not(:last-child){ display:none; }
+  .t3-finding-meta{ grid-template-columns:1fr; }
 }
 
 @media (max-width:880px){

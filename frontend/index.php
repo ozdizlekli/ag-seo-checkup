@@ -118,9 +118,10 @@ require_once __DIR__ . '/db.php';
 
     <div class="client-box">
       <label for="client-select-input">Aktif Müşteri</label>
-      <div class="search-select" id="client-searchselect">
+      <div class="search-select search-select--client" id="client-searchselect">
         <input type="text" class="client-select-dark" id="client-select-input" placeholder="— Müşteri seçin —" autocomplete="off">
         <input type="hidden" id="client-select" value="">
+        <svg class="search-select__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
         <div class="search-select__list search-select__list--dark hidden" id="client-select-list"></div>
       </div>
       <div id="sidebar-client-domain" style="font-size: 11px; color: var(--muted-2); margin-bottom: 8px; display: none; cursor: pointer;" title="Ana domaine git / kopyala"></div>
@@ -216,7 +217,7 @@ require_once __DIR__ . '/db.php';
         </div>
 
         <div id="t3-live-view">
-        <div class="card">
+        <div class="card t3-audit-compact">
           <div class="card__head">
             <div class="card__title">Yeni Teknik Denetim</div>
             <!-- Rapor, html2pdf.js/jsPDF gibi harici bir kutuphane KULLANMADAN,
@@ -229,9 +230,7 @@ require_once __DIR__ . '/db.php';
               <span>Rapor Oluştur (PDF)</span>
             </button>
           </div>
-          <div class="small muted mt-8">Web sitesi adresini girin; kayıtlı bir müşteriyle eşleşirse otomatik bağlanır.</div>
-
-          <div class="t3-audit-row mt-16">
+          <div class="t3-audit-row mt-12">
             <div class="field" style="margin-bottom:0;">
               <input class="input" id="t3-url" type="text" placeholder="https://www.musterisitesi.com" aria-label="Web Sitesi URL'si">
             </div>
@@ -244,24 +243,20 @@ require_once __DIR__ . '/db.php';
           <!-- Kompakt musteri otomatik-eslesme durumu - JS (renderClientMatchStatus)
                tarafindan doldurulur. Yesil = domain kayitli bir musteriyle
                eslesti, notr = eslesme yok + manuel secim linki. -->
-          <div class="t3-client-match mt-12" id="t3-client-match-status"></div>
+          <div class="t3-audit-meta"><div class="t3-client-match" id="t3-client-match-status"></div><span class="small muted" id="t3-last-analysis-date">Henüz analiz yapılmadı</span></div>
 
           <!-- Manuel musteri secici - varsayilan gizli, "değiştir"/"Müşteri seç"
                linkine tiklaninca aciliyor (bkz. js/technical-seo.js). Ayni
                search-select bileseni Skor Gecmisi sekmesinde de kullaniliyor. -->
-          <div class="search-select hidden mt-8" id="t3-history-client-searchselect" style="position:relative; max-width:320px;">
-            <input type="text" class="input" id="t3-history-client-select-input" placeholder="Müşteri ara..." autocomplete="off">
-            <input type="hidden" id="t3-history-client-select" value="">
-            <div class="search-select__list hidden" id="t3-history-client-select-list"></div>
-          </div>
-
-          <div class="t3-autosave-row mt-16">
-            <label class="t3-autosave-toggle" for="t3-history-autosave-checkbox">
-              <input type="checkbox" id="t3-history-autosave-checkbox">
-              Analiz tamamlandığında geçmişe kaydet
-            </label>
-            <button class="btn btn--ghost btn--sm" id="t3-history-save-btn" disabled title="Kaydetmek için önce bir denetim tamamlanmalı">Şimdi Kaydet</button>
-          </div>
+          <details class="t3-secondary-actions mt-8">
+            <summary>Diğer işlemler</summary>
+            <div class="search-select hidden mt-8" id="t3-history-client-searchselect" style="position:relative; max-width:320px;">
+              <input type="text" class="input" id="t3-history-client-select-input" placeholder="Müşteri ara..." autocomplete="off">
+              <input type="hidden" id="t3-history-client-select" value="">
+              <div class="search-select__list hidden" id="t3-history-client-select-list"></div>
+            </div>
+            <div class="t3-autosave-row mt-8"><label class="t3-autosave-toggle" for="t3-history-autosave-checkbox"><input type="checkbox" id="t3-history-autosave-checkbox"> Analiz tamamlandığında geçmişe kaydet</label><button class="btn btn--ghost btn--sm" id="t3-history-save-btn" disabled title="Kaydetmek için önce bir denetim tamamlanmalı">Şimdi Kaydet</button></div>
+          </details>
         </div>
 
         <div class="card mt-20 hidden" id="t3-fullcrawl-card">
@@ -294,14 +289,15 @@ require_once __DIR__ . '/db.php';
         <div class="card mt-20 hidden t3-overview" id="t3-overview-card">
           <div class="card__head"><div><div class="card__title">Genel Bakış</div><div class="small muted" id="t3-overview-meta"></div></div></div>
           <div class="t3-overview__stats" id="t3-overview-stats"></div>
-          <div class="t3-section-nav mt-16" aria-label="Teknik SEO sonuç bölümleri">
-            <button type="button" data-target="t3-overview-priority">Önce Bunları Düzeltin</button>
-            <button type="button" data-target="t3-findings-card">Bulgular ve Çözümler</button>
-            <button type="button" data-target="t3-solutions-card">Hazır Çıktılar</button>
-            <button type="button" data-target="t3-output-card">PageSpeed Ayrıntıları</button>
-            <button type="button" data-target="t3-quick-audit-card">Tarama Ayrıntıları</button>
-          </div>
           <div class="t3-priority mt-16" id="t3-overview-priority"></div>
+        </div>
+
+        <div class="card mt-20 hidden" id="t3-findings-card">
+          <div class="card__head">
+            <div class="card__title">Sorunlar</div>
+            <span class="small muted" id="t3-findings-subtitle">önce önem derecesi (yüksek → orta → düşük), sonra aynı derece içinde etkilenen sayfa oranı × güven seviyesine göre sıralanmıştır</span>
+          </div>
+          <div class="mt-16" id="t3-findings-body"></div>
         </div>
 
         <div class="card mt-20 hidden" id="t3-solutions-card">
@@ -311,7 +307,7 @@ require_once __DIR__ . '/db.php';
 
         <div class="card mt-20" id="t3-output-card">
           <div class="card__head">
-            <div class="card__title">Lighthouse & PageSpeed Denetim Sonuçları</div>
+            <div class="card__title">Performans ve PageSpeed</div>
             <span class="small muted" id="t3-audit-url">Henüz bir tarama yapılmadı...</span>
           </div>
 
@@ -398,9 +394,24 @@ require_once __DIR__ . '/db.php';
           <div class="t3-psi-details mt-20" id="t3-psi-details"></div>
         </div>
 
+        <div class="card mt-20 hidden" id="t3-composite-score-card">
+          <div class="card__head">
+            <div class="card__title">Kategori Sağlığı</div>
+            <span class="small muted">Tarama, güvenlik, site yapısı, schema ve mobil uyum</span>
+          </div>
+          <div class="flex gap-24 mt-16" style="align-items:center; flex-wrap:wrap;">
+            <div class="svg-wrap" style="width:110px; height:110px; flex-shrink:0;">
+              <svg viewBox="0 0 36 36"><circle class="bg" cx="18" cy="18" r="15.9155"/><circle class="fill" id="t3-final-score-circle" cx="18" cy="18" r="15.9155" stroke-dasharray="100 100" stroke-dashoffset="100"/></svg>
+              <div class="val" id="t3-final-score-val" style="font-size:22px;">—</div>
+            </div>
+            <div style="flex:1; min-width:260px;" id="t3-gates-warning"></div>
+          </div>
+          <div class="mt-16" id="t3-category-breakdown"></div>
+        </div>
+
         <div class="card mt-20 hidden" id="t3-quick-audit-card">
           <div class="card__head">
-            <div class="card__title">Hızlı Teknik Denetim (Sunucu Taraflı)</div>
+            <div class="card__title">Tarama Durumları</div>
             <span class="small muted">robots.txt, sitemap.xml, SSL, canonical</span>
           </div>
           <div class="table-wrap mt-16">
@@ -439,28 +450,6 @@ require_once __DIR__ . '/db.php';
           </div>
         </div>
 
-        <div class="card mt-20 hidden" id="t3-composite-score-card">
-          <div class="card__head">
-            <div class="card__title">Genel Teknik SEO Skoru</div>
-            <span class="small muted">Ağırlıklı kategori ortalaması + kritik kapı kontrolleri — Lighthouse un düz ortalaması DEĞİLDİR</span>
-          </div>
-          <div class="flex gap-24 mt-16" style="align-items:center; flex-wrap:wrap;">
-            <div class="svg-wrap" style="width:110px; height:110px; flex-shrink:0;">
-              <svg viewBox="0 0 36 36"><circle class="bg" cx="18" cy="18" r="15.9155"/><circle class="fill" id="t3-final-score-circle" cx="18" cy="18" r="15.9155" stroke-dasharray="100 100" stroke-dashoffset="100"/></svg>
-              <div class="val" id="t3-final-score-val" style="font-size:22px;">—</div>
-            </div>
-            <div style="flex:1; min-width:260px;" id="t3-gates-warning"></div>
-          </div>
-          <div class="mt-16" id="t3-category-breakdown"></div>
-        </div>
-
-        <div class="card mt-20 hidden" id="t3-findings-card">
-          <div class="card__head">
-            <div class="card__title">Önceliklendirilmiş Teknik SEO Bulguları</div>
-            <span class="small muted" id="t3-findings-subtitle">önce önem derecesi (yüksek → orta → düşük), sonra aynı derece içinde etkilenen sayfa oranı × güven seviyesine göre sıralanmıştır</span>
-          </div>
-          <div class="mt-16" id="t3-findings-body"></div>
-        </div>
         </div><!-- /#t3-live-view -->
 
         <div id="t3-history-view" class="hidden">
