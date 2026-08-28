@@ -79,8 +79,8 @@ curl_setopt($ch, CURLOPT_TIMEOUT, 120);
 curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
 curl_setopt($ch, CURLOPT_POST, true);
 curl_setopt($ch, CURLOPT_POSTFIELDS, $inputJSON);
-curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);  // SSL doğrulaması aktif
-curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
+curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);  // SSL doğrulaması aktif
+curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
 
 $response = curl_exec($ch);
 $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -90,7 +90,7 @@ if (curl_errno($ch)) {
     curl_close($ch);
     error_log("form_submit.php cURL hatası: " . $errMsg);
     http_response_code(502);
-    echo json_encode(['error' => 'API isteği başarısız oldu.']);
+    echo json_encode(['error' => 'cURL Hatası: ' . $errMsg]);
     exit;
 }
 
