@@ -23,13 +23,34 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Kart Tıklamaları
     const btnContent = document.getElementById('wc-card-content');
-    if(btnContent) btnContent.addEventListener('click', () => dismissWelcome(1));
+    if(btnContent) btnContent.addEventListener('click', () => {
+        const val = document.getElementById('welcome-main-url-input')?.value.trim();
+        if (val) {
+            const input = document.getElementById('urlInput');
+            if (input) input.value = val;
+        }
+        dismissWelcome(1);
+    });
     
     const btnTech = document.getElementById('wc-card-tech');
-    if(btnTech) btnTech.addEventListener('click', () => dismissWelcome(2));
+    if(btnTech) btnTech.addEventListener('click', () => {
+        const val = document.getElementById('welcome-main-url-input')?.value.trim();
+        if (val) {
+            const input = document.getElementById('t3-url');
+            if (input) input.value = val;
+        }
+        dismissWelcome(2);
+    });
     
-    const btnDash = document.getElementById('wc-card-dashboard');
-    if(btnDash) btnDash.addEventListener('click', () => dismissWelcome(null));
+    const btnAi = document.getElementById('wc-card-ai');
+    if(btnAi) btnAi.addEventListener('click', () => {
+        const val = document.getElementById('welcome-main-url-input')?.value.trim();
+        if (val) {
+            const input = document.getElementById('aiseo-url-input');
+            if (input) input.value = val;
+        }
+        dismissWelcome(3);
+    });
     
     // GEO AI Bot Hızlı Başlangıç
     const btnBotStart = document.getElementById('wc-bot-start');
@@ -85,3 +106,5 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+
+

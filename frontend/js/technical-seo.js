@@ -405,8 +405,8 @@ function showFullCrawlPrompt(url, data) {
   }
 
   document.getElementById('t3-fullcrawl-note').textContent = structure.crawl_mode === 'full'
-    ? `Tüm site taramasında da ${reasonText} (şu ana kadar ${structure.crawled_page_count} sayfa tarandı).`
-    : `Standart modda ${reasonText} (${structure.crawled_page_count} sayfa tarandı).`;
+    ? `Tüm site taramasında da ${reasonText}. Şu ana kadar ${structure.crawled_page_count} sayfa incelendi.`
+    : `Standart tarama sınırına ulaşıldı (${reasonText}). ${structure.crawled_page_count} sayfa incelendi. Kalan sayfaları da tarayabilirsiniz.`;
 
   card.classList.remove('hidden');
 }
@@ -615,11 +615,42 @@ function renderOverview(data) {
     <div class="t3-summary-card"><small>Performans</small><div class="t3-summary-card__split"><strong>${mobilePerf ?? '—'}<em>Mobil</em></strong><strong>${desktopPerf ?? '—'}<em>Masaüstü</em></strong></div><span>PageSpeed skorları</span></div>`;
   document.getElementById('t3-overview-meta').textContent = `${new Date().toLocaleString('tr-TR')} · ${data.url || ''}`;
   document.getElementById('t3-last-analysis-date').textContent = `Son analiz: ${new Date().toLocaleString('tr-TR')}`;
-  const priority = findings.slice(0, 5);
-  const first = priority[0];
-  const summary = findings.length === 0 ? 'Belirgin bir teknik SEO sorunu tespit edilmedi. Düzenli aralıklarla yeniden kontrol edin.' : `Site ${health.toLocaleLowerCase('tr-TR')} durumda. ${first ? `En önemli sorun alanı “${first.title}”; ilk olarak bu bulguyu inceleyin.` : 'Öncelikli bulguları inceleyin.'}`;
-  document.getElementById('t3-overview-priority').innerHTML = `<div class="t3-executive-summary">${escapeHtml(summary)}</div><div class="card__title mt-16">Öncelikli beş aksiyon</div>${priority.length ? priority.map((f,i) => `<div class="t3-priority__row"><span class="t3-priority__num">${i+1}</span><span class="t3-severity-text">${escapeHtml((T3_SEVERITY_META[f.severity] || T3_SEVERITY_META.minor).label)}</span><strong>${escapeHtml(f.title)}</strong><span class="small muted">${f.affected_pages ?? '—'} URL</span><button class="btn btn--ghost btn--sm" type="button" data-finding-id="${escapeHtml(f.id || '')}">İncele</button></div>`).join('') : '<div class="t3-empty-state">Öncelikli sorun bulunmadı.</div>'}`;
   document.getElementById('t3-overview-card').classList.remove('hidden');
+  document.querySelectorAll('.t3-post-audit').forEach(el => el.classList.remove('hidden'));
+  document.querySelectorAll('.t3-hero-only').forEach(el => el.classList.add('hidden'));
+
+  // Sonuc ekranindaki ust 4 istatistik karti (SEO Sagligi donut + Kritik/Uyari/Basarili).
+  // "Basarili" icin backend'de ayri bir "gecen kontrol" sayaci yok - bu yuzden
+  // ScoringEngine kategorilerinden (crawlability, performance, site_structure,
+  // security, schema, mobile_first) 80+ puan alanlarin sayisi kullaniliyor.
+  const categoryScores = score.category_scores || [];
+  const successCount = categoryScores.filter(c => typeof c.score === 'number' && c.score >= 80).length;
+  const totalCategories = categoryScores.length;
+
+  const statCritEl = document.getElementById('t3-stat-critical-val');
+  if (statCritEl) statCritEl.textContent = critical;
+  const statWarnEl = document.getElementById('t3-stat-warning-val');
+  if (statWarnEl) statWarnEl.textContent = warnings;
+  const statSuccEl = document.getElementById('t3-stat-success-val');
+  if (statSuccEl) statSuccEl.textContent = totalCategories ? `${successCount}/${totalCategories}` : '—';
+
+  // Bulgular sekmesi sag kolon: Mobil/Masaustu PageSpeed performans skorlarini
+  // yan yana gosteren kompakt ozet (ayrintilar icin mevcut data-target
+  // mekanizmasi zaten PageSpeed sekmesine gecis yapiyor - bkz. tab-2 click handler).
+  const psiSummaryCard = document.getElementById('t3-psi-summary-card');
+  const psiMobileEl = document.getElementById('t3-psi-summary-mobile-val');
+  const psiDesktopEl = document.getElementById('t3-psi-summary-desktop-val');
+  if (psiSummaryCard && psiMobileEl && psiDesktopEl) {
+    if (mobilePerf !== undefined || desktopPerf !== undefined) {
+      psiMobileEl.textContent = mobilePerf ?? '—';
+      psiMobileEl.style.color = mobilePerf !== undefined && mobilePerf !== null ? scoreColor(mobilePerf) : '';
+      psiDesktopEl.textContent = desktopPerf ?? '—';
+      psiDesktopEl.style.color = desktopPerf !== undefined && desktopPerf !== null ? scoreColor(desktopPerf) : '';
+      psiSummaryCard.classList.remove('hidden');
+    } else {
+      psiSummaryCard.classList.add('hidden');
+    }
+  }
 }
 
 const T3_ROBOTS_MODE_LABELS = { create: 'Dosya önerisi', unblock: 'Engel kaldırıldı', append_sitemap: 'Sitemap eklendi' };
@@ -703,7 +734,6 @@ function renderTechnicalSeoResult(inputUrl, data) {
   showFullCrawlPrompt(data.url || inputUrl, data);
 
   document.getElementById('t3-quick-audit-card').classList.remove('hidden');
-  document.getElementById('t3-composite-score-card').classList.remove('hidden');
   document.getElementById('t3-findings-card').classList.remove('hidden');
 
   renderPsiErrors(data.psi);
@@ -902,6 +932,7 @@ function toggleFindingDetail(findingId, rowBtn) {
 }
 
 function jumpToAudit(auditId) {
+  activateResultsTab('pagespeed');
   document.getElementById('t3-output-card')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   const row = document.getElementById('t3-audit-' + auditId);
   if (!row) return;
@@ -921,6 +952,7 @@ function jumpToFinding(findingId) {
   const category = document.getElementById('t3-issue-category'); if (category) category.value = '';
   const solutionsOnly = document.getElementById('t3-issue-solutions'); if (solutionsOnly) solutionsOnly.checked = false;
   updateIssueList();
+  activateResultsTab('findings');
   document.getElementById('t3-findings-card')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   const rowBtn = document.querySelector(`[data-toggle-finding="${CSS.escape(findingId)}"]`);
   if (!rowBtn) return;
@@ -1038,7 +1070,11 @@ function setSmallGauge(id, score) {
 
 document.getElementById('tab-2')?.addEventListener('click', async (event) => {
   const targetBtn = event.target.closest('[data-target]');
-  if (targetBtn) document.getElementById(targetBtn.dataset.target)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  if (targetBtn) {
+    const mappedTab = T3_RESULT_TAB_MAP[targetBtn.dataset.target];
+    if (mappedTab) activateResultsTab(mappedTab);
+    document.getElementById(targetBtn.dataset.target)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
 
   const findingButton = event.target.closest('[data-finding-id]');
   if (findingButton) jumpToFinding(findingButton.dataset.findingId);
@@ -1328,18 +1364,24 @@ function renderClientMatchStatus() {
   const statusEl = document.getElementById('t3-client-match-status');
   if (!hidden || !input || !statusEl) return;
 
+  const picker = document.getElementById('t3-history-client-searchselect');
+  const isOpen = !!picker && !picker.classList.contains('hidden');
+  const arrowHtml = '<span class="t3-client-match__arrow' + (isOpen ? ' is-open' : '') + '" aria-hidden="true">' +
+    '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>' +
+    '</span>';
+
   if (hidden.value) {
     statusEl.classList.add('t3-client-match--ok');
     statusEl.innerHTML =
       '<span class="t3-client-match__dot"></span>' +
       '<span>' + escapeHtml(input.value) + ' müşterisiyle eşleşti</span>' +
-      '<a href="#" class="t3-client-match__link" data-action="change">değiştir</a>';
+      '<a href="#" class="t3-client-match__link" data-action="change">değiştir' + arrowHtml + '</a>';
   } else {
     statusEl.classList.remove('t3-client-match--ok');
     statusEl.innerHTML =
       '<span class="t3-client-match__dot"></span>' +
       '<span>Kayıtlı müşteri bulunamadı</span>' +
-      '<a href="#" class="t3-client-match__link" data-action="pick">Müşteri seç</a>';
+      '<a href="#" class="t3-client-match__link" data-action="pick">Müşteri seç' + arrowHtml + '</a>';
   }
 }
 
@@ -1379,7 +1421,9 @@ document.getElementById('t3-client-match-status')?.addEventListener('click', (e)
   const secondaryActions = picker.closest('.t3-secondary-actions');
   if (secondaryActions) secondaryActions.open = true;
   picker.classList.toggle('hidden');
-  if (!picker.classList.contains('hidden')) {
+  const isOpen = !picker.classList.contains('hidden');
+  link.querySelector('.t3-client-match__arrow')?.classList.toggle('is-open', isOpen);
+  if (isOpen) {
     document.getElementById('t3-history-client-select-input')?.focus();
   }
 });
@@ -1391,6 +1435,7 @@ document.getElementById('t3-history-client-select')?.addEventListener('change', 
   document.getElementById('t3-history-client-searchselect')?.classList.add('hidden');
   renderClientMatchStatus();
 });
+
 
 renderClientMatchStatus();
 
@@ -1749,6 +1794,40 @@ function initAuditLogSection() {
   });
 }
 
+const T3_RESULT_TAB_MAP = {
+  't3-findings-card': 'findings',
+  't3-solutions-card': 'solutions',
+  't3-output-card': 'pagespeed',
+  't3-quick-audit-card': 'scan'
+};
+
+function activateResultsTab(tabKey) {
+  const wrap = document.getElementById('t3-results-tab-toggle');
+  if (!wrap) return;
+  const btn = wrap.querySelector(`[data-result-tab="${tabKey}"]`);
+  if (!btn) return;
+  wrap.querySelectorAll('.toggle-btn').forEach(b => {
+    const isActive = b === btn;
+    b.classList.toggle('active', isActive);
+    b.setAttribute('aria-selected', isActive ? 'true' : 'false');
+  });
+  document.querySelectorAll('.t3-results-panel[data-panel]').forEach(panel => {
+    panel.classList.toggle('hidden', panel.dataset.panel !== tabKey);
+  });
+}
+
+function initT3ResultsTabToggle() {
+  const wrap = document.getElementById('t3-results-tab-toggle');
+  if (!wrap || wrap.dataset.wired) return;
+  wrap.dataset.wired = '1';
+  wrap.addEventListener('click', (e) => {
+    const btn = e.target.closest('.toggle-btn');
+    if (!btn || !wrap.contains(btn)) return;
+    const tabKey = btn.dataset.resultTab;
+    if (tabKey) activateResultsTab(tabKey);
+  });
+}
+
 function initT3SubviewToggle() {
   const wrap = document.getElementById('t3-subview-toggle');
   if (!wrap || wrap.dataset.wired) return;
@@ -1804,6 +1883,7 @@ function initT3HistoryModeToggle() {
 
 initT3SubviewToggle();
 initT3HistoryModeToggle();
+initT3ResultsTabToggle();
 initAuditLogSection();
 wireClientSearchSelect('t3-history-client-select-input', 't3-history-client-select', 't3-history-client-select-list');
 wireClientSearchSelect('t3-history-lookup-client-select-input', 't3-history-lookup-client-select', 't3-history-lookup-client-select-list');
@@ -2130,7 +2210,7 @@ const T3_REPORT_CSS = `
 html,body{ margin:0; padding:0; }
 body{
   background:#EEF0F4; color:#12151F;
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  font-family:'Source Sans Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   -webkit-font-smoothing:antialiased;
 }
 .rpt-toolbar{
@@ -2475,7 +2555,7 @@ async function generateT3Report() {
     showToast('Rapor penceresi açılamadı — tarayıcının pop-up engelleyicisini kontrol et.', 'error');
     return;
   }
-  reportWindow.document.write('<!DOCTYPE html><html lang="tr"><head><meta charset="UTF-8"><title>Rapor hazırlanıyor…</title></head><body style="font-family:sans-serif; padding:40px; color:#6B7280;">Rapor hazırlanıyor…</body></html>');
+  reportWindow.document.write('<!DOCTYPE html><html lang="tr"><head><meta charset="UTF-8"><title>Rapor hazırlanıyor…</title></head><body style="font-family:\'Source Sans Pro\', -apple-system, BlinkMacSystemFont, \'Segoe UI\', Roboto, \'Helvetica Neue\', Arial, sans-serif; padding:40px; color:#6B7280;">Rapor hazırlanıyor…</body></html>');
   reportWindow.document.close();
 
   let client = null;
@@ -2518,3 +2598,4 @@ async function generateT3Report() {
 }
 
 document.getElementById('t3-report-btn')?.addEventListener('click', generateT3Report);
+

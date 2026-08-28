@@ -34,9 +34,9 @@
   --shadow-sm:0 1px 2px rgba(18,21,31,.05), 0 1px 3px rgba(18,21,31,.06);
   --shadow-md:0 4px 14px rgba(18,21,31,.08);
 
-  --font-display:'Space Grotesk', sans-serif;
-  --font-body:'Inter', sans-serif;
-  --font-mono:'JetBrains Mono', monospace;
+  --font-display:'Source Sans Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-body:'Source Sans Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono:'Source Sans Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 
   /* --- Adres Gezgini kurumsal marka renkleri (bkz. medya kiti) --- */
   --ag-yellow:#FBBA00;
@@ -587,17 +587,15 @@ tbody td input.input{ padding:7px 9px; font-size:12.5px; }
 .score-card .lbl { font-size: 11.5px; font-weight: 600; color: var(--muted); text-align: center; line-height: 1.3; }
 @media (max-width:760px){ .score-grid { grid-template-columns: repeat(2, 1fr); } }
 
-/* Genel Teknik SEO Skoru dairesi (t3-composite-score-card) - .score-card
-   İÇİNDE değil, bu yüzden yukarıdaki ".score-card .svg-wrap"/".score-card .val"
-   kuralları buraya uygulanmıyordu: sayı, dairenin İÇİNDE ortalanmak yerine
-   normal akışta dairenin ALTINA taşıp bir sonraki kartın metniyle çakışıyordu.
-   Aynı ".svg-wrap" + ".val" markup'ı burada da kullanıldığı için, konumlamayı
-   bu karta özel olarak (diğer küçük gösterge kartlarını etkilemeden) veriyoruz. */
-#t3-composite-score-card .svg-wrap { position: relative; }
-#t3-composite-score-card .svg-wrap svg { transform: rotate(-90deg); width: 100%; height: 100%; }
-#t3-composite-score-card .svg-wrap circle.bg { fill: none; stroke: #EDEFF3; stroke-width: 3.5; }
-#t3-composite-score-card .svg-wrap circle.fill { fill: none; stroke: var(--accent); stroke-width: 3.5; stroke-linecap: round; transition: stroke-dashoffset 1s ease, stroke .3s; }
-#t3-composite-score-card .svg-wrap .val { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-weight: 700; }
+/* Genel Bakış + Genel Teknik SEO Skoru birleşik panelindeki büyük skor
+   dairesi (#t3-overview-card .t3-score-hero__circle) - .score-card İÇİNDE
+   değil, bu yüzden ".score-card .svg-wrap"/".score-card .val" kuralları
+   buraya uygulanmıyor; konumlamayı bu blok ayrı veriyor. */
+.t3-score-hero__circle { position: relative; width:130px; height:130px; flex-shrink:0; }
+.t3-score-hero__circle svg { transform: rotate(-90deg); width: 100%; height: 100%; }
+.t3-score-hero__circle circle.bg { fill: none; stroke: #EDEFF3; stroke-width: 3.2; }
+.t3-score-hero__circle circle.fill { fill: none; stroke: var(--accent); stroke-width: 3.2; stroke-linecap: round; transition: stroke-dashoffset 1s ease, stroke .3s; }
+.t3-score-hero__circle .val { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-weight: 700; font-size:32px; color:var(--ag-navy); }
 
 
 /* Dropzone */
@@ -861,7 +859,6 @@ tbody td input.input{ padding:7px 9px; font-size:12.5px; }
 .t3-drawer-urls a{ min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--info); }
 .t3-psi-impact__action{ display:flex; align-items:center; gap:8px; flex:none; color:var(--warn); font-size:11px; font-weight:650; }
 .t3-advanced-details{ margin-top:16px; }
-#t3-composite-score-card>.flex{ display:none; }
 #t3-category-breakdown{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px 20px; }
 #t3-quick-audit-card .table td{ padding:9px 10px!important; }
 
@@ -931,3 +928,139 @@ tbody td input.input{ padding:7px 9px; font-size:12.5px; }
      ofsetlerine gore degil, dogrudan tam ekrana gore ayarliyoruz. */
   .t3-scan-overlay{ left:0 !important; padding:16px; }
 }
+
+
+/* ============================================================
+   Teknik SEO - "Canli Denetim" baslangic alani: kompakt, sade tasarim
+   (bkz. index.php #t3-live-view ilk kart, t3-fullcrawl-card)
+   ============================================================ */
+.t3-launch-tabs{ margin-bottom:14px; }
+.t3-launch-tabs .toggle-btn{ padding:6px 16px; font-size:12.5px; }
+.t3-launch-tabs .toggle-btn.active{ background:var(--ag-navy); color:#fff; }
+
+.t3-launch-card{ padding:16px 20px; }
+.t3-launch-card .card__head{ margin-bottom:12px; }
+.t3-launch-card .t3-audit-row{ margin-bottom:10px; }
+
+.t3-url-input:focus{
+  border-color:var(--ag-yellow);
+  background:#fff;
+  box-shadow:0 0 0 3px rgba(251,186,0,.22);
+}
+
+#t3-report-btn[disabled], #t3-history-save-btn[disabled]{ display:none; }
+
+.t3-crawl-banner{
+  display:flex; align-items:center; justify-content:space-between; gap:16px;
+  flex-wrap:wrap;
+  background:var(--ag-yellow-soft);
+  border:1px solid var(--ag-yellow);
+  border-radius:var(--radius);
+  padding:10px 14px;
+}
+.t3-crawl-banner__text{ display:flex; flex-direction:column; gap:2px; min-width:0; }
+.t3-crawl-banner__text strong{ font-size:13px; }
+.t3-crawl-banner__text .small{ color:var(--ink-soft); }
+
+@media (max-width:640px){
+  .t3-crawl-banner{ flex-direction:column; align-items:flex-start; }
+  .t3-crawl-banner .btn{ width:100%; justify-content:center; }
+}
+
+/* --- Sonuç ekranı: Genel Bakış + Genel Teknik SEO Skoru birleşik paneli --- */
+.t3-score-hero{
+  display:flex; align-items:center; gap:20px; flex-wrap:wrap;
+  margin-top:16px; padding:18px; border:1px solid var(--border-soft); border-radius:var(--radius); background:var(--paper);
+}
+.t3-score-hero__meta{ flex:1; min-width:200px; }
+.t3-score-hero__title{ display:flex; align-items:center; gap:6px; font:700 16px/1.3 var(--font-display); color:var(--ag-navy); margin:0 0 8px; }
+.t3-info-icon{
+  display:inline-flex; align-items:center; justify-content:center; flex-shrink:0;
+  width:16px; height:16px; border-radius:50%;
+  border:1px solid var(--border); color:var(--muted); font-size:10.5px; font-weight:700; font-style:normal;
+  cursor:help;
+}
+
+.t3-stat-row{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:12px;
+  margin-top:16px;
+}
+.t3-stat-card{ text-align:center; }
+.t3-stat-card strong{ display:block; margin:10px 0 2px; font:700 28px/1 var(--font-display); color:var(--ag-navy); }
+.t3-stat-card--critical strong{ color:var(--danger); }
+.t3-stat-card--warning strong{ color:var(--warn); }
+.t3-stat-card--success strong{ color:var(--success); }
+
+@media (max-width:480px){
+  .t3-stat-row{ grid-template-columns:1fr; }
+  .t3-score-hero{ flex-direction:column; text-align:center; }
+}
+
+/* --- Sonuç ekranı: sekme çubuğu + iki kolonlu Bulgular görünümü --- */
+.t3-results-tabs .toggle-btn{ padding:7px 16px; font-size:12.5px; }
+.t3-results-tabs .toggle-btn.active{ background:var(--ag-navy); color:#fff; }
+
+.t3-results-panel{ margin-top:16px; }
+.t3-results-panel .card{ margin-top:16px; }
+.t3-results-panel .card:first-child{ margin-top:0; }
+
+.t3-results-grid{
+  display:grid;
+  grid-template-columns:1.6fr 1fr;
+  gap:20px;
+  align-items:start;
+}
+.t3-results-col-left, .t3-results-col-right{ min-width:0; }
+.t3-results-col-left .card, .t3-results-col-right .card{ margin-top:0; }
+
+@media (max-width:960px){
+  .t3-results-grid{ grid-template-columns:1fr; }
+}
+
+/* --- Bulgular sekmesi sağ kolon: kompakt Mobil/Masaüstü PageSpeed özeti --- */
+.t3-psi-summary-row{ display:flex; gap:14px; margin-top:14px; }
+.t3-psi-summary-col{ flex:1; text-align:center; padding:14px 10px; border:1px solid var(--border-soft); border-radius:var(--radius); background:#FAFBFC; }
+.t3-psi-summary-col small{ display:block; color:var(--muted); font-weight:650; margin-bottom:6px; }
+.t3-psi-summary-col strong{ display:block; font:700 26px/1 var(--font-display); color:var(--ag-navy); }
+
+/* --- Sonuç ekranı: mobil son rötuşlar --- */
+@media (max-width:640px){
+  .t3-results-tabs{ display:flex; width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch; }
+  .t3-results-tabs .toggle-btn{ flex:1 0 auto; white-space:nowrap; }
+  .t3-psi-summary-row{ flex-direction:column; }
+}
+
+/* --- Teknik SEO başlangıç kartı: AI SEO'daki hero tasarımından esinlenildi --- */
+.t3-launch-card{ text-align:center; }
+.t3-launch-card .card__head,
+.t3-launch-card .t3-audit-meta{ text-align:left; }
+
+.t3-launch-hero{ max-width:640px; margin:0 auto 16px; }
+.t3-launch-hero__icon{ font-size:26px; line-height:1; margin-bottom:6px; }
+.t3-launch-hero__title{ font:700 19px/1.3 var(--font-display); color:var(--ag-navy); margin:0 0 6px; }
+.t3-launch-hero__desc{ font-size:13px; color:var(--muted); margin:0; }
+
+.t3-launch-card .t3-audit-row{
+  max-width:640px; margin:0 auto; align-items:center;
+  background:var(--paper); border:1px solid var(--border-soft); border-radius:10px;
+  padding:5px 5px 5px 16px;
+}
+.t3-launch-card .t3-audit-row .field{ margin-bottom:0; }
+.t3-launch-card .t3-audit-row .input{ border:none; background:transparent; padding:10px 0; box-shadow:none; }
+.t3-launch-card .t3-audit-row .input:focus{ box-shadow:none; background:transparent; }
+
+.t3-launch-hero-caption{ max-width:640px; margin:8px auto 0; font-size:11.5px; color:var(--muted-2); }
+
+@media (max-width:640px){
+  .t3-launch-card .t3-audit-row{ padding:12px; }
+}
+
+/* --- "değiştir" / "Müşteri seç" linkinin yanındaki ok ikonu - kutu
+   açıkken yukarı döner (kapatma ipucu) --- */
+.t3-client-match__arrow{
+  display:inline-flex; align-items:center; margin-left:2px; vertical-align:middle;
+  transition:transform .15s ease;
+}
+.t3-client-match__arrow.is-open{ transform:rotate(180deg); }

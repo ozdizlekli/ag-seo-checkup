@@ -15,7 +15,7 @@ require_once __DIR__ . '/db.php';
 <title>AG SEO Check Up - Admin Panel</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@300;400;700;900&display=swap" rel="stylesheet">
 
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -289,7 +289,7 @@ require_once __DIR__ . '/db.php';
   }
 
   .ag-header-left .brand-text .name {
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: 'Source Sans Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     font-size: 16px;
     font-weight: 700;
     color: var(--ag-navy);
@@ -298,7 +298,7 @@ require_once __DIR__ . '/db.php';
   }
 
   .ag-header-left .brand-text .sub {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Source Sans Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     font-size: 10.5px;
     font-weight: 600;
     color: var(--ag-slate-light);
@@ -327,7 +327,7 @@ require_once __DIR__ . '/db.php';
     position: relative;
     background: none;
     border: none;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Source Sans Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     font-size: 13px;
     font-weight: 600;
     color: var(--ag-slate);
@@ -390,7 +390,7 @@ require_once __DIR__ . '/db.php';
   }
 
   .ag-client-label {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Source Sans Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     font-size: 10px;
     font-weight: 700;
     color: var(--ag-slate-light);
@@ -404,7 +404,7 @@ require_once __DIR__ . '/db.php';
     background: #fff;
     border-radius: 6px;
     padding: 5px 8px;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Source Sans Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     font-size: 12.5px;
     color: var(--ag-navy);
     outline: none;
@@ -443,7 +443,7 @@ require_once __DIR__ . '/db.php';
     color: #fff;
     border-radius: 8px;
     padding: 9px 18px;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Source Sans Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     font-size: 12.5px;
     font-weight: 600;
     text-decoration: none;
@@ -460,7 +460,7 @@ require_once __DIR__ . '/db.php';
     color: var(--ag-navy);
     border-radius: 8px;
     padding: 9px 16px;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Source Sans Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     font-size: 12.5px;
     font-weight: 600;
     cursor: pointer;
@@ -537,47 +537,40 @@ require_once __DIR__ . '/db.php';
     <div class="welcome-header">
       <h1>AG Seo Checkup'a Hoş Geldiniz</h1>
       <p>Yapay zeka destekli SEO ve İçerik Yönetim Platformu. Bugün neye odaklanmak istersiniz?</p>
+      
+      <div style="margin-top: 24px; display: flex; justify-content: center; gap: 12px; max-width: 700px; margin-left: auto; margin-right: auto; padding: 20px; background: #F8FAFC; border-radius: 12px; border: 1px solid #E2E8F0;">
+         <input type="url" id="welcome-main-url-input" placeholder="URL girin (örn: https://...)" style="flex:1; border-radius:8px; border:1px solid #CBD5E1; background:#fff; color:#1F1D30; padding:12px 16px; font-size:14px; outline:none;">
+         <button id="welcome-send-url-btn" style="background:#10b981; border:none; color:#fff; border-radius:8px; padding:0 20px; font-size:14px; font-weight:600; cursor:pointer; white-space:nowrap; transition: background 0.2s;">URL'yi Gönder</button>
+         <button id="welcome-client-select-btn" style="background:#3b82f6; border:none; color:#fff; border-radius:8px; padding:0 20px; font-size:14px; font-weight:600; cursor:pointer; white-space:nowrap; transition: background 0.2s;" onclick="document.getElementById('gh-hamburger-btn').click(); document.getElementById('welcome-overlay').style.opacity='0'; setTimeout(()=>document.getElementById('welcome-overlay').style.display='none',400);">Müşteri Seç</button>
+      </div>
     </div>
     
     <div class="welcome-grid">
-      <!-- KART 1: Hızlı AI Bot -->
-      <div class="wc-card" style="border-color: rgba(59,130,246,0.3);">
-        <div class="wc-card-icon icon-ai">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-        </div>
-        <h3>Hızlı AI SEO (GEO Bot)</h3>
-        <p>URL'nizi girin, yapay zeka sitenizi tarayıp dönüşüm, SGE ve içerik boşluklarını hemen analiz etsin.</p>
-        <div class="wc-url-box">
-          <input type="text" id="wc-url-input" placeholder="https://www.site.com/hizmet">
-          <button id="wc-bot-start">Başla</button>
-        </div>
-      </div>
-
-      <!-- KART 2: İçerik İyileştirme -->
+      <!-- KART 1: Metin Bazlı SEO -->
       <div class="wc-card" id="wc-card-content">
         <div class="wc-card-icon icon-content">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
         </div>
-        <h3>Metin ve İçerik Optimizasyonu</h3>
+        <h3>Metin Bazlı SEO</h3>
         <p>Elinizdeki bir metni yapay zeka ile SEO uyumlu hale getirin, başlık ve meta açıklamalarınızı düzenleyin.</p>
       </div>
 
-      <!-- KART 3: Teknik Analiz -->
+      <!-- KART 2: Teknik SEO -->
       <div class="wc-card" id="wc-card-tech">
         <div class="wc-card-icon icon-tech">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
         </div>
-        <h3>Teknik SEO & Schema</h3>
+        <h3>Teknik SEO</h3>
         <p>Web sitenizin teknik performansını ölçün, JSON-LD schema üretin veya var olan yapısal verileri onarın.</p>
       </div>
 
-      <!-- KART 4: Gelişmiş Çalışma Yüzeyi -->
-      <div class="wc-card" id="wc-card-dashboard">
-        <div class="wc-card-icon icon-dash">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+      <!-- KART 3: AI SEO -->
+      <div class="wc-card" id="wc-card-ai" style="border-color: rgba(59,130,246,0.3);">
+        <div class="wc-card-icon icon-ai">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
         </div>
-        <h3>Gelişmiş Panele Git</h3>
-        <p>Beni doğrudan tüm sekmelerin ve ayarların bulunduğu ana çalışma paneline (dashboard) yönlendir.</p>
+        <h3>AI SEO</h3>
+        <p>Yapay zeka sitenizi tarayıp dönüşüm, SGE ve içerik boşluklarını hemen analiz etsin.</p>
       </div>
     </div>
   </div>
@@ -595,8 +588,8 @@ require_once __DIR__ . '/db.php';
         <a href="#" style="display:flex; align-items:center; text-decoration:none; gap:12px; margin-left:12px;">
           <img src="image.png" alt="Logo" style="width:40px; height:40px; border-radius:6px; border: 1px solid var(--ag-border);">
           <div style="display:flex; flex-direction:column; justify-content:center; gap:4px;">
-            <div style="font-family:'Space Grotesk', sans-serif; font-weight:700; font-size:16px; color:#1F1D30; line-height:1; letter-spacing:-0.3px;">AG SEO Check Up</div>
-            <div style="font-family:'JetBrains Mono', monospace; font-size:12px; color:#6B6E82; display:flex; align-items:center; gap:6px; line-height:1;">
+            <div style="font-family: 'Source Sans Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; font-weight:700; font-size:16px; color:#1F1D30; line-height:1; letter-spacing:-0.3px;">AG SEO Check Up</div>
+            <div style="font-family: 'Source Sans Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; font-size:12px; color:#6B6E82; display:flex; align-items:center; gap:6px; line-height:1;">
               <span><?php echo htmlspecialchars($_SESSION['username'] ?? 'ozdizlekli'); ?></span>
               <span style="color:#94A3B8;">/</span>
               <span style="font-weight:700; color:#1F1D30;" id="top-header-client-name">Bekleniyor...</span>
@@ -641,8 +634,8 @@ require_once __DIR__ . '/db.php';
     </header>
 
     <div class="content">
-<section class="tab-panel active" id="tab-1">
-  <?php include __DIR__ . '/src/TextSeo/views/tab1_view.php'; ?>
+<section class="tab-panel active" id="tab-1" style="position: relative;">
+  <?php include __DIR__ . '/src/textseo/index.php'; ?>
 </section>
 
       <!-- ==========================================================
@@ -650,41 +643,43 @@ require_once __DIR__ . '/db.php';
       =========================================================== -->
       
 <section class="tab-panel" id="tab-2">
-        <div class="toggle-group" id="t3-subview-toggle" style="margin-bottom:16px;">
+        <div class="toggle-group t3-launch-tabs" id="t3-subview-toggle">
           <button type="button" class="toggle-btn active" data-subview="live">Canlı Denetim</button>
           <button type="button" class="toggle-btn" data-subview="history">Skor Geçmişi</button>
         </div>
 
         <div id="t3-live-view">
-        <div class="card">
-          <div class="card__head">
-            <div class="card__title">Yeni Teknik Denetim</div>
-            <!-- Rapor, html2pdf.js/jsPDF gibi harici bir kutuphane KULLANMADAN,
-                 ayri bir onizleme sekmesi olarak olusturulur; o sekmedeki
-                 "PDF Olarak Kaydet" butonu sadece window.print() cagirir
-                 (bkz. js/technical-seo.js generateT3Report). Denetim
-                 TAMAMLANANA kadar disabled - bkz. updateScoreHistoryUI. -->
-            <button class="btn btn--dark btn--sm" id="t3-report-btn" type="button" disabled title="Rapor oluşturmak için önce bir denetim tamamlanmalı">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-              <span>Rapor Oluştur (PDF)</span>
-            </button>
+        <div class="card t3-launch-card">
+          <div class="t3-launch-hero t3-hero-only" id="t3-launch-hero">
+            <div class="t3-launch-hero__icon" aria-hidden="true">🔍</div>
+            <h2 class="t3-launch-hero__title">Yeni Teknik Denetim</h2>
+            <p class="t3-launch-hero__desc">Web sitesi adresini girin, teknik SEO denetimini başlatın.</p>
           </div>
-          <div class="small muted mt-8">Web sitesi adresini girin; kayıtlı bir müşteriyle eşleşirse otomatik bağlanır.</div>
 
-          <div class="t3-audit-row mt-16">
+          <div class="card__head hidden t3-post-audit">
+            <div class="card__title">Yeni Teknik Denetim</div>
+            <span class="small muted" id="t3-last-analysis-date">Henüz analiz yapılmadı</span>
+          </div>
+
+          <div class="t3-audit-row">
             <div class="field" style="margin-bottom:0;">
-              <input class="input" id="t3-url" type="text" placeholder="https://www.musterisitesi.com" aria-label="Web Sitesi URL'si">
+              <input class="input t3-url-input" id="t3-url" type="text" placeholder="https://www.musterisitesi.com" aria-label="Web Sitesi URL'si">
             </div>
             <button class="btn btn--primary" id="t3-audit-btn">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
               <span id="t3-audit-label">Denetimi Başlat</span>
             </button>
           </div>
+          <p class="t3-launch-hero-caption t3-hero-only">Kayıtlı müşteriyle otomatik eşleşir • Google PageSpeed API ile çalışır</p>
 
-          <!-- Kompakt musteri otomatik-eslesme durumu - JS (renderClientMatchStatus)
-               tarafindan doldurulur. Yesil = domain kayitli bir musteriyle
-               eslesti, notr = eslesme yok + manuel secim linki. -->
-          <div class="t3-client-match mt-12" id="t3-client-match-status"></div>
+          <!-- Kompakt musteri otomatik-eslesme durumu (sol) + otomatik-kaydet
+               (sag) tek satirda - JS (renderClientMatchStatus) sol tarafi doldurur. -->
+          <div class="t3-audit-meta hidden t3-post-audit">
+            <div class="t3-client-match" id="t3-client-match-status"></div>
+            <div class="t3-autosave-row">
+              <button class="btn btn--ghost btn--sm" id="t3-history-save-btn" disabled title="Kaydetmek için önce bir denetim tamamlanmalı">Şimdi Kaydet</button>
+            </div>
+          </div>
 
           <!-- Manuel musteri secici - varsayilan gizli, "değiştir"/"Müşteri seç"
                linkine tiklaninca aciliyor (bkz. js/technical-seo.js). Ayni
@@ -694,37 +689,122 @@ require_once __DIR__ . '/db.php';
             <input type="hidden" id="t3-history-client-select" value="">
             <div class="search-select__list hidden" id="t3-history-client-select-list"></div>
           </div>
+        </div>
 
-          <div class="t3-autosave-row mt-16">
-            <label class="t3-autosave-toggle" for="t3-history-autosave-checkbox">
-              <input type="checkbox" id="t3-history-autosave-checkbox">
-              Analiz tamamlandığında geçmişe kaydet
-            </label>
-            <button class="btn btn--ghost btn--sm" id="t3-history-save-btn" disabled title="Kaydetmek için önce bir denetim tamamlanmalı">Şimdi Kaydet</button>
+        <div class="t3-crawl-banner hidden mt-8" id="t3-fullcrawl-card">
+          <div class="t3-crawl-banner__text">
+            <strong>Daha kapsamlı analiz ister misiniz?</strong>
+            <span class="small" id="t3-fullcrawl-note">Standart tarama sınırına ulaşıldı.</span>
+          </div>
+          <button class="btn btn--dark btn--sm" id="t3-fullcrawl-btn">
+            <span id="t3-fullcrawl-label">Tüm Siteyi Tara</span>
+          </button>
+        </div>
+
+        <div class="t3-scan-overlay hidden" id="t3-progress-card" role="dialog" aria-modal="true" aria-labelledby="t3-scan-title" aria-describedby="t3-scan-current" aria-live="polite" aria-busy="false" aria-hidden="true">
+          <div class="t3-scan-overlay__panel" tabindex="-1">
+            <div id="t3-scan-running">
+              <div class="t3-scan-overlay__scan-dot" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9" stroke-dasharray="18 8"/></svg></div>
+              <div class="t3-scan-overlay__title" id="t3-scan-title">Teknik analiz sürüyor</div>
+              <div class="t3-scan-overlay__current" id="t3-scan-current">Analiz hazırlanıyor…</div>
+              <div class="t3-scan-overlay__bar" role="progressbar" aria-label="Analiz ilerlemesi" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="t3-scan-overlay__bar-fill" id="t3-scan-progress-fill"></div></div>
+              <div class="t3-scan-overlay__steps" id="t3-progress-body"></div>
+            </div>
+            <div class="t3-scan-overlay__done hidden" id="t3-scan-done" role="status"><div class="t3-scan-overlay__done-icon" aria-hidden="true">✓</div><div class="t3-scan-overlay__done-text">Analiz tamamlandı. Sonuçlar hazırlanıyor…</div></div>
+            <div class="t3-scan-overlay__error hidden" id="t3-scan-error" role="alert"><div class="t3-scan-overlay__error-icon" aria-hidden="true">!</div><div class="t3-scan-overlay__error-text" id="t3-scan-error-text"></div><div class="t3-scan-overlay__error-actions"><button class="btn btn--primary btn--sm" id="t3-scan-retry" type="button">Tekrar Dene</button><button class="btn btn--ghost btn--sm" id="t3-scan-close" type="button">Kapat</button></div></div>
           </div>
         </div>
 
-        <div class="card mt-20 hidden" id="t3-fullcrawl-card">
+        <div class="card mt-8 hidden t3-overview" id="t3-overview-card">
           <div class="card__head">
-            <div class="card__title">Tarama Kısmi Kaldı</div>
-            <span class="small muted" id="t3-fullcrawl-note">Standart mod sınırına ulaşıldı.</span>
-          </div>
-          <div class="mt-16 flex gap-12" style="align-items:center; flex-wrap:wrap;">
-            <span class="small">Sitenin tamamını taramak ister misiniz? Bu biraz zaman alabilir.</span>
-            <button class="btn btn--dark btn--sm" id="t3-fullcrawl-btn">
-              <span id="t3-fullcrawl-label">Evet, Tüm Siteyi Tara</span>
+            <div><div class="card__title">Genel Bakış</div><div class="small muted" id="t3-overview-meta"></div></div>
+            <button class="btn btn--dark btn--sm" id="t3-report-btn" type="button" disabled title="Rapor oluşturmak için önce bir denetim tamamlanmalı">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+              <span>Rapor Oluştur (PDF)</span>
             </button>
           </div>
-        </div>
+          <div class="t3-overview__stats hidden" id="t3-overview-stats"></div>
 
-        <div class="card mt-20 hidden" id="t3-progress-card">
-          <div class="card__head">
-            <div class="card__title">Analiz Sürüyor…</div>
-            <span class="small muted">Şu an hangi kontrolün yapıldığını aşağıda canlı olarak görebilirsiniz</span>
+          <div class="t3-score-hero">
+            <div class="t3-score-hero__circle">
+              <svg viewBox="0 0 36 36"><circle class="bg" cx="18" cy="18" r="15.9155"/><circle class="fill" id="t3-final-score-circle" cx="18" cy="18" r="15.9155" stroke-dasharray="100 100" stroke-dashoffset="100"/></svg>
+              <div class="val" id="t3-final-score-val">—</div>
+            </div>
+            <div class="t3-score-hero__meta">
+              <div class="t3-score-hero__title">SEO Sağlık Skoru
+                <span class="t3-info-icon" tabindex="0" title="Ağırlıklı kategori ortalaması + kritik kapı kontrolleri — Lighthouse'un düz ortalaması DEĞİLDİR">i</span>
+              </div>
+              <div id="t3-gates-warning"></div>
+            </div>
           </div>
-          <div class="mt-16" id="t3-progress-body"></div>
+
+          <div class="t3-stat-row t3-stat-row--3" id="t3-result-stat-row">
+            <div class="t3-summary-card t3-stat-card t3-stat-card--critical">
+              <small>Kritik</small>
+              <strong id="t3-stat-critical-val">—</strong>
+            </div>
+            <div class="t3-summary-card t3-stat-card t3-stat-card--warning">
+              <small>Uyarı</small>
+              <strong id="t3-stat-warning-val">—</strong>
+            </div>
+            <div class="t3-summary-card t3-stat-card t3-stat-card--success">
+              <small>Başarılı</small>
+              <strong id="t3-stat-success-val">—</strong>
+            </div>
+          </div>
+
+          <div class="mt-20" id="t3-category-breakdown"></div>
         </div>
 
+        <div class="t3-results-tabs toggle-group mt-20 hidden t3-post-audit" id="t3-results-tab-toggle" role="tablist" aria-label="Teknik SEO sonuç sekmeleri">
+          <button type="button" class="toggle-btn active" data-result-tab="findings" role="tab" aria-selected="true">Bulgular</button>
+          <button type="button" class="toggle-btn" data-result-tab="solutions" role="tab" aria-selected="false">Düzeltilmiş Çıktılar</button>
+          <button type="button" class="toggle-btn" data-result-tab="pagespeed" role="tab" aria-selected="false">PageSpeed</button>
+          <button type="button" class="toggle-btn" data-result-tab="scan" role="tab" aria-selected="false">Tarama Geçmişi</button>
+        </div>
+
+        <div class="t3-results-panel" id="t3-results-panel-findings" data-panel="findings">
+          <div class="t3-results-grid">
+            <div class="t3-results-col-left">
+        <div class="card hidden" id="t3-findings-card">
+          <div class="card__head">
+            <div class="card__title">Önceliklendirilmiş Teknik SEO Bulguları</div>
+            <span class="small muted" id="t3-findings-subtitle">önce önem derecesi (yüksek → orta → düşük), sonra aynı derece içinde etkilenen sayfa oranı × güven seviyesine göre sıralanmıştır</span>
+          </div>
+          <div class="mt-16" id="t3-findings-body"></div>
+        </div>
+            </div>
+            <div class="t3-results-col-right">
+        <div class="card hidden" id="t3-psi-summary-card">
+          <div class="card__head">
+            <div class="card__title">PageSpeed Özeti</div>
+            <button type="button" class="btn btn--ghost btn--sm" data-target="t3-output-card">Ayrıntılar</button>
+          </div>
+          <div class="t3-psi-summary-row">
+            <div class="t3-psi-summary-col">
+              <small>Mobil</small>
+              <strong id="t3-psi-summary-mobile-val">—</strong>
+            </div>
+            <div class="t3-psi-summary-col">
+              <small>Masaüstü</small>
+              <strong id="t3-psi-summary-desktop-val">—</strong>
+            </div>
+          </div>
+        </div>
+
+            </div>
+          </div>
+        </div>
+
+        <div class="t3-results-panel hidden" id="t3-results-panel-solutions" data-panel="solutions">
+        <div class="card mt-20 hidden" id="t3-solutions-card">
+          <div class="card__head"><div><div class="card__title">Hazır Çıktılar</div><div class="small muted">Önizleyin, kopyalayın veya dosya olarak indirin. Hiçbir değişiklik siteye otomatik uygulanmaz.</div></div></div>
+          <div class="mt-16" id="t3-solutions-body"></div>
+        </div>
+
+        </div>
+
+        <div class="t3-results-panel hidden" id="t3-results-panel-pagespeed" data-panel="pagespeed">
         <div class="card mt-20" id="t3-output-card">
           <div class="card__head">
             <div class="card__title">Lighthouse & PageSpeed Denetim Sonuçları</div>
@@ -811,8 +891,12 @@ require_once __DIR__ . '/db.php';
               <div class="meter-track"><div class="meter-fill" id="t3-inp-fill" style="width:0%;"></div></div>
             </div>
           </div>
+          <div class="t3-psi-details mt-20" id="t3-psi-details"></div>
         </div>
 
+        </div>
+
+        <div class="t3-results-panel hidden" id="t3-results-panel-scan" data-panel="scan">
         <div class="card mt-20 hidden" id="t3-quick-audit-card">
           <div class="card__head">
             <div class="card__title">Hızlı Teknik Denetim (Sunucu Taraflı)</div>
@@ -854,28 +938,8 @@ require_once __DIR__ . '/db.php';
           </div>
         </div>
 
-        <div class="card mt-20 hidden" id="t3-composite-score-card">
-          <div class="card__head">
-            <div class="card__title">Genel Teknik SEO Skoru</div>
-            <span class="small muted">Ağırlıklı kategori ortalaması + kritik kapı kontrolleri — Lighthouse un düz ortalaması DEĞİLDİR</span>
-          </div>
-          <div class="flex gap-24 mt-16" style="align-items:center; flex-wrap:wrap;">
-            <div class="svg-wrap" style="width:110px; height:110px; flex-shrink:0;">
-              <svg viewBox="0 0 36 36"><circle class="bg" cx="18" cy="18" r="15.9155"/><circle class="fill" id="t3-final-score-circle" cx="18" cy="18" r="15.9155" stroke-dasharray="100 100" stroke-dashoffset="100"/></svg>
-              <div class="val" id="t3-final-score-val" style="font-size:22px;">—</div>
-            </div>
-            <div style="flex:1; min-width:260px;" id="t3-gates-warning"></div>
-          </div>
-          <div class="mt-16" id="t3-category-breakdown"></div>
         </div>
 
-        <div class="card mt-20 hidden" id="t3-findings-card">
-          <div class="card__head">
-            <div class="card__title">Önceliklendirilmiş Teknik SEO Bulguları</div>
-            <span class="small muted" id="t3-findings-subtitle">önce önem derecesi (yüksek → orta → düşük), sonra aynı derece içinde etkilenen sayfa oranı × güven seviyesine göre sıralanmıştır</span>
-          </div>
-          <div class="mt-16" id="t3-findings-body"></div>
-        </div>
         </div><!-- /#t3-live-view -->
 
         <div id="t3-history-view" class="hidden">
@@ -1088,74 +1152,109 @@ require_once __DIR__ . '/db.php';
 document.addEventListener('DOMContentLoaded', () => {
     
     // 1. URL Input Listener
-    document.addEventListener('input', (e) => {
-      if (e.target && e.target.tagName === 'INPUT' && (e.target.type === 'url' || e.target.id.toLowerCase().includes('url'))) {
-        const val = e.target.value.trim();
-        const headerName = document.getElementById('top-header-client-name');
-        if (!headerName) return;
-        
-        // Ensure state is accessible
-        if (typeof state === 'undefined') return;
+    const sendUrlBtn = document.getElementById('welcome-send-url-btn');
+    if (sendUrlBtn) {
+        sendUrlBtn.addEventListener('click', () => {
+            const val = document.getElementById('welcome-main-url-input').value.trim();
+            const headerName = document.getElementById('top-header-client-name');
+            if (typeof window.appState === 'undefined') return;
 
-        // If a client is actively selected in the dropdown, keep its name
-        const clientSelect = document.getElementById('client-select');
-        if (clientSelect && clientSelect.value && state.currentClient) {
-            headerName.textContent = state.currentClient.name;
-            return;
-        }
-        
-        if (!val) {
-            headerName.textContent = 'Bekleniyor...';
-            return;
-        }
+            // 1. Sync to all inputs
+            const urlInputs = [
+                document.getElementById('aiseo-url-input'),
+                document.getElementById('urlInput'),
+                document.getElementById('t3-url'),
+                document.getElementById('t8-url'),
+                document.getElementById('welcome-main-url-input')
+            ];
+            
+            urlInputs.forEach(input => {
+                if (input) {
+                    input.value = val;
+                }
+            });
 
-        // Try to match the typed URL with an existing client
-        let matchedClient = null;
-        if (state.clients) {
-             matchedClient = state.clients.find(c => {
-               if (!c.domain_url) return false;
-               let domain1 = c.domain_url.replace(/^https?:\/\//, '').replace(/\/$/, '');
-               let domain2 = val.replace(/^https?:\/\//, '').replace(/\/$/, '');
-               return domain2.startsWith(domain1);
-             });
-        }
-        
-        if (matchedClient) {
-            headerName.textContent = 'Eşleşti: ' + matchedClient.name;
-        } else {
-            headerName.textContent = val;
-        }
-      }
-    });
+            // 2. Update Header
+            if (!headerName) return;
+            if (!val) {
+                const clientSelect = document.getElementById('client-select');
+                if (clientSelect && clientSelect.value && window.appState.currentClient) {
+                    headerName.textContent = window.appState.currentClient.name;
+                } else {
+                    headerName.textContent = 'Bekleniyor...';
+                }
+                
+                // Show toast and hide welcome screen
+                if (typeof showToast !== 'undefined') showToast('URL kutuları temizlendi.', 'info');
+                document.getElementById('welcome-overlay').style.opacity = '0';
+                setTimeout(() => document.getElementById('welcome-overlay').style.display = 'none', 400);
+                return;
+            }
 
-    // 2. Client Select Listener (Overrides and augments app.js)
+            let matchedClient = null;
+            if (window.appState.clients) {
+                 matchedClient = window.appState.clients.find(c => {
+                   if (!c.domain_url) return false;
+                   let domain1 = c.domain_url.replace(/^https?:\/\//, '').replace(/\/$/, '').toLowerCase();
+                   let domain2 = val.replace(/^https?:\/\//, '').replace(/\/$/, '').toLowerCase();
+                   return domain2.startsWith(domain1) || domain1.startsWith(domain2);
+                 });
+            }
+            
+            if (matchedClient) {
+                headerName.textContent = 'Eşleşti: ' + matchedClient.name;
+            } else {
+                headerName.textContent = val;
+            }
+            
+            if (typeof showToast !== 'undefined') showToast('URL tüm sekmelere başarıyla gönderildi!', 'success');
+            
+            // Hide welcome screen
+            document.getElementById('welcome-overlay').style.opacity = '0';
+            setTimeout(() => document.getElementById('welcome-overlay').style.display = 'none', 400);
+        });
+    }
+
     const clientSelect = document.getElementById('client-select');
     if (clientSelect) {
         clientSelect.addEventListener('change', (e) => {
-            setTimeout(() => { // wait for app.js to update state
-                if (typeof state === 'undefined') return;
+            setTimeout(() => { 
+                if (typeof window.appState === 'undefined') return;
                 
                 const headerName = document.getElementById('top-header-client-name');
-                if (state.currentClient) {
-                    if (headerName) headerName.textContent = state.currentClient.name;
+                if (window.appState.currentClient) {
+                    if (headerName) headerName.textContent = window.appState.currentClient.name;
                     
-                    // Forcefully populate AI SEO input if it exists
-                    const aiSeoInput = document.getElementById('aiseo-url-input');
-                    if (aiSeoInput && state.currentClient.domain_url) {
-                        aiSeoInput.value = state.currentClient.domain_url;
-                        // Trigger input event to update other potential listeners
-                        // aiSeoInput.dispatchEvent(new Event('input', { bubbles: true })); // kapattım çünkü sonsuz döngü yaratabiliyor bazen
-                    }
+                    const urlInputs = [
+                        document.getElementById('aiseo-url-input'),
+                        document.getElementById('urlInput'),
+                        document.getElementById('t3-url'),
+                        document.getElementById('t8-url'),
+                        document.getElementById('welcome-main-url-input')
+                    ];
+                    
+                    urlInputs.forEach(input => {
+                        if (input && window.appState.currentClient.domain_url) {
+                            input.value = window.appState.currentClient.domain_url;
+                        }
+                    });
                 } else {
                     if (headerName) headerName.textContent = 'Bekleniyor...';
-                    const aiSeoInput = document.getElementById('aiseo-url-input');
-                    if (aiSeoInput) aiSeoInput.value = '';
+                    const urlInputs = [
+                        document.getElementById('aiseo-url-input'),
+                        document.getElementById('urlInput'),
+                        document.getElementById('t3-url'),
+                        document.getElementById('t8-url'),
+                        document.getElementById('welcome-main-url-input')
+                    ];
+                    urlInputs.forEach(input => {
+                        if (input) input.value = '';
+                    });
                 }
-            }, 100); // slight delay
+            }, 100); 
         });
     }
 });
 </script>
 </body>
-
 </html>

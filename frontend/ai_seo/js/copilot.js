@@ -840,7 +840,7 @@ function appendModalAddButton() {
   btn.id    = 'btn-modal-add-custom-service';
   btn.title = 'Özel hizmet ekle (Alt sekmeleri buraya sürükleyip bırakabilirsiniz)';
   // Kullanıcının mutlaka görmesi gereken devasa belirgin yeni özel sekme (artı) kutusu
-  btn.style.cssText = 'display:flex; align-items:center; justify-content:center; width:100%; padding:16px; margin:0; background:#fff; border:2px dashed #94A3B8; border-radius:8px; cursor:pointer; color:#475569; transition:all .15s; font-family:Inter, sans-serif; gap:12px;';
+  btn.style.cssText = 'display:flex; align-items:center; justify-content:center; width:100%; padding:16px; margin:0; background:#fff; border:2px dashed #94A3B8; border-radius:8px; cursor:pointer; color:#475569; transition:all .15s; font-family:\'Source Sans Pro\', -apple-system, BlinkMacSystemFont, \'Segoe UI\', Roboto, \'Helvetica Neue\', Arial, sans-serif; gap:12px;';
   btn.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;width:32px;height:32px;background:#F1F5F9;border-radius:50%;color:#334155;font-size:22px;line-height:1;">+</div><div style="text-align:left;"><div style="font-weight:600;font-size:14px;color:#1F2937;">Yeni Ana Hizmet / Sekme Ekle</div><div style="font-size:12px;color:#64748B;margin-top:2px;">Sıfırdan oluşturmak için tıklayın veya bir alt başlığı buraya sürükleyin.</div></div>';
   btn.addEventListener('mouseenter', () => { btn.style.borderColor='#FBBA00'; btn.style.borderStyle='solid'; btn.style.color='#312F4D'; btn.style.background='#FFF6DF'; });
   btn.addEventListener('mouseleave', () => { btn.style.borderColor='#9A9DAE'; btn.style.borderStyle='dashed'; btn.style.color='#6B6E82'; btn.style.background='#fff'; });
@@ -1441,11 +1441,11 @@ function renderServiceAccordion(service, status, htmlContent, errorMsg) {
     });
   
     const el = document.createElement('div');
-    el.innerHTML = `<div style="font-family:Arial,sans-serif;">
+    el.innerHTML = `<div style="font-family:\'Source Sans Pro\', -apple-system, BlinkMacSystemFont, \'Segoe UI\', Roboto, \'Helvetica Neue\', Arial, sans-serif;">
       <div style="height:1100px;display:flex;flex-direction:column;justify-content:center;align-items:center;background:linear-gradient(135deg,#312F4D,#1F1D30);color:#fff;text-align:center;padding:40px;page-break-after:always;">
         <div style="font-size:36px;font-weight:800;margin-bottom:14px;color:#FBBA00;">AdresGezgini</div>
         <div style="font-size:44px;font-weight:800;line-height:1.1;margin-bottom:24px;">YAPAY ZEKA<br>SEO RAPORU</div>
-        <div style="background:rgba(255,255,255,.12);padding:10px 26px;border-radius:6px;font-size:15px;font-family:monospace;margin-bottom:12px;">${state.targetUrl}</div>
+        <div style="background:rgba(255,255,255,.12);padding:10px 26px;border-radius:6px;font-size:15px;font-family:\'Source Sans Pro\', -apple-system, BlinkMacSystemFont, \'Segoe UI\', Roboto, \'Helvetica Neue\', Arial, sans-serif;margin-bottom:12px;">${state.targetUrl}</div>
         <div style="font-size:13px;opacity:.8;">Site Türü: ${state.siteType}</div>
         <div style="margin-top:auto;font-size:12px;opacity:.6;">${date}</div>
       </div>${pages}</div>`;
@@ -1997,6 +1997,7 @@ function loadFromHistory(item) {
     document.head.appendChild(s);
   })();
   
+<<<<<<< HEAD
 })();
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -2012,3 +2013,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 300);
     }
 });
+=======
+  })(); // /IIFE — copilot.js scope sonu
+
+>>>>>>> main
