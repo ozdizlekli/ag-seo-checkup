@@ -2301,15 +2301,17 @@ async function computeAndRenderScore(){
   }
 
   // Ekrana Basma
-  if (packageTitle !== "") {
-    titleEl.textContent = packageTitle;
-    textEl.innerHTML = `${packageDesc} <br>
-      <span class="price" style="font-size: 14.5px; display:inline-block; margin-top:8px; font-weight:700; color:var(--accent);">
-        Önerilen Paket Fiyatı: ${packagePrice} + KDV
-      </span>`;
-    banner.classList.remove('hidden');
-  } else {
-    banner.classList.add('hidden');
+  if (banner) {
+    if (packageTitle !== "") {
+      titleEl.textContent = packageTitle;
+      textEl.innerHTML = `${packageDesc} <br>
+        <span class="price" style="font-size: 14.5px; display:inline-block; margin-top:8px; font-weight:700; color:var(--accent);">
+          Önerilen Paket Fiyatı: ${packagePrice} + KDV
+        </span>`;
+      banner.classList.remove('hidden');
+    } else {
+      banner.classList.add('hidden');
+    }
   }
 
   // Anlık görüntü kaydı için son hesaplanan skorları sakla

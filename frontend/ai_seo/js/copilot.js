@@ -231,6 +231,36 @@ DİKKAT ÖNEMLİ KURAL: Yazılımcının doğrudan sunucuya (Apache/Nginx) veya 
   
   // In-memory dizi — buildPrompt fonksiyonlarını korur
   const customServicesRegistry = [];
+
+  // UNDO YAKALAYICI
+  window.customizationHistory = [];
+  window.saveCustomizationState = function() {
+      const snapshot = {
+          core: JSON.parse(JSON.stringify(DEFAULT_SERVICES)),
+          custom: JSON.parse(JSON.stringify(customServicesRegistry))
+      };
+      window.customizationHistory.push(snapshot);
+      if (window.customizationHistory.length > 5) {
+          window.customizationHistory.shift();
+      }
+  };
+  window.undoCustomizationState = function() {
+      if (window.customizationHistory.length === 0) {
+          alert("");
+          return;
+      }
+      const lastState = window.customizationHistory.pop();
+      DEFAULT_SERVICES.length = 0;
+      lastState.core.forEach(s => DEFAULT_SERVICES.push(s));
+      customServicesRegistry.length = 0;
+      lastState.custom.forEach(s => customServicesRegistry.push(s));
+      
+      persistCustomServices();
+      if (document.getElementById('customization-modal') && document.getElementById('customization-modal').style.display !== 'none') {
+          renderAllServiceButtons();
+      }
+      updateRunAllBtn();
+  };
   
   function persistCustomServices() {
     const data = customServicesRegistry.map(s => ({
@@ -386,32 +416,24 @@ function renderAllServiceButtons() {
            <div style="padding:20px; overflow-y:auto; flex:1; background:#F1F5F9;">
                <div id="customize-services-list" style="display:flex; flex-direction:column; gap:12px;"></div>
            </div>
-           <div style="padding:16px 20px; border-top:1px solid #E2E8F0; background:#F8FAFC; display:flex; justify-content:flex-end; gap:12px; align-items:center;">
-               <button id="btn-reset-customization" style="background:none; border:none; color:#EF4444; font-size:13px; font-weight:600; cursor:pointer; padding:8px 12px; border-radius:6px; transition:background .15s;">Sıfırla (Varsayılan)</button>
-               <button id="btn-save-customization" style="background:#10B981; color:#fff; border:none; font-size:14px; font-weight:600; cursor:pointer; padding:10px 20px; border-radius:8px; box-shadow:0 2px 4px rgba(16,185,129,0.2); transition:all .15s;">Değişiklikleri Kaydet</button>
+           <div style="padding:16px 20px; border-top:1px solid #E2E8F0; background:#F8FAFC; display:flex; justify-content:space-between; align-items:center;">
+               <button id="btn-undo-customization" title="Geri Al" style="background:none; border:1px solid #CBD5E1; color:#475569; font-size:16px; cursor:pointer; padding:8px; border-radius:6px; display:flex; align-items:center; justify-content:center; transition:all .15s; margin-right:auto;">
+                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"></path><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"></path></svg>
+               </button>
+               <div style="display:flex; gap:12px;">
+                 <button id="btn-reset-customization" style="background:none; border:none; color:#EF4444; font-size:13px; font-weight:600; cursor:pointer; padding:8px 12px; border-radius:6px; transition:background .15s;">Sıfırla (Varsayılan)</button>
+                 <button id="btn-save-customization" style="background:#10B981; color:#fff; border:none; font-size:14px; font-weight:600; cursor:pointer; padding:10px 20px; border-radius:8px; box-shadow:0 2px 4px rgba(16,185,129,0.2); transition:all .15s;">Değişiklikleri Kaydet</button>
+               </div>
            </div>
         </div>
      `;
      document.body.appendChild(modal);
      
+     document.getElementById('btn-undo-customization').onclick = window.undoCustomizationState;
      document.getElementById('btn-reset-customization').onclick = () => {
-         if (confirm('Tüm özelleştirmeleri silip orijinal varsayılan ayarlara dönmek istediğinize emin misiniz?')) {
+         if (confirm('Tüm özelleştirmeleri silip orijinal varsayılan ayarlara dönmek istediğinize emin misiniz? (Sayfa yenilenecek)')) {
              localStorage.removeItem('ag_custom_seo_services_v2'); // CUSTOM_SERVICES_KEY
-             customServicesRegistry.length = 0; // Clear all custom ones
-             // Clear all overrides in built-in ones
-             getAllServices().forEach(svc => {
-                if(svc.subtasks) {
-                   svc.subtasks.forEach(st => st.selected = true);
-                }
-             });
-             renderAllServiceButtons();
-             renderIdleAccordions(true);
-             getAllServices().forEach(svc => {
-                 const key = String(svc.id);
-                 if (state.completedServices.has(svc.id) && state.serviceResults[key]) {
-                     renderServiceAccordion(svc, 'done', state.serviceResults[key].html || state.serviceResults[key].raw || '');
-                 }
-             });
+             window.location.reload();
          }
      };
      
@@ -433,7 +455,15 @@ function renderAllServiceButtons() {
   const all = getAllServices();
   all.forEach(svc => {
     const card = document.createElement('div');
-    card.style.cssText = 'background:#fff; border:1px solid #E2E8F0; border-radius:8px; overflow:hidden;';
+    card.style.cssText = 'background:#fff; border:1px solid #E2E8F0; border-radius:8px; overflow:hidden; margin-bottom:12px;';
+    
+    // Make main service draggable
+    card.draggable = true;
+    card.ondragstart = (e) => {
+      // If we are dragging the header/card
+      e.dataTransfer.setData('text/plain', JSON.stringify({ parentId: svc.id, isMainService: true }));
+      // Optional: style the ghost
+    };
     
     // Header (Click to open dropdown internally or just keep it open)
     // The user said: "tüm hizmetler alt alta gözüksün ve tıklandığında şu anki gibi her şeyi içersin"
@@ -593,8 +623,78 @@ function renderAllServiceButtons() {
     
     // Add Subtask Button
     const addSubBtn = document.createElement('button');
-    addSubBtn.innerHTML = '+ Alt Başlık Ekle';
-    addSubBtn.style.cssText = 'background:none; color:#312F4D; border:1px dashed #94A3B8; padding:8px; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer; width:100%; margin-top:12px;';
+    addSubBtn.innerHTML = '+ Buraya Sürükle veya Alt Başlık Ekle';
+    addSubBtn.style.cssText = 'background:none; color:#312F4D; border:2px dashed #94A3B8; padding:12px; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer; width:100%; margin-top:12px; transition:all 0.2s;';
+    
+    addSubBtn.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        addSubBtn.style.borderColor = '#10B981';
+        addSubBtn.style.background = '#F0FDF4';
+    });
+    addSubBtn.addEventListener('dragleave', () => {
+        addSubBtn.style.borderColor = '#94A3B8';
+        addSubBtn.style.background = 'none';
+    });
+    addSubBtn.addEventListener('drop', (e) => {
+        e.preventDefault();
+        addSubBtn.style.borderColor = '#94A3B8';
+        addSubBtn.style.background = 'none';
+        
+        try {
+            const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+            
+            window.saveCustomizationState();
+            // Eğer Ana Sekmeyi sürüklüyorsa
+            if (data.isMainService && String(data.parentId) !== String(svc.id)) {
+                // Ana sekmeyi bul
+                let mainSvcIndex = customServicesRegistry.findIndex(s => String(s.id) === String(data.parentId));
+                if (mainSvcIndex > -1) {
+                    const mainSvc = customServicesRegistry[mainSvcIndex];
+                    
+                    // Onu alt sekme objesine dönüştür
+                    const newSub = {
+                        id: 'st_' + Date.now(),
+                        title: mainSvc.title,
+                        desc: mainSvc.description || mainSvc.promptTemplate || 'Oluşturulan alt sekme',
+                        selected: true
+                    };
+                    
+                    // Geçerli sekmeye (svc) ekle
+                    svc.subtasks.push(newSub);
+                    
+                    // Ana sekme listesinden çıkar
+                    customServicesRegistry.splice(mainSvcIndex, 1);
+                    
+                    persistCustomServices();
+                    if (document.getElementById('customization-modal') && document.getElementById('customization-modal').style.display !== 'none') {
+                        renderAllServiceButtons();
+                    }
+                    updateRunAllBtn();
+                }
+            } 
+            // Eğer başka bir alt sekmeyi sürüklüyorsa
+            else if (data.subtaskId && String(data.parentId) !== String(svc.id)) {
+                let sourceSvc = customServicesRegistry.find(s => String(s.id) === String(data.parentId));
+                if (!sourceSvc) sourceSvc = DEFAULT_SERVICES.find(s => String(s.id) === String(data.parentId));
+                if (sourceSvc) {
+                    const subIdx = sourceSvc.subtasks.findIndex(s => String(s.id) === String(data.subtaskId));
+                    if (subIdx > -1) {
+                        const sub = sourceSvc.subtasks[subIdx];
+                        sourceSvc.subtasks.splice(subIdx, 1);
+                        svc.subtasks.push(sub);
+                        persistCustomServices();
+                        if (document.getElementById('customization-modal') && document.getElementById('customization-modal').style.display !== 'none') {
+                            renderAllServiceButtons();
+                        }
+                        updateRunAllBtn();
+                    }
+                }
+            }
+        } catch(err) {
+            console.error(err);
+        }
+    });
+
     addSubBtn.onclick = async () => {
        const title = prompt('Yeni alt başlık adını girin (Örn: Mobil SEO):');
        if (!title) return;
@@ -612,6 +712,7 @@ Kurallar:
            0.3
          );
          
+         window.saveCustomizationState();
          const newSt = {
            id: 'st_' + Date.now(),
            title: title.trim(),
@@ -675,31 +776,41 @@ function appendModalAddButton() {
     btn.style.background = '#fff';
     
     try {
-      const data = JSON.parse(e.dataTransfer.getData('text/plain'));
-      const svc = getAllServices().find(s => String(s.id) === String(data.parentId));
-      if (svc) {
-        const subIdx = svc.subtasks.findIndex(st => String(st.id) === String(data.subtaskId));
-        if (subIdx > -1) {
-          const st = svc.subtasks[subIdx];
-          svc.subtasks.splice(subIdx, 1);
-          
-          // Add as custom service
-          const newCustom = {
-            id: 'custom_' + Date.now(),
-            icon: '⭐',
-            title: st.title,
-            description: st.desc,
-            promptTemplate: "Sen bir AdresGezgini AI SEO uzmanısın. {URL} sitesi için \" + st.title + \" analizi yap.\nSite: {TITLE} | {DESCRIPTION}\nTür: {SITE_TYPE}\nMetin: {TEXT}\n\nAşağıdaki başlıkları (tam olarak aynı yazımla '### Başlık' formatında) kullanarak detaylı ve uygulanabilir bir rapor hazırla:\n### \" + st.title + \"\n\" + st.desc + \"\n",
-            subtasks: [{ id: 'custom_st_' + Date.now(), title: st.title, desc: st.desc, selected: true }],
-            loadingMessages: ['Analiz ediliyor...']
-          };
-          customServicesRegistry.push(newCustom);
-          persistCustomServices();
-          renderAllServiceButtons();
-          renderIdleAccordions(true);
-        }
+      const dataStr = e.dataTransfer.getData('text/plain');
+      if (!dataStr) return;
+      const data = JSON.parse(dataStr);
+      window.saveCustomizationState();
+      
+      const allSvcs = getAllServices();
+      const svc = allSvcs.find(s => String(s.id) === String(data.parentId));
+      if (!svc) return;
+      
+      // Eğer sürüklene şey bir ALT SEKME ise:
+      if (data.subtaskId) {
+          const subIdx = (svc.subtasks || []).findIndex(st => String(st.id) === String(data.subtaskId));
+          if (subIdx > -1) {
+              const st = svc.subtasks[subIdx];
+              svc.subtasks.splice(subIdx, 1);
+              
+              const newCustom = {
+                  id: 'custom_' + Date.now(),
+                  icon: '⭐',
+                  title: st.title,
+                  description: st.desc || st.title,
+                  promptTemplate: `Sen bir AI SEO uzmanısın. {URL} sitesi için ${st.title} analizi yap.
+
+### ${st.title}
+${st.desc || ''}`,
+                  subtasks: [{ id: 'custom_st_' + Date.now(), title: st.title, desc: st.desc || st.title, selected: true }],
+                  loadingMessages: ['Analiz ediliyor...']
+              };
+              customServicesRegistry.push(newCustom);
+              persistCustomServices();
+              renderAllServiceButtons();
+              updateRunAllBtn();
+          }
       }
-    } catch(err) { console.error('Drop err:', err); }
+    } catch(err) { console.error('Drop err:', err); alert('Bir hata oluştu: ' + err.message); }
   });
 
   btn.addEventListener('click', openAddCustomServiceModal);
@@ -1307,109 +1418,141 @@ function renderServiceAccordion(service, status, htmlContent, errorMsg) {
 
 
 function openAddCustomServiceModal() {
-    document.getElementById('custom-svc-modal')?.remove();
-  
-    const modal = document.createElement('div');
-    modal.id = 'custom-svc-modal';
-    modal.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:100000;display:flex;align-items:center;justify-content:center;padding:20px;';
-    modal.innerHTML = `
-      <div style="background:#fff;border-radius:10px;border-top:3px solid #312F4D;padding:32px;max-width:480px;width:100%;box-shadow:0 10px 30px rgba(31,29,48,.18);animation:ag-slide-down .25s ease;">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">
-          <div>
-            <h3 style="font-size:17px;font-weight:700;color:#1F1D30;margin:0 0 4px;">Özel Hizmet Ekle</h3>
-            <p style="font-size:13px;color:#6B6E82;margin:0;">AI bu hizmet için analiz promptunu otomatik oluşturacak</p>
-          </div>
-          <button id="csm-close" style="background:none;border:none;cursor:pointer;font-size:22px;color:#6B6E82;line-height:1;padding:4px;">✕</button>
+  document.getElementById('custom-svc-modal')?.remove();
+
+  const modal = document.createElement('div');
+  modal.id = 'custom-svc-modal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:100000;display:flex;align-items:center;justify-content:center;padding:20px;';
+  modal.innerHTML = `
+    <div style="background:#fff;border-radius:10px;border-top:3px solid #312F4D;padding:32px;max-width:540px;width:100%;box-shadow:0 10px 30px rgba(31,29,48,.18);animation:ag-slide-down .25s ease;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">
+        <div>
+          <h3 style="font-size:17px;font-weight:700;color:#1F1D30;margin:0 0 4px;">Özel Hizmet Ekle</h3>
+          <p style="font-size:13px;color:#6B6E82;margin:0;">AI bu hizmet için analiz promptunu otomatik oluşturacak</p>
         </div>
-  
+        <button id="csm-close" style="background:none;border:none;cursor:pointer;font-size:22px;color:#6B6E82;line-height:1;padding:4px;">✕</button>
+      </div>
+
+      <div id="csm-step-1">
         <div style="margin-bottom:14px;">
           <label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:6px;">Hizmet Adı *</label>
           <input id="csm-name" type="text" placeholder="Örn: Mobil SEO Denetimi"
             style="width:100%;border:1px solid #E4E3EC;border-radius:6px;padding:10px 14px;font-size:14px;box-sizing:border-box;font-family:inherit;">
         </div>
-  
+
         <div style="margin-bottom:24px;">
           <label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:6px;">Hizmet Detayı *</label>
           <textarea id="csm-desc" rows="4" placeholder="Bu hizmet kapsamında ne yapılacak? AI bu bilgiyi kullanarak analiz sorularını oluşturacak..."
             style="width:100%;border:1px solid #E4E3EC;border-radius:6px;padding:10px 14px;font-size:13px;box-sizing:border-box;resize:vertical;line-height:1.6;font-family:inherit;"></textarea>
         </div>
-  
-        <div id="csm-loading" style="display:none;text-align:center;padding:10px;color:#6B6E82;font-size:13px;">
-          <span style="display:inline-block;width:14px;height:14px;border:2px solid #312F4D;border-top-color:transparent;border-radius:50%;animation:ag-spin .8s linear infinite;vertical-align:middle;margin-right:8px;"></span>
-          AI prompt oluşturuyor...
-        </div>
-  
-        <div style="display:flex;gap:10px;">
-          <button id="csm-cancel" style="flex:1;padding:11px;background:#F1F0F5;color:#475569;border:none;border-radius:6px;font-size:14px;font-weight:600;cursor:pointer;">İptal</button>
-          <button id="csm-save"   style="flex:2;padding:11px;background:#312F4D;color:#fff;border:none;border-radius:6px;font-size:14px;font-weight:700;cursor:pointer;">Kaydet</button>
-        </div>
-      </div>`;
-  
-    document.body.appendChild(modal);
-    setTimeout(() => document.getElementById('csm-name')?.focus(), 80);
-  
-    const close = () => modal.remove();
-    document.getElementById('csm-close').onclick  = close;
-    document.getElementById('csm-cancel').onclick = close;
-    modal.addEventListener('click', e => { if (e.target === modal) close(); });
-  
-    document.getElementById('csm-save').addEventListener('click', async () => {
+      </div>
+
+      <div id="csm-step-2" style="display:none; margin-bottom:24px;">
+        <label style="display:block;font-size:13px;font-weight:600;color:#10B981;margin-bottom:6px;">Oluşturulan Analiz Promptu (Düzenleyebilirsiniz)</label>
+        <textarea id="csm-generated-prompt" rows="10"
+          style="width:100%;border:1px solid #10B981;border-radius:6px;padding:10px 14px;font-size:13px;box-sizing:border-box;resize:vertical;line-height:1.5;font-family:'JetBrains Mono', monospace; background:#F0FDF4;"></textarea>
+        <p style="font-size:11px;color:#6B6E82;margin-top:6px;">AI'ın hazırladığı bu sistem komutunu inceleyin, gerekiyorsa ekleme/çıkarma yapıp onaylayın.</p>
+      </div>
+
+      <div id="csm-loading" style="display:none;text-align:center;padding:10px;color:#6B6E82;font-size:13px;">
+        <span style="display:inline-block;width:14px;height:14px;border:2px solid #312F4D;border-top-color:transparent;border-radius:50%;animation:ag-spin .8s linear infinite;vertical-align:middle;margin-right:8px;"></span>
+        AI prompt oluşturuyor, lütfen bekleyin...
+      </div>
+
+      <div style="display:flex;gap:10px;">
+        <button id="csm-cancel" style="flex:1;padding:11px;background:#F1F0F5;color:#475569;border:none;border-radius:6px;font-size:14px;font-weight:600;cursor:pointer;">İptal</button>
+        <button id="csm-save"   style="flex:2;padding:11px;background:#312F4D;color:#fff;border:none;border-radius:6px;font-size:14px;font-weight:700;cursor:pointer;">Prompt Oluştur</button>
+        <button id="csm-confirm" style="display:none; flex:2;padding:11px;background:#10B981;color:#fff;border:none;border-radius:6px;font-size:14px;font-weight:700;cursor:pointer;">Onayla ve Ekle</button>
+      </div>
+    </div>`;
+
+  document.body.appendChild(modal);
+  setTimeout(() => document.getElementById('csm-name')?.focus(), 80);
+
+  const close = () => modal.remove();
+  document.getElementById('csm-close').onclick  = close;
+  document.getElementById('csm-cancel').onclick = close;
+  modal.addEventListener('click', e => { if (e.target === modal) close(); });
+
+  document.getElementById('csm-save').addEventListener('click', async () => {
+    const name = (document.getElementById('csm-name').value || '').trim();
+    const desc = (document.getElementById('csm-desc').value || '').trim();
+    if (!name || !desc) { alert('Hizmet adı ve detayını doldurun.'); return; }
+
+    const saveBtn = document.getElementById('csm-save');
+    const loading = document.getElementById('csm-loading');
+    saveBtn.disabled = true; saveBtn.style.opacity = '0.6';
+    if (loading) loading.style.display = 'block';
+
+    try {
+      const generatedPrompt = await callGemini(
+        `Sen bir AI SEO uzmanısın. Aşağıdaki hizmet için bir web sitesi analiz promptu yaz.
+
+Hizmet adı: ${name}
+Hizmet açıklaması: ${desc}
+
+Kurallar:
+- Prompt Türkçe olmalı
+- Prompt içinde şu yer tutucuları kullan: {URL}, {TITLE}, {DESCRIPTION}, {SITE_TYPE}, {TEXT}, {SCHEMAS}
+- Markdown başlıkları (## ile) kullan
+- En az 5, en fazla 7 ana başlık
+- Son başlık "## Öncelikli 5 Aksiyon" olsun
+- Her başlık altında somut, uygulanabilir öneriler iste
+- Sadece promptu yaz, başka açıklama ekleme`,
+        0.4
+      );
+
+      // BAŞARILI
+      if (loading) loading.style.display = 'none';
+      document.getElementById('csm-step-1').style.display = 'none';
+      document.getElementById('csm-step-2').style.display = 'block';
+      saveBtn.style.display = 'none';
+      
+      const confirmBtn = document.getElementById('csm-confirm');
+      confirmBtn.style.display = 'block';
+      
+      document.getElementById('csm-generated-prompt').value = generatedPrompt;
+
+    } catch (err) {
+      if (loading) loading.style.display = 'none';
+      saveBtn.disabled = false; saveBtn.style.opacity = '1';
+      alert('Hata: ' + err.message);
+    }
+  });
+
+  document.getElementById('csm-confirm').addEventListener('click', () => {
+      const finalPrompt = document.getElementById('csm-generated-prompt').value.trim();
       const name = (document.getElementById('csm-name').value || '').trim();
       const desc = (document.getElementById('csm-desc').value || '').trim();
-      if (!name || !desc) { alert('Hizmet adı ve detayını doldurun.'); return; }
-  
-      const saveBtn = document.getElementById('csm-save');
-      const loading = document.getElementById('csm-loading');
-      saveBtn.disabled = true; saveBtn.style.opacity = '0.6';
-      if (loading) loading.style.display = 'block';
-  
-      try {
-        const generatedPrompt = await callGemini(
-          `Sen bir AI SEO uzmanısın. Aşağıdaki hizmet için bir web sitesi analiz promptu yaz.
-  
-  Hizmet adı: ${name}
-  Hizmet açıklaması: ${desc}
-  
-  Kurallar:
-  - Prompt Türkçe olmalı
-  - Prompt içinde şu yer tutucuları kullan: {URL}, {TITLE}, {DESCRIPTION}, {SITE_TYPE}, {TEXT}, {SCHEMAS}
-  - Markdown başlıkları (## ile) kullan
-  - En az 5, en fazla 7 ana başlık
-  - Son başlık "## Öncelikli 5 Aksiyon" olsun
-  - Her başlık altında somut, uygulanabilir öneriler iste
-  - Sadece promptu yaz, başka açıklama ekleme`,
-          0.4
-        );
-  
-        const newSvc = buildCustomServiceObj({
-          id:             'custom_' + Date.now(),
-          icon:           '⭐',
-          title:          name,
-          description:    desc,
-          promptTemplate: generatedPrompt
-        });
-  
-        customServicesRegistry.push(newSvc);
-        persistCustomServices();
-        renderCustomServiceButton(newSvc);
-        updateRunAllBtn();
-        close();
-  
-      } catch (err) {
+      
+      if (!finalPrompt) { alert('Prompt alanı boş olamaz.'); return; }
+      
+      window.saveCustomizationState();
+      const newSvc = buildCustomServiceObj({
+        id:             'custom_' + Date.now(),
+        icon:           '⭐',
+        title:          name,
+        description:    desc,
+        promptTemplate: finalPrompt
+      });
 
-      if (loadingInterval) clearInterval(loadingInterval);
-
-        if (loading) loading.style.display = 'none';
-        saveBtn.disabled = false; saveBtn.style.opacity = '1';
-        alert('Hata: ' + err.message);
+      customServicesRegistry.push(newSvc);
+      persistCustomServices();
+      renderCustomServiceButton(newSvc);
+      updateRunAllBtn();
+      
+      // Update customization modal if it's currently open
+      if (document.getElementById('customization-modal') && document.getElementById('customization-modal').style.display !== 'none') {
+         renderAllServiceButtons();
       }
-    });
-  }
-  
-  // ============================================================
-  // GEÇMİŞ
-  // ============================================================
-  
+      close();
+  });
+}
+
+// ============================================================
+// GEÇMİŞ
+// ============================================================
+
   async function saveAnalysis() {
     if (!state.targetUrl || Object.keys(state.serviceResults).length === 0) return;
     await fetch('ai_seo/api/save_chat.php', {
@@ -1540,7 +1683,8 @@ function openAddCustomServiceModal() {
           0.4
         );
   
-        const newSvc = buildCustomServiceObj({
+        window.saveCustomizationState();
+      const newSvc = buildCustomServiceObj({
           id:             'custom_' + Date.now(),
           icon:           '⭐',
           title:          name,
@@ -1652,12 +1796,33 @@ function loadFromHistory(item) {
       renderIdleAccordions();
 
   
-    getAllServices().forEach(svc => {
+    const allSvcs = getAllServices();
+    const existingIds = new Set(allSvcs.map(s => String(s.id)));
+    
+    // Önce var olan (mevcut) hizmetleri renderla
+    allSvcs.forEach(svc => {
       const key = String(svc.id);
       if (state.completedServices.has(svc.id) && state.serviceResults[key]) {
         updateServiceButtonState(svc.id, 'done');
         renderServiceAccordion(svc, 'done', state.serviceResults[key].html || state.serviceResults[key].raw || '');
       }
+    });
+    
+    // Şimdi silinmiş olan (artık getAllServices() içinde olmayan) geçmiş hizmetleri bul ve en sona ekle
+    Object.keys(state.serviceResults).forEach(key => {
+        if (!existingIds.has(key)) {
+            // Hizmet silinmiş ama geçmişte verisi var!
+            // renderServiceAccordion bir 'svc' objesi bekler. Fake bir obje oluşturuyoruz.
+            const fakeSvc = {
+                id: key,
+                icon: '🗑️',
+                title: 'Silinmiş Ana Hizmet',
+                subtasks: []
+            };
+            // renderServiceAccordion'ın bu sahte objeyle çalışması için
+            // sadece başlığını basacak ve içindeki verileri "Silinmiş Alt Sekme" mantığıyla renderlayacak.
+            renderServiceAccordion(fakeSvc, 'done', state.serviceResults[key].html || state.serviceResults[key].raw || '');
+        }
     });
     updateRunAllBtn(); updateDownloadBtn();
   }
@@ -1795,4 +1960,4 @@ function loadFromHistory(item) {
     document.head.appendChild(s);
   })();
   
-  })(); // /IIFE — copilot.js scope sonu
+})();
