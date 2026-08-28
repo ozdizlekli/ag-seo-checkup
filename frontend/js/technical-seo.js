@@ -2210,7 +2210,7 @@ const T3_REPORT_CSS = `
 html,body{ margin:0; padding:0; }
 body{
   background:#EEF0F4; color:#12151F;
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  font-family:'Source Sans Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   -webkit-font-smoothing:antialiased;
 }
 .rpt-toolbar{
@@ -2555,7 +2555,7 @@ async function generateT3Report() {
     showToast('Rapor penceresi açılamadı — tarayıcının pop-up engelleyicisini kontrol et.', 'error');
     return;
   }
-  reportWindow.document.write('<!DOCTYPE html><html lang="tr"><head><meta charset="UTF-8"><title>Rapor hazırlanıyor…</title></head><body style="font-family:sans-serif; padding:40px; color:#6B7280;">Rapor hazırlanıyor…</body></html>');
+  reportWindow.document.write('<!DOCTYPE html><html lang="tr"><head><meta charset="UTF-8"><title>Rapor hazırlanıyor…</title></head><body style="font-family:\'Source Sans Pro\', -apple-system, BlinkMacSystemFont, \'Segoe UI\', Roboto, \'Helvetica Neue\', Arial, sans-serif; padding:40px; color:#6B7280;">Rapor hazırlanıyor…</body></html>');
   reportWindow.document.close();
 
   let client = null;
@@ -2598,3 +2598,4 @@ async function generateT3Report() {
 }
 
 document.getElementById('t3-report-btn')?.addEventListener('click', generateT3Report);
+

@@ -15,7 +15,7 @@ require_once __DIR__ . '/db.php';
 <title>AG SEO Check Up - Admin Panel</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@300;400;700;900&display=swap" rel="stylesheet">
 
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -289,7 +289,7 @@ require_once __DIR__ . '/db.php';
   }
 
   .ag-header-left .brand-text .name {
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: 'Source Sans Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     font-size: 16px;
     font-weight: 700;
     color: var(--ag-navy);
@@ -298,7 +298,7 @@ require_once __DIR__ . '/db.php';
   }
 
   .ag-header-left .brand-text .sub {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Source Sans Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     font-size: 10.5px;
     font-weight: 600;
     color: var(--ag-slate-light);
@@ -327,7 +327,7 @@ require_once __DIR__ . '/db.php';
     position: relative;
     background: none;
     border: none;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Source Sans Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     font-size: 13px;
     font-weight: 600;
     color: var(--ag-slate);
@@ -390,7 +390,7 @@ require_once __DIR__ . '/db.php';
   }
 
   .ag-client-label {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Source Sans Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     font-size: 10px;
     font-weight: 700;
     color: var(--ag-slate-light);
@@ -404,7 +404,7 @@ require_once __DIR__ . '/db.php';
     background: #fff;
     border-radius: 6px;
     padding: 5px 8px;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Source Sans Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     font-size: 12.5px;
     color: var(--ag-navy);
     outline: none;
@@ -443,7 +443,7 @@ require_once __DIR__ . '/db.php';
     color: #fff;
     border-radius: 8px;
     padding: 9px 18px;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Source Sans Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     font-size: 12.5px;
     font-weight: 600;
     text-decoration: none;
@@ -460,7 +460,7 @@ require_once __DIR__ . '/db.php';
     color: var(--ag-navy);
     border-radius: 8px;
     padding: 9px 16px;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Source Sans Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     font-size: 12.5px;
     font-weight: 600;
     cursor: pointer;
@@ -537,47 +537,40 @@ require_once __DIR__ . '/db.php';
     <div class="welcome-header">
       <h1>AG Seo Checkup'a Hoş Geldiniz</h1>
       <p>Yapay zeka destekli SEO ve İçerik Yönetim Platformu. Bugün neye odaklanmak istersiniz?</p>
+      
+      <div style="margin-top: 24px; display: flex; justify-content: center; gap: 12px; max-width: 700px; margin-left: auto; margin-right: auto; padding: 20px; background: #F8FAFC; border-radius: 12px; border: 1px solid #E2E8F0;">
+         <input type="url" id="welcome-main-url-input" placeholder="URL girin (örn: https://...)" style="flex:1; border-radius:8px; border:1px solid #CBD5E1; background:#fff; color:#1F1D30; padding:12px 16px; font-size:14px; outline:none;">
+         <button id="welcome-send-url-btn" style="background:#10b981; border:none; color:#fff; border-radius:8px; padding:0 20px; font-size:14px; font-weight:600; cursor:pointer; white-space:nowrap; transition: background 0.2s;">URL'yi Gönder</button>
+         <button id="welcome-client-select-btn" style="background:#3b82f6; border:none; color:#fff; border-radius:8px; padding:0 20px; font-size:14px; font-weight:600; cursor:pointer; white-space:nowrap; transition: background 0.2s;" onclick="document.getElementById('gh-hamburger-btn').click(); document.getElementById('welcome-overlay').style.opacity='0'; setTimeout(()=>document.getElementById('welcome-overlay').style.display='none',400);">Müşteri Seç</button>
+      </div>
     </div>
     
     <div class="welcome-grid">
-      <!-- KART 1: Hızlı AI Bot -->
-      <div class="wc-card" style="border-color: rgba(59,130,246,0.3);">
-        <div class="wc-card-icon icon-ai">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-        </div>
-        <h3>Hızlı AI SEO (GEO Bot)</h3>
-        <p>URL'nizi girin, yapay zeka sitenizi tarayıp dönüşüm, SGE ve içerik boşluklarını hemen analiz etsin.</p>
-        <div class="wc-url-box">
-          <input type="text" id="wc-url-input" placeholder="https://www.site.com/hizmet">
-          <button id="wc-bot-start">Başla</button>
-        </div>
-      </div>
-
-      <!-- KART 2: İçerik İyileştirme -->
+      <!-- KART 1: Metin Bazlı SEO -->
       <div class="wc-card" id="wc-card-content">
         <div class="wc-card-icon icon-content">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
         </div>
-        <h3>Metin ve İçerik Optimizasyonu</h3>
+        <h3>Metin Bazlı SEO</h3>
         <p>Elinizdeki bir metni yapay zeka ile SEO uyumlu hale getirin, başlık ve meta açıklamalarınızı düzenleyin.</p>
       </div>
 
-      <!-- KART 3: Teknik Analiz -->
+      <!-- KART 2: Teknik SEO -->
       <div class="wc-card" id="wc-card-tech">
         <div class="wc-card-icon icon-tech">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
         </div>
-        <h3>Teknik SEO & Schema</h3>
+        <h3>Teknik SEO</h3>
         <p>Web sitenizin teknik performansını ölçün, JSON-LD schema üretin veya var olan yapısal verileri onarın.</p>
       </div>
 
-      <!-- KART 4: Gelişmiş Çalışma Yüzeyi -->
-      <div class="wc-card" id="wc-card-dashboard">
-        <div class="wc-card-icon icon-dash">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+      <!-- KART 3: AI SEO -->
+      <div class="wc-card" id="wc-card-ai" style="border-color: rgba(59,130,246,0.3);">
+        <div class="wc-card-icon icon-ai">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
         </div>
-        <h3>Gelişmiş Panele Git</h3>
-        <p>Beni doğrudan tüm sekmelerin ve ayarların bulunduğu ana çalışma paneline (dashboard) yönlendir.</p>
+        <h3>AI SEO</h3>
+        <p>Yapay zeka sitenizi tarayıp dönüşüm, SGE ve içerik boşluklarını hemen analiz etsin.</p>
       </div>
     </div>
   </div>
@@ -595,8 +588,8 @@ require_once __DIR__ . '/db.php';
         <a href="#" style="display:flex; align-items:center; text-decoration:none; gap:12px; margin-left:12px;">
           <img src="image.png" alt="Logo" style="width:40px; height:40px; border-radius:6px; border: 1px solid var(--ag-border);">
           <div style="display:flex; flex-direction:column; justify-content:center; gap:4px;">
-            <div style="font-family:'Space Grotesk', sans-serif; font-weight:700; font-size:16px; color:#1F1D30; line-height:1; letter-spacing:-0.3px;">AG SEO Check Up</div>
-            <div style="font-family:'JetBrains Mono', monospace; font-size:12px; color:#6B6E82; display:flex; align-items:center; gap:6px; line-height:1;">
+            <div style="font-family: 'Source Sans Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; font-weight:700; font-size:16px; color:#1F1D30; line-height:1; letter-spacing:-0.3px;">AG SEO Check Up</div>
+            <div style="font-family: 'Source Sans Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; font-size:12px; color:#6B6E82; display:flex; align-items:center; gap:6px; line-height:1;">
               <span><?php echo htmlspecialchars($_SESSION['username'] ?? 'ozdizlekli'); ?></span>
               <span style="color:#94A3B8;">/</span>
               <span style="font-weight:700; color:#1F1D30;" id="top-header-client-name">Bekleniyor...</span>
@@ -641,8 +634,8 @@ require_once __DIR__ . '/db.php';
     </header>
 
     <div class="content">
-<section class="tab-panel active" id="tab-1">
-  <?php include __DIR__ . '/src/TextSeo/views/tab1_view.php'; ?>
+<section class="tab-panel active" id="tab-1" style="position: relative;">
+  <?php include __DIR__ . '/src/textseo/index.php'; ?>
 </section>
 
       <!-- ==========================================================
@@ -1159,74 +1152,109 @@ require_once __DIR__ . '/db.php';
 document.addEventListener('DOMContentLoaded', () => {
     
     // 1. URL Input Listener
-    document.addEventListener('input', (e) => {
-      if (e.target && e.target.tagName === 'INPUT' && (e.target.type === 'url' || e.target.id.toLowerCase().includes('url'))) {
-        const val = e.target.value.trim();
-        const headerName = document.getElementById('top-header-client-name');
-        if (!headerName) return;
-        
-        // Ensure state is accessible
-        if (typeof state === 'undefined') return;
+    const sendUrlBtn = document.getElementById('welcome-send-url-btn');
+    if (sendUrlBtn) {
+        sendUrlBtn.addEventListener('click', () => {
+            const val = document.getElementById('welcome-main-url-input').value.trim();
+            const headerName = document.getElementById('top-header-client-name');
+            if (typeof window.appState === 'undefined') return;
 
-        // If a client is actively selected in the dropdown, keep its name
-        const clientSelect = document.getElementById('client-select');
-        if (clientSelect && clientSelect.value && state.currentClient) {
-            headerName.textContent = state.currentClient.name;
-            return;
-        }
-        
-        if (!val) {
-            headerName.textContent = 'Bekleniyor...';
-            return;
-        }
+            // 1. Sync to all inputs
+            const urlInputs = [
+                document.getElementById('aiseo-url-input'),
+                document.getElementById('urlInput'),
+                document.getElementById('t3-url'),
+                document.getElementById('t8-url'),
+                document.getElementById('welcome-main-url-input')
+            ];
+            
+            urlInputs.forEach(input => {
+                if (input) {
+                    input.value = val;
+                }
+            });
 
-        // Try to match the typed URL with an existing client
-        let matchedClient = null;
-        if (state.clients) {
-             matchedClient = state.clients.find(c => {
-               if (!c.domain_url) return false;
-               let domain1 = c.domain_url.replace(/^https?:\/\//, '').replace(/\/$/, '');
-               let domain2 = val.replace(/^https?:\/\//, '').replace(/\/$/, '');
-               return domain2.startsWith(domain1);
-             });
-        }
-        
-        if (matchedClient) {
-            headerName.textContent = 'Eşleşti: ' + matchedClient.name;
-        } else {
-            headerName.textContent = val;
-        }
-      }
-    });
+            // 2. Update Header
+            if (!headerName) return;
+            if (!val) {
+                const clientSelect = document.getElementById('client-select');
+                if (clientSelect && clientSelect.value && window.appState.currentClient) {
+                    headerName.textContent = window.appState.currentClient.name;
+                } else {
+                    headerName.textContent = 'Bekleniyor...';
+                }
+                
+                // Show toast and hide welcome screen
+                if (typeof showToast !== 'undefined') showToast('URL kutuları temizlendi.', 'info');
+                document.getElementById('welcome-overlay').style.opacity = '0';
+                setTimeout(() => document.getElementById('welcome-overlay').style.display = 'none', 400);
+                return;
+            }
 
-    // 2. Client Select Listener (Overrides and augments app.js)
+            let matchedClient = null;
+            if (window.appState.clients) {
+                 matchedClient = window.appState.clients.find(c => {
+                   if (!c.domain_url) return false;
+                   let domain1 = c.domain_url.replace(/^https?:\/\//, '').replace(/\/$/, '').toLowerCase();
+                   let domain2 = val.replace(/^https?:\/\//, '').replace(/\/$/, '').toLowerCase();
+                   return domain2.startsWith(domain1) || domain1.startsWith(domain2);
+                 });
+            }
+            
+            if (matchedClient) {
+                headerName.textContent = 'Eşleşti: ' + matchedClient.name;
+            } else {
+                headerName.textContent = val;
+            }
+            
+            if (typeof showToast !== 'undefined') showToast('URL tüm sekmelere başarıyla gönderildi!', 'success');
+            
+            // Hide welcome screen
+            document.getElementById('welcome-overlay').style.opacity = '0';
+            setTimeout(() => document.getElementById('welcome-overlay').style.display = 'none', 400);
+        });
+    }
+
     const clientSelect = document.getElementById('client-select');
     if (clientSelect) {
         clientSelect.addEventListener('change', (e) => {
-            setTimeout(() => { // wait for app.js to update state
-                if (typeof state === 'undefined') return;
+            setTimeout(() => { 
+                if (typeof window.appState === 'undefined') return;
                 
                 const headerName = document.getElementById('top-header-client-name');
-                if (state.currentClient) {
-                    if (headerName) headerName.textContent = state.currentClient.name;
+                if (window.appState.currentClient) {
+                    if (headerName) headerName.textContent = window.appState.currentClient.name;
                     
-                    // Forcefully populate AI SEO input if it exists
-                    const aiSeoInput = document.getElementById('aiseo-url-input');
-                    if (aiSeoInput && state.currentClient.domain_url) {
-                        aiSeoInput.value = state.currentClient.domain_url;
-                        // Trigger input event to update other potential listeners
-                        // aiSeoInput.dispatchEvent(new Event('input', { bubbles: true })); // kapattım çünkü sonsuz döngü yaratabiliyor bazen
-                    }
+                    const urlInputs = [
+                        document.getElementById('aiseo-url-input'),
+                        document.getElementById('urlInput'),
+                        document.getElementById('t3-url'),
+                        document.getElementById('t8-url'),
+                        document.getElementById('welcome-main-url-input')
+                    ];
+                    
+                    urlInputs.forEach(input => {
+                        if (input && window.appState.currentClient.domain_url) {
+                            input.value = window.appState.currentClient.domain_url;
+                        }
+                    });
                 } else {
                     if (headerName) headerName.textContent = 'Bekleniyor...';
-                    const aiSeoInput = document.getElementById('aiseo-url-input');
-                    if (aiSeoInput) aiSeoInput.value = '';
+                    const urlInputs = [
+                        document.getElementById('aiseo-url-input'),
+                        document.getElementById('urlInput'),
+                        document.getElementById('t3-url'),
+                        document.getElementById('t8-url'),
+                        document.getElementById('welcome-main-url-input')
+                    ];
+                    urlInputs.forEach(input => {
+                        if (input) input.value = '';
+                    });
                 }
-            }, 100); // slight delay
+            }, 100); 
         });
     }
 });
 </script>
 </body>
-
 </html>
