@@ -1,8 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
 
-    // ===== SABİTLER =====
-    const STORAGE_KEY = 'seo_analysis_history';
-
     // ===== DOM REFERANSLARI =====
     const homeView = document.getElementById('homeView');
     const resultsView = document.getElementById('resultsView');
@@ -112,7 +109,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let optimizedBodyText = '';
 
     // İlk açılışta geçmişi yükle
-    renderHistory();
+    fetchHistory();
 
     // ===== FORM GÖNDERİMİ =====
     form.addEventListener('submit', async function(e) {
@@ -141,13 +138,28 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            // Analizi geçmişe kaydet
-            saveToHistory(url, data);
+            // API'dan listeyi yeniden çek
+            fetchHistory();
 
             // Analiz başarılı, sonuçları göster
             currentDebugTrace = data.debug_trace || [];
             analyzedUrlText.textContent = url;
             document.getElementById('analyzedUrlTooltip').textContent = url;
+            
+            // Analiz Rozeti Gösterimi
+            const count = data.analysis_number || data.analyze_count || 1;
+            const analyzeBadge = document.getElementById('analyzeBadge');
+            if (analyzeBadge) {
+                analyzeBadge.style.display = 'inline-flex';
+                if(count == 1) {
+                    analyzeBadge.className = 'analyze-badge first';
+                    analyzeBadge.innerHTML = '✨ 1. Kapsamlı Analiz';
+                } else {
+                    analyzeBadge.className = 'analyze-badge repeat';
+                    analyzeBadge.innerHTML = `🔄 ${count}. Analiz (Farklı Anahtar Kelimeler)`;
+                }
+            }
+
             renderResults(data);
             switchToResultsView();
 
@@ -168,44 +180,24 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // ===== GEÇMİŞ (HISTORY) FONKSİYONLARI =====
-    function getHistory() {
-        const h = localStorage.getItem(STORAGE_KEY);
-        return h ? JSON.parse(h) : [];
-    }
-
-    function saveToHistory(url, data) {
-        let history = getHistory();
-        
-        const now = new Date();
-        const dateStr = now.toLocaleDateString('tr-TR') + ' - ' + now.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
-        
-        // Benzersiz ID
-        const id = Date.now().toString();
-
-        const newItem = {
-            id: id,
-            url: url,
-            dateStr: dateStr,
-            data: data
-        };
-
-        // Başa ekle
-        history.unshift(newItem);
-
-        // Maksimum 20 kayıt
-        if (history.length > 20) {
-            history = history.slice(0, 20);
-        }
-
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
-        renderHistory();
-    }
-
-    function renderHistory() {
+    async function fetchHistory() {
         if (!historyList) return;
-        const history = getHistory();
+        
+        try {
+            const response = await fetch('src/textseo/api/history.php');
+            if (!response.ok) return;
+            const data = await response.json();
+            
+            const history = Array.isArray(data) ? data : (data.data || []);
+            renderHistoryList(history);
+        } catch(err) {
+            console.error('History fetch error:', err);
+        }
+    }
+    
+    function renderHistoryList(history) {
         historyList.innerHTML = '';
-
+        
         if (history.length === 0) {
             clearHistoryBtn.style.display = 'none';
             historyList.innerHTML = '<div class="history-empty">Henüz kaydedilmiş bir analiz geçmişi bulunmuyor.</div>';
@@ -215,54 +207,116 @@ document.addEventListener('DOMContentLoaded', function() {
         clearHistoryBtn.style.display = 'inline-block';
 
         history.forEach(item => {
-            // Başlık belirleme (Orijinal Meta Title > URL)
-            let titleText = item.url;
-            if (item.data && item.data.original && item.data.original.title) {
-                titleText = item.data.original.title;
+            let titleText = (item.title && item.title.trim() !== '') ? item.title : item.url;
+            
+            const count = item.analysis_number || item.analyze_count || 1;
+            let badgeHtml = '';
+            if (count == 1) {
+                badgeHtml = `<span class="analyze-badge first">✨ 1. Kapsamlı Analiz</span>`;
+            } else {
+                badgeHtml = `<span class="analyze-badge repeat">🔄 ${count}. Analiz (Farklı Anahtar Kelimeler)</span>`;
             }
+            
+            const dateStr = item.dateStr || item.created_at || '';
 
             const el = document.createElement('div');
             el.className = 'history-item';
             el.innerHTML = `
-                <div class="history-main-info">
-                    <span class="history-keyword">${escapeHTML(titleText)}</span>
-                    <span class="history-meta">${escapeHTML(item.dateStr)} · ${escapeHTML(item.url)}</span>
+                <div class="history-main-info" style="flex:1;">
+                    <div style="display:flex; align-items:center; flex-wrap:wrap; gap:8px;">
+                        <span class="history-keyword">${escapeHTML(titleText)}</span>
+                        ${badgeHtml}
+                    </div>
+                    <span class="history-meta">${escapeHTML(dateStr)} · ${escapeHTML(item.url)}</span>
                 </div>
                 <button type="button" class="delete-item-btn" title="Sil">🗑️</button>
             `;
 
-            // Tıklama eventleri
-            el.addEventListener('click', () => loadHistoryItem(item));
+            el.addEventListener('click', () => loadHistoryItem(item.id || item.url));
             
             const delBtn = el.querySelector('.delete-item-btn');
-            delBtn.addEventListener('click', (e) => deleteHistoryItem(item.id, e));
+            delBtn.addEventListener('click', (e) => deleteHistoryItem(item.id || item.url, e));
 
             historyList.appendChild(el);
         });
     }
 
-    function loadHistoryItem(item) {
-        currentDebugTrace = item.data.debug_trace || [];
-        analyzedUrlText.textContent = item.url;
-        document.getElementById('analyzedUrlTooltip').textContent = item.url;
-        renderResults(item.data);
-        switchToResultsView();
+    async function loadHistoryItem(id) {
+        showLoading();
+        try {
+            const response = await fetch(`src/textseo/api/history.php?id=${id}`);
+            const data = await response.json();
+            
+            if (data.status === 'error') {
+                showError('Kayıt bulunamadı.');
+            } else {
+                const resultData = data.data || data; 
+                
+                currentDebugTrace = resultData.debug_trace || [];
+                analyzedUrlText.textContent = resultData.url || resultData.data?.url || '';
+                document.getElementById('analyzedUrlTooltip').textContent = resultData.url || '';
+                
+                const count = resultData.analysis_number || resultData.analyze_count || 1;
+                const analyzeBadge = document.getElementById('analyzeBadge');
+                if (analyzeBadge) {
+                    analyzeBadge.style.display = 'inline-flex';
+                    if(count == 1) {
+                        analyzeBadge.className = 'analyze-badge first';
+                        analyzeBadge.innerHTML = '✨ 1. Kapsamlı Analiz';
+                    } else {
+                        analyzeBadge.className = 'analyze-badge repeat';
+                        analyzeBadge.innerHTML = `🔄 ${count}. Analiz (Farklı Anahtar Kelimeler)`;
+                    }
+                }
+
+                // API'den dönen özellikleri garantiye al (boş obje fallback)
+                const renderData = {
+                    original: resultData.original || resultData.data?.original || {},
+                    optimized: resultData.optimized || resultData.data?.optimized || {},
+                    keywords: resultData.keywords || resultData.data?.keywords || {},
+                    analysis: resultData.analysis || resultData.data?.analysis || {}
+                };
+                
+                renderResults(renderData);
+                switchToResultsView();
+            }
+        } catch(err) {
+            console.error('loadHistoryItem error:', err);
+            showError('Kayıt yüklenirken hata oluştu.');
+        } finally {
+            hideLoading();
+        }
     }
 
-    function deleteHistoryItem(id, e) {
-        e.stopPropagation(); // Parent tıklamasını engelle
-        let history = getHistory();
-        history = history.filter(item => item.id !== id);
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
-        renderHistory();
+    async function deleteHistoryItem(id, e) {
+        e.stopPropagation();
+        try {
+            await fetch('src/textseo/api/history.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'delete', id: id })
+            });
+            fetchHistory();
+        } catch(err) {
+            console.error('Delete error', err);
+        }
     }
 
-    clearHistoryBtn.addEventListener('click', function() {
+    clearHistoryBtn.addEventListener('click', async function() {
         if (confirm("Tüm analiz geçmişini silmek istediğinize emin misiniz?")) {
-            localStorage.removeItem(STORAGE_KEY);
-            renderHistory();
+            try {
+                await fetch('src/textseo/api/history.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'clear' })
+                });
+                fetchHistory();
+            } catch(err) {
+                console.error('Clear error', err);
+            }
         }
     });
+
 
     function escapeHTML(str) {
         const div = document.createElement('div');
@@ -281,7 +335,6 @@ document.addEventListener('DOMContentLoaded', function() {
         if (keywords && keywords.missing_topics && keywords.missing_topics.length > 0) {
             keywords.missing_topics.forEach(topic => {
                 const li = document.createElement('li');
-                li.style.marginBottom = '8px';
                 li.textContent = topic;
                 missingTopicsList.appendChild(li);
             });

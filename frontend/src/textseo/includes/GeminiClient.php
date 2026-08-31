@@ -38,53 +38,78 @@ class GeminiClient {
             $payload['generationConfig']['responseMimeType'] = 'application/json';
         }
 
-        $ch = curl_init($url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload, JSON_UNESCAPED_UNICODE));
-        
-        $headers = [
-            'Content-Type: application/json',
-            'x-goog-api-key: ' . GEMINI_API_KEY
-        ];
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-        
-        // Timeout sabiti tanımlı değilse varsayılan 60 saniye olarak ayarlanır
-        $timeout = defined('GEMINI_TIMEOUT') ? GEMINI_TIMEOUT : 60;
-        curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+        $maxAttempts = 2;
+        $attempt = 0;
+        $lastError = '';
+        $response = '';
+        $httpCode = 0;
 
-        // cURL isteği uzun sürebileceğinden PHP'nin zaman sayacını tazele
-        set_time_limit(300);
+        while ($attempt < $maxAttempts) {
+            $attempt++;
 
-        $response = curl_exec($ch);
+            $ch = curl_init($url);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload, JSON_UNESCAPED_UNICODE));
+            
+            $headers = [
+                'Content-Type: application/json',
+                'x-goog-api-key: ' . GEMINI_API_KEY
+            ];
+            curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+            
+            // Timeout sabiti tanımlı değilse varsayılan 60 saniye olarak ayarlanır
+            $timeout = defined('GEMINI_TIMEOUT') ? GEMINI_TIMEOUT : 60;
+            curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+            curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4); // Windows IPv6 kilitlenmesini önler
+            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);          // İlk bağlantı kurma timeout'u 10 sn
 
-        if (curl_errno($ch)) {
+            // cURL isteği uzun sürebileceğinden PHP'nin zaman sayacını tazele
+            set_time_limit(300);
+
+            $response = curl_exec($ch);
+            
             $errNo = curl_errno($ch);
             $errMsg = curl_error($ch);
-            error_log(sprintf('Gemini cURL Hatası [Hata Kodu: %d] - %s. (Timeout: %d sn)', $errNo, $errMsg, $timeout));
-            curl_close($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
             
-            $this->debugTrace[] = [
-                'step' => $stepName,
-                'system' => $systemInstruction,
-                'prompt' => $prompt,
-                'response' => 'cURL ERROR: ' . $errMsg
-            ];
-            return '';
+            curl_close($ch);
+
+            // Başarılı durum
+            if ($errNo === 0 && $httpCode === 200) {
+                $lastError = ''; // Hata yok
+                break;
+            }
+
+            // Hata tespiti
+            if ($errNo) {
+                $lastError = "cURL ERROR ($errNo): $errMsg";
+            } else {
+                $lastError = "HTTP ERROR $httpCode: $response";
+            }
+
+            // Retry gerektiren hatalar (cURL hatası veya HTTP 429 / 503)
+            if ($errNo || $httpCode === 429 || $httpCode === 503) {
+                if ($attempt < $maxAttempts) {
+                    error_log("Gemini API geçici olarak meşgul (HTTP $httpCode). $attempt. yeniden deneme yapılıyor...");
+                    sleep(2);
+                    continue;
+                }
+            } else {
+                // Diğer HTTP hatalarında (ör. 400, 401, 500 vb.) retry yapma
+                break;
+            }
         }
 
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
-
-        if ($httpCode !== 200) {
-            error_log('Gemini HTTP Hatası: Kod ' . $httpCode . ' Yanıt: ' . $response);
-            
+        if ($lastError !== '') {
+            error_log('Gemini API Hatası: ' . $lastError);
             $this->debugTrace[] = [
                 'step' => $stepName,
                 'system' => $systemInstruction,
                 'prompt' => $prompt,
-                'response' => 'HTTP ERROR ' . $httpCode . ': ' . $response
+                'response' => $lastError,
+                'attempts' => $attempt
             ];
             return '';
         }
@@ -96,7 +121,8 @@ class GeminiClient {
                 'step' => $stepName,
                 'system' => $systemInstruction,
                 'prompt' => $prompt,
-                'response' => 'JSON PARSE ERROR: ' . json_last_error_msg()
+                'response' => 'JSON PARSE ERROR: ' . json_last_error_msg(),
+                'attempts' => $attempt
             ];
             return '';
         }
@@ -107,7 +133,8 @@ class GeminiClient {
             'step' => $stepName,
             'system' => $systemInstruction,
             'prompt' => $prompt,
-            'response' => $responseText
+            'response' => $responseText,
+            'attempts' => $attempt
         ];
 
         return $responseText;
@@ -169,6 +196,77 @@ EOT;
             'intent' => 'bilgi alma', 
             'topic_summary' => '',
             'missing_topics' => []
+        ];
+
+        if (empty($response)) {
+            return $fallback;
+        }
+
+        $decoded = json_decode($response, true);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            return $fallback;
+        }
+
+        return $decoded;
+    }
+
+    /**
+     * Daha önce kullanılmış odak kelimeleri hariç tutarak tek seferde keşif ve optimizasyon yapar.
+     *
+     * @param array $original
+     * @param array $excludedKeywords
+     * @return array
+     */
+    public function quickReOptimizeWithDifferentKeywords(array $original, array $excludedKeywords = []): array {
+        $systemInstruction = "Sen Türkçe SEO ve içerik geliştirme uzmanısın. Yanıtını SADECE JSON formatında ver.";
+        
+        $title = $original['title'] ?? '';
+        $description = $original['description'] ?? '';
+        $bodyText = $original['body_text'] ?? '';
+        
+        $excludedKeywords = is_array($excludedKeywords) ? $excludedKeywords : [];
+        $excludedKeywordsStr = implode(', ', array_filter($excludedKeywords));
+        
+        $prompt = <<<EOT
+Sana verilen gövde metni, daha önceki SEO analizinde okunabilirlik ve dil bilgisi açısından optimize edilmiş temiz bir metindir.
+
+BİR ÖNCEKİ ANALİZDE KULLANILAN KELİMELER: [{$excludedKeywordsStr}]
+
+GÖREVİN:
+1. Bu sayfayla doğrudan alakalı, ancak yukarıdaki bir önceki analizde kullanılan kelimelerden KESİNLİKLE FARKLI yeni 1 adet odak kelime ve 3-5 adet yan anahtar kelime belirle.
+2. Bu YENİ anahtar kelimeleri, verilen optimize gövde metnine organik ve akıcı bir şekilde entegre et (metnin mevcut düzenini bozma).
+3. Bu yeni odak anahtar kelimeyi kullanarak; 50-60 karakter arası yeni bir Meta Title ve 150-160 karakter arası aksiyon çağrısı (CTA) içeren yeni bir Meta Description üret.
+
+Sayfa Verileri:
+Title: {$title}
+Description: {$description}
+Gövde Metni:
+{$bodyText}
+
+YANIT FORMATI (SADECE JSON):
+{
+  "focus": "yeni odak kelime",
+  "secondary": ["yan1", "yan2", "yan3"],
+  "intent": "bilgi alma/satın alma...",
+  "topic_summary": "özet",
+  "missing_topics": ["öneri 1", "öneri 2"],
+  "title": "Yeni Meta Title (50-60 kar.)",
+  "description": "Yeni Meta Description (150-160 kar.)",
+  "body_text": "Yeni kelimelerin entegre edildiği optimize gövde metni"
+}
+EOT;
+
+        $response = $this->callAPI($prompt, $systemInstruction, true, 'Tek Adımlı Hızlı Re-Optimizasyon (Alternatif Anahtar Kelimeler)');
+        
+        $fallback = [
+            'focus' => '',
+            'secondary' => [],
+            'intent' => 'bilgi alma',
+            'topic_summary' => '',
+            'missing_topics' => [],
+            'title' => $title,
+            'description' => $description,
+            'body_text' => $bodyText
         ];
 
         if (empty($response)) {

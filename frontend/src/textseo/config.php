@@ -58,5 +58,5 @@ define('WORD_COUNT_TOLERANCE', 0.10);  // Kelime sayısı ±%10 tolerans
 
 // Teknik Ayarlar
 define('MAX_SCRAPE_TIMEOUT', 15);      // Sayfa çekme timeout (saniye)
-define('GEMINI_TIMEOUT', 180);         // Gemini API timeout (saniye)
+define('GEMINI_TIMEOUT', 45);         // Maksimum 45 saniye
 define('LOG_DIR', __DIR__ . '/logs/'); // Log dosyaları dizini

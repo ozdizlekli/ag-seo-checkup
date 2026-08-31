@@ -798,3 +798,91 @@ body.is-loading, body.is-loading * {
     }
 }
 
+/* Missing Topics UI */
+.missing-topics-card {
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    padding: 24px;
+    border-radius: 16px;
+    border: 1px solid #e8eaed;
+    margin-bottom: 24px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+}
+
+.missing-topics-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 0;
+    margin-bottom: 20px;
+    font-size: 18px;
+    font-weight: 700;
+    color: #1a73e8;
+    border-bottom: 2px solid #f1f3f4;
+    padding-bottom: 12px;
+}
+
+.missing-topics-header .icon {
+    font-size: 22px;
+}
+
+.missing-topics-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.missing-topics-list li {
+    background: #ffffff;
+    border: 1px solid #e8eaed;
+    border-left: 4px solid #1a73e8;
+    padding: 14px 18px;
+    border-radius: 8px;
+    color: #3c4043;
+    font-size: 14px;
+    line-height: 1.5;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.missing-topics-list li::before {
+    content: "✦";
+    color: #1a73e8;
+    font-size: 14px;
+    margin-top: 1px;
+}
+
+.missing-topics-list li:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(26, 115, 232, 0.1);
+    background: #f8faff;
+    border-color: #d2e3fc;
+}
+
+/* Analiz Rozetleri */
+.analyze-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    margin-left: 10px;
+    white-space: nowrap;
+}
+
+.analyze-badge.first {
+    background: #e8f5e9;
+    color: #2e7d32;
+    border: 1px solid #c8e6c9;
+}
+
+.analyze-badge.repeat {
+    background: #f3e5f5;
+    color: #7b1fa2;
+    border: 1px solid #e1bee7;
+}

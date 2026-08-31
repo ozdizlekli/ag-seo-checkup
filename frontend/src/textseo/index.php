@@ -77,6 +77,7 @@
                 <button type="button" id="newAnalysisBtn" class="nav-btn">← Yeni URL Analiz Et</button>
                 <div class="analyzed-url" id="analyzedUrlContainer">
                     <span id="analyzedUrlText" class="url-text"></span>
+                    <span id="analyzeBadge" class="analyze-badge" style="display:none;"></span>
                     <div id="analyzedUrlTooltip" class="url-tooltip"></div>
                 </div>
                 <button type="button" id="debugBtn" class="nav-btn" style="background:#ffc107; color:#000; font-weight:bold;">🐛 AI Sürecini Gör (Geçici)</button>
@@ -90,9 +91,9 @@
                 <button type="button" id="toggleTechReportBtn" class="nav-btn" style="background:#e8eaed; font-size:13px; border:1px solid #dadce0;">⚙️ Detaylı Teknik Rapor</button>
             </div>
             
-            <div id="missingTopicsContainer" style="display:none; background:#fff; padding:20px; border-radius:12px; border:1px solid #e8eaed; margin-bottom:20px; box-shadow:0 1px 3px rgba(0,0,0,0.06);">
-                <h3 style="margin-top:0; font-size:16px; color:#1a73e8;">💡 Sayfada Eksik Kalan ve Eklenmesi Önerilen Konular</h3>
-                <ul id="missingTopicsList" style="margin:0; padding-left:20px; color:#3c4043; font-size:14px; line-height:1.6;">
+            <div id="missingTopicsContainer" class="missing-topics-card" style="display:none;">
+                <h3 class="missing-topics-header"><span class="icon">💡</span> Sayfada Eksik Kalan ve Eklenmesi Önerilen Konular</h3>
+                <ul id="missingTopicsList" class="missing-topics-list">
                     <!-- JS ile doldurulacak -->
                 </ul>
             </div>
