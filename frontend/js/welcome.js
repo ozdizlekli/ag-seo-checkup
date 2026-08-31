@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', () => {
+ï»¿document.addEventListener('DOMContentLoaded', () => {
     const welcomeOverlay = document.getElementById('welcome-overlay');
     if(!welcomeOverlay) return;
     
@@ -33,11 +33,11 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const handleCardClick = (tabNum, targetId) => {
-        const val = document.getElementById('welcome-main-url-input')?.value.trim() || '';
+        const inputEl = document.getElementById('welcome-main-url-input'); if (inputEl && !inputEl.checkValidity()) { inputEl.reportValidity(); return; } const val = inputEl?.value.trim() || '';
         const input = document.getElementById(targetId);
         if (input) input.value = val;
         
-        // Eðer bu URL daha önce "URL'yi Gönder" ile tüm sayfalara gönderilmediyse diðer sayfalarý temizle
+        // EÄŸer bu URL daha Ã¶nce "URL'yi GÃ¶nder" ile tÃ¼m sayfalara gÃ¶nderilmediyse diÄŸer sayfalarÄ± temizle
         if (window.agLastSentUrl !== val || val === '') {
             clearOtherInputs(targetId);
         }
