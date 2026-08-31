@@ -22,35 +22,37 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     // Kart TÄ±klamalarÄ±
-    const btnContent = document.getElementById('wc-card-content');
-    if(btnContent) btnContent.addEventListener('click', () => {
-        const val = document.getElementById('welcome-main-url-input')?.value.trim();
-        if (val) {
-            const input = document.getElementById('urlInput');
-            if (input) input.value = val;
+    const clearOtherInputs = (excludeId) => {
+        const urlInputs = ['aiseo-url-input', 'urlInput', 't3-url'];
+        urlInputs.forEach(id => {
+            if (id !== excludeId) {
+                const input = document.getElementById(id);
+                if (input) input.value = '';
+            }
+        });
+    };
+
+    const handleCardClick = (tabNum, targetId) => {
+        const val = document.getElementById('welcome-main-url-input')?.value.trim() || '';
+        const input = document.getElementById(targetId);
+        if (input) input.value = val;
+        
+        // Eðer bu URL daha önce "URL'yi Gönder" ile tüm sayfalara gönderilmediyse diðer sayfalarý temizle
+        if (window.agLastSentUrl !== val || val === '') {
+            clearOtherInputs(targetId);
         }
-        dismissWelcome(1);
-    });
+        
+        dismissWelcome(tabNum);
+    };
+
+    const btnContent = document.getElementById('wc-card-content');
+    if(btnContent) btnContent.addEventListener('click', () => handleCardClick(1, 'urlInput'));
     
     const btnTech = document.getElementById('wc-card-tech');
-    if(btnTech) btnTech.addEventListener('click', () => {
-        const val = document.getElementById('welcome-main-url-input')?.value.trim();
-        if (val) {
-            const input = document.getElementById('t3-url');
-            if (input) input.value = val;
-        }
-        dismissWelcome(2);
-    });
+    if(btnTech) btnTech.addEventListener('click', () => handleCardClick(2, 't3-url'));
     
     const btnAi = document.getElementById('wc-card-ai');
-    if(btnAi) btnAi.addEventListener('click', () => {
-        const val = document.getElementById('welcome-main-url-input')?.value.trim();
-        if (val) {
-            const input = document.getElementById('aiseo-url-input');
-            if (input) input.value = val;
-        }
-        dismissWelcome(3);
-    });
+    if(btnAi) btnAi.addEventListener('click', () => handleCardClick(3, 'aiseo-url-input'));
     
     // GEO AI Bot HÄ±zlÄ± BaÅŸlangÄ±Ã§
     const btnBotStart = document.getElementById('wc-bot-start');
@@ -106,5 +108,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+
+
 
 
