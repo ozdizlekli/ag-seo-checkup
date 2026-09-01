@@ -8,11 +8,15 @@
 // Uzun süren işlem için zaman limitini artır (5 dakika)
 set_time_limit(300);
 
+// Gerekli dosyaları yükle
+require_once __DIR__ . '/../config.php';
+require_once __DIR__ . '/../../../db.php';
+
 // Response header'ları
 header('Content-Type: application/json; charset=utf-8');
-header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Origin: ' . ($_ENV['ALLOWED_ORIGIN'] ?? '*'));
 header('Access-Control-Allow-Methods: POST, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type');
+header('Access-Control-Allow-Headers: Content-Type, X-Auth-Token, Authorization');
 
 // OPTIONS preflight için erken çıkış
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
@@ -26,18 +30,18 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     echo json_encode(['status' => 'error', 'error' => 'Sadece POST istekleri kabul edilir.'], JSON_UNESCAPED_UNICODE);
     exit;
 }
-
-// Gerekli dosyaları yükle
-require_once __DIR__ . '/../config.php';
-require_once __DIR__ . '/../../../db.php';
 require_once __DIR__ . '/../includes/Scraper.php';
 require_once __DIR__ . '/../includes/TextAnalyzer.php';
 require_once __DIR__ . '/../includes/GeminiClient.php';
+require_once __DIR__ . '/../includes/AuthMiddleware.php';
+
+AuthMiddleware::verify();
 
 try {
     // 1. POST verisini al
     $input = json_decode(file_get_contents('php://input'), true);
     $url = trim($input['url'] ?? '');
+    $url = rtrim($url, '/');
 
     // 2. URL validasyonu
     if (empty($url)) {
@@ -48,6 +52,19 @@ try {
     }
     if (!preg_match('/^https?:\/\//i', $url)) {
         throw new InvalidArgumentException('URL http:// veya https:// ile başlamalıdır.');
+    }
+
+    // SSRF Koruması
+    $host = parse_url($url, PHP_URL_HOST);
+    if ($host) {
+        $ips = gethostbynamel($host);
+        if ($ips) {
+            foreach ($ips as $ip) {
+                if (!filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
+                    throw new InvalidArgumentException('Dahili (private/reserved) IP adreslerine istek yapılamaz.');
+                }
+            }
+        }
     }
 
     // DB Tablosu yoksa oluştur
@@ -86,6 +103,7 @@ try {
     $usedKeywords = [];
     $historyId = 0;
     $lastRecord = null;
+    $warnings = [];
 
     if ($pdo) {
         $stmt = $pdo->prepare("SELECT id, analysis_number, used_keywords, optimized_data, keywords_data FROM text_seo_history WHERE url = :url ORDER BY id DESC LIMIT 1");
@@ -99,6 +117,8 @@ try {
             $historyId = $row['id'];
             $usedKeywords = json_decode($row['used_keywords'], true) ?: [];
         }
+    } else {
+        $warnings[] = "Veritabanı bağlantısı yok, analiz sıfırdan başlatılıyor";
     }
 
     $originalData = [
@@ -203,11 +223,16 @@ try {
             'kw' => json_encode($keywords, JSON_UNESCAPED_UNICODE),
             'dbg' => json_encode($gemini->debugTrace, JSON_UNESCAPED_UNICODE)
         ]);
+    } else {
+        $warnings[] = "Sonuçlar kaydedilemedi, tekrar analiz (chaining) çalışmayacaktır";
     }
+
+    $warnings = array_merge($warnings, $gemini->warnings ?? []);
 
     // 8. Başarılı sonuç
     echo json_encode([
         'status'          => 'success',
+        'warnings'        => $warnings,
         'is_reanalysis'   => (bool)$isReanalysis,
         'analysis_number' => $analysisNumber,
         'original'        => $originalData,

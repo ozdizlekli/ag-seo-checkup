@@ -5,6 +5,7 @@ require_once __DIR__ . '/../config.php';
 class GeminiClient {
 
     public $debugTrace = [];
+    public $warnings = [];
 
     /**
      * Gemini API ile iletişim kurar.
@@ -93,7 +94,7 @@ class GeminiClient {
             if ($errNo || $httpCode === 429 || $httpCode === 503) {
                 if ($attempt < $maxAttempts) {
                     error_log("Gemini API geçici olarak meşgul (HTTP $httpCode). $attempt. yeniden deneme yapılıyor...");
-                    sleep(2);
+                    sleep(pow(2, $attempt));
                     continue;
                 }
             } else {
@@ -270,11 +271,13 @@ EOT;
         ];
 
         if (empty($response)) {
+            $this->warnings[] = "Re-optimizasyon API çağrısı başarısız, orijinal metin korundu";
             return $fallback;
         }
 
         $decoded = json_decode($response, true);
         if (json_last_error() !== JSON_ERROR_NONE) {
+            $this->warnings[] = "Re-optimizasyon JSON hatası, orijinal metin korundu";
             return $fallback;
         }
 
@@ -295,12 +298,14 @@ EOT;
         // --- ADIM 1: Anahtar Kelime Entegrasyonu ---
         $step1Text = $this->step1KeywordIntegration($bodyText, $keywords);
         if (empty($step1Text)) {
+            $this->warnings[] = "Anahtar kelime entegrasyonu başarısız, orijinal metin korundu";
             $step1Text = $bodyText; // Hata olursa orijinal metne dön
         }
 
         // --- ADIM 2: Okunabilirlik ve Akış ---
         $step2Text = $this->step2Readability($step1Text, $analysis);
         if (empty($step2Text)) {
+            $this->warnings[] = "Okunabilirlik iyileştirmesi başarısız, önceki adım korundu";
             $step2Text = $step1Text;
         }
 
@@ -309,6 +314,7 @@ EOT;
         
         // Final output'ta hata varsa, en azından metni kurtar
         if (empty($finalOutput['title']) || empty($finalOutput['body_text'])) {
+            $this->warnings[] = "Meta etiket üretimi başarısız, orijinal etiketler korundu";
             return [
                 'title'       => $original['title'] ?? '',
                 'description' => $original['description'] ?? '',

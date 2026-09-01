@@ -539,7 +539,7 @@ require_once __DIR__ . '/db.php';
       <p>Yapay zeka destekli SEO ve İçerik Yönetim Platformu. Bugün neye odaklanmak istersiniz?</p>
       
       <div style="margin-top: 24px; display: flex; justify-content: center; gap: 12px; max-width: 700px; margin-left: auto; margin-right: auto; padding: 20px; background: #F8FAFC; border-radius: 12px; border: 1px solid #E2E8F0;">
-         <input type="url" id="welcome-main-url-input" placeholder="URL girin (örn: https://...)" style="flex:1; border-radius:8px; border:1px solid #CBD5E1; background:#fff; color:#1F1D30; padding:12px 16px; font-size:14px; outline:none;" required>
+         <input type="url" id="welcome-main-url-input" placeholder="URL girin (örn: https://...)" style="flex:1; border-radius:8px; border:1px solid #CBD5E1; background:#fff; color:#1F1D30; padding:12px 16px; font-size:14px; outline:none;">
          <button id="welcome-send-url-btn" style="background:#10b981; border:none; color:#fff; border-radius:8px; padding:0 20px; font-size:14px; font-weight:600; cursor:pointer; white-space:nowrap; transition: background 0.2s;">URL'yi Gönder</button>
          <button id="welcome-client-select-btn" style="background:#3b82f6; border:none; color:#fff; border-radius:8px; padding:0 20px; font-size:14px; font-weight:600; cursor:pointer; white-space:nowrap; transition: background 0.2s;" onclick="document.getElementById('gh-hamburger-btn').click(); document.getElementById('welcome-overlay').style.opacity='0'; setTimeout(()=>document.getElementById('welcome-overlay').style.display='none',400);">Müşteri Seç</button>
       </div>
@@ -1156,11 +1156,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (sendUrlBtn) {
         sendUrlBtn.addEventListener('click', () => {
             const inputEl = document.getElementById('welcome-main-url-input');
-            if (!inputEl.checkValidity()) {
+            const val = inputEl ? inputEl.value.trim() : '';
+            if (val !== '' && inputEl && !inputEl.checkValidity()) {
                 inputEl.reportValidity();
                 return;
             }
-            const val = inputEl.value.trim();
             const headerName = document.getElementById('top-header-client-name');
             if (typeof window.appState === 'undefined') return;
 

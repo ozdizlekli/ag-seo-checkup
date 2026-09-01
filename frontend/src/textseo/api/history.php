@@ -8,17 +8,21 @@
  * POST /api/history.php (action=clear) : Tüm geçmişi temizle
  */
 
+require_once __DIR__ . '/../config.php';
+require_once __DIR__ . '/../../../db.php';
+require_once __DIR__ . '/../includes/AuthMiddleware.php';
+
 header('Content-Type: application/json; charset=utf-8');
-header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Origin: ' . ($_ENV['ALLOWED_ORIGIN'] ?? '*'));
 header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type');
+header('Access-Control-Allow-Headers: Content-Type, X-Auth-Token, Authorization');
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(204);
     exit;
 }
 
-require_once __DIR__ . '/../../../db.php';
+AuthMiddleware::verify();
 
 if (!$pdo) {
     echo json_encode(['status' => 'error', 'error' => 'Veritabanı bağlantısı kurulamadı.']);

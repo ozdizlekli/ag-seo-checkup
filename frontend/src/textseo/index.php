@@ -1,3 +1,11 @@
+<?php
+require_once __DIR__ . '/config.php';
+$authToken = $_ENV['AUTH_TOKEN'] ?? '';
+$authEnabled = filter_var($_ENV['AUTH_ENABLED'] ?? false, FILTER_VALIDATE_BOOLEAN);
+if ($authEnabled && !empty($authToken)) {
+    echo '<meta name="api-token" content="' . htmlspecialchars($authToken) . '">' . "\n";
+}
+?>
 <link rel="stylesheet" href="src/textseo/assets/css/style.css">    <!-- 1. EKRAN: GİRİŞ VE YÜKLEME -->
     <div id="homeView" class="view-screen active">
         <div class="home-container">

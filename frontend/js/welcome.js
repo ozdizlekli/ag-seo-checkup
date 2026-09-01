@@ -1,4 +1,4 @@
-﻿document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', () => {
     const welcomeOverlay = document.getElementById('welcome-overlay');
     if(!welcomeOverlay) return;
     
@@ -33,7 +33,12 @@
     };
 
     const handleCardClick = (tabNum, targetId) => {
-        const inputEl = document.getElementById('welcome-main-url-input'); if (inputEl && !inputEl.checkValidity()) { inputEl.reportValidity(); return; } const val = inputEl?.value.trim() || '';
+        const inputEl = document.getElementById('welcome-main-url-input');
+        const val = inputEl ? inputEl.value.trim() : '';
+        if (val !== '' && inputEl && !inputEl.checkValidity()) {
+            inputEl.reportValidity();
+            return;
+        }
         const input = document.getElementById(targetId);
         if (input) input.value = val;
         

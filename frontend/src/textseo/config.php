@@ -42,7 +42,11 @@ function get_env_value($key, $default = '') {
 }
 
 // Gemini API Ayarları
-define('GEMINI_API_KEY', get_env_value('GEMINI_API_KEY', 'FALLBACK_API_KEY'));
+$apiKey = get_env_value('GEMINI_API_KEY', '');
+if (empty($apiKey)) {
+    error_log('[SEO Text Module] UYARI: GEMINI_API_KEY bulunamadı veya boş. Lütfen .env dosyasını kontrol edin.');
+}
+define('GEMINI_API_KEY', $apiKey);
 define('GEMINI_MODEL', get_env_value('GEMINI_MODEL', 'gemini-3.6-flash'));
 define('GEMINI_ENDPOINT', 'https://generativelanguage.googleapis.com/v1beta/models/');
 

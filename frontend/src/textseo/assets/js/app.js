@@ -1,6 +1,13 @@
 document.addEventListener('DOMContentLoaded', function() {
 
-    // ===== DOM REFERANSLARI =====
+    function getAuthHeaders() {
+        const metaToken = document.querySelector('meta[name="api-token"]');
+        const headers = { 'Content-Type': 'application/json' };
+        if (metaToken && metaToken.content) {
+            headers['X-Auth-Token'] = metaToken.content;
+        }
+        return headers;
+    }    // ===== DOM REFERANSLARI =====
     const homeView = document.getElementById('homeView');
     const resultsView = document.getElementById('resultsView');
     
@@ -126,7 +133,7 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             const response = await fetch('src/textseo/api/analyze.php', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: getAuthHeaders(),
                 body: JSON.stringify({ url: url })
             });
 
@@ -136,6 +143,33 @@ document.addEventListener('DOMContentLoaded', function() {
             if (data.status === 'error') {
                 showError(data.error || 'Bilinmeyen bir hata oluştu.');
                 return;
+            }
+
+            if (data.warnings && data.warnings.length > 0) {
+                console.warn("API Uyarıları:", data.warnings);
+                let warningSection = document.getElementById('warningSection');
+                if (!warningSection) {
+                    warningSection = document.createElement('section');
+                    warningSection.id = 'warningSection';
+                    warningSection.className = 'error-section';
+                    warningSection.style.backgroundColor = '#fff3cd';
+                    warningSection.style.borderColor = '#ffeeba';
+                    warningSection.style.color = '#856404';
+                    warningSection.style.marginTop = '20px';
+                    warningSection.innerHTML = `
+                        <div class="error-box" style="background:transparent; border:none; box-shadow:none; padding:10px;">
+                            <span class="error-icon" style="color:#856404;">⚠️</span>
+                            <p class="error-message" id="warningMessage" style="color:#856404; font-weight:bold;"></p>
+                            <button type="button" onclick="document.getElementById('warningSection').style.display='none'" class="dismiss-btn" style="color:#856404; border-color:#856404; background:transparent;">Kapat</button>
+                        </div>
+                    `;
+                    document.getElementById('errorSection').insertAdjacentElement('afterend', warningSection);
+                }
+                document.getElementById('warningMessage').innerHTML = data.warnings.join('<br>');
+                warningSection.style.display = 'block';
+            } else {
+                const warningSection = document.getElementById('warningSection');
+                if (warningSection) warningSection.style.display = 'none';
             }
 
             // API'dan listeyi yeniden çek
@@ -184,7 +218,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!historyList) return;
         
         try {
-            const response = await fetch('src/textseo/api/history.php');
+            const response = await fetch('src/textseo/api/history.php', { headers: getAuthHeaders() });
             if (!response.ok) return;
             const data = await response.json();
             
@@ -244,7 +278,7 @@ document.addEventListener('DOMContentLoaded', function() {
     async function loadHistoryItem(id) {
         showLoading();
         try {
-            const response = await fetch(`src/textseo/api/history.php?id=${id}`);
+            const response = await fetch(`src/textseo/api/history.php?id=${id}`, { headers: getAuthHeaders() });
             const data = await response.json();
             
             if (data.status === 'error') {
@@ -277,6 +311,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     analysis: resultData.analysis || resultData.data?.analysis || {}
                 };
                 
+                const warningSection = document.getElementById('warningSection');
+                if (warningSection) warningSection.style.display = 'none';
+
                 renderResults(renderData);
                 switchToResultsView();
             }
@@ -293,7 +330,7 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             await fetch('src/textseo/api/history.php', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: getAuthHeaders(),
                 body: JSON.stringify({ action: 'delete', id: id })
             });
             fetchHistory();
@@ -307,7 +344,7 @@ document.addEventListener('DOMContentLoaded', function() {
             try {
                 await fetch('src/textseo/api/history.php', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: getAuthHeaders(),
                     body: JSON.stringify({ action: 'clear' })
                 });
                 fetchHistory();
@@ -391,7 +428,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 grid.innerHTML += `
                     <div class="metric-card">
                         <div class="metric-label">Title / Desc Uzunluğu</div>
-                        <div class="metric-value">${analysis.title.length || 0} / ${analysis.description.length || 0}</div>
+                        <div class="metric-value">${analysis.title?.length ?? 0} / ${analysis.description?.length ?? 0}</div>
                     </div>
                 `;
             }
