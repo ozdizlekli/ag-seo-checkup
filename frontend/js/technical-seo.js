@@ -52,7 +52,7 @@ document.getElementById('t3-fullcrawl-btn').addEventListener('click', runFullSit
 // butonuna basılınca / üstüne gelinince açılan kısa açıklama metinleri.
 // Anahtarlar ScoringEngine.php'nin category_scores[].key alanıyla birebir eşleşir.
 const T3_CATEGORY_INFO = {
-  crawlability_indexability: 'Arama motorlarının siteni tarayıp indeksleyebilmesini etkileyen etkenlere bakar: noindex etiketi, robots.txt engelleri, sitemap.xml varlığı, canonical etiketlerin doğruluğu ve hiçbir yerden link almayan "yetim" sayfa oranı. Noindex ya da robots.txt tüm siteyi engelliyorsa skor doğrudan çok düşük bir tavana sabitlenir (kritik kapı).',
+  crawlability_indexability: 'Arama motorlarının siteni tarayıp indeksleyebilmesini etkileyen etkenlere bakar: noindex etiketi, robots.txt engelleri, sitemap.xml varlığı, canonical etiketlerin doğruluğu ve hiçbir yerden link almayan "yetim" sayfa oranı. Noindex ya da robots.txt tüm siteyi engelliyorsa skor doğrudan çok düşük bir tavana sabitlenir (kritik eşik).',
   performance: 'Google PageSpeed Insights\'tan alınan mobil ve masaüstü Lighthouse performans skorlarının ağırlıklı ortalamasıdır (mobil %70, masaüstü %30) — sayfa yükleme hızı ve Core Web Vitals gibi metriklere dayanır.',
   site_structure_links: 'İç link yapısını değerlendirir: taranan sayfalar arasındaki kırık link oranı ve hiçbir sayfaya çıkış linki vermeyen "çıkmaz sokak" sayfaların oranı skoru düşürür.',
   security_https: 'Sitenin HTTPS ile erişilebilir olup olmadığına, SSL sertifikasının geçerli olup olmadığına ve son kullanma tarihine ne kadar yakın olduğuna göre hesaplanır.',
@@ -66,7 +66,9 @@ function showT3InfoPopup(btn) {
   if (!popup || !body) return;
   const text = T3_CATEGORY_INFO[btn.dataset.infoKey];
   if (!text) return;
-  body.textContent = text;
+  const weight = btn.dataset.weight;
+  const confidence = btn.dataset.confidence;
+  body.textContent = text + (weight ? `\n\nAğırlık: %${weight} · Güven: ${confidence}` : '');
   popup.classList.remove('hidden');
   document.querySelectorAll('.t3-info-btn.active').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
@@ -235,6 +237,7 @@ function resetProgressChecklist() {
       <span id="t3-progress-${s.step}-label">${escapeHtml(s.label)}</span>
     </div>
   `).join('');
+  body.scrollTop = 0;
   const fill = document.getElementById('t3-scan-progress-fill');
   if (fill) fill.style.width = '0%';
   document.querySelector('.t3-scan-overlay__bar')?.setAttribute('aria-valuenow', '0');
@@ -263,6 +266,14 @@ function updateProgressChecklist(event) {
 
   if (event.status === 'start') {
     icon.innerHTML = '<span class="spinner--dark"></span>';
+    // Kullanici ile mucadele etmeden aktif adima yavasca kaydiriyoruz -
+    // scrollbar gizli (bkz. CSS), kullanici yine de tekerlek/dokunmatikle
+    // istedigi zaman manuel kaydirabilir; bir sonraki adim baslayinca
+    // gorunum yine oradaki adima kayar.
+    item.scrollIntoView({
+      behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+      block: 'center',
+    });
   } else if (event.status === 'done') {
     icon.textContent = '✓';
   } else if (event.status === 'skipped') {
@@ -561,7 +572,7 @@ function renderCruxSection(result) {
   const fieldData = result?.field_data;
   const scopeLabel = result?.field_data_scope === 'origin' ? 'Site geneli (origin) veri' : result?.field_data_scope === 'url' ? 'Bu URL’ye özel veri' : null;
   if (!fieldData || !scopeLabel) {
-    return '<div class="t3-crux-empty small muted">Bu site/sayfa için yeterli gerçek kullanıcı (CrUX) trafiği yok, saha verisi gösterilemiyor. Aşağıdaki tüm metrikler laboratuvar (simülasyon) verisidir.</div>';
+    return '<div class="t3-crux-empty small muted">Bu URL için yeterli gerçek kullanıcı verisi bulunamadı.</div>';
   }
   const rows = Object.entries(fieldData).map(([key, metric]) => {
     const label = T3_CRUX_METRIC_LABELS[key] || key.replaceAll('_', ' ');
@@ -591,9 +602,21 @@ function renderPsiDetails(result, strategy) {
   const sections = groups.map(group => {
     const rows = audits.filter(a => auditStatusGroup(a) === group);
     if (!rows.length) return '';
-    return `<details class="t3-details" open><summary>${escapeHtml(group)} <span>${rows.length}</span></summary><div>${rows.map(a => `<div class="t3-audit-row-detail" id="t3-audit-${escapeHtml(a.id)}"><div><strong>${escapeHtml(shortTitle(a))}</strong><div class="small muted">${escapeHtml(a.display_value || a.description || 'Teknik ayrıntı')}</div></div></div>`).join('')}</div></details>`;
+    return `<details class="t3-details"><summary>${escapeHtml(group)} <span>${rows.length}</span></summary><div>${rows.map(a => `<div class="t3-audit-row-detail" id="t3-audit-${escapeHtml(a.id)}"><div><strong>${escapeHtml(shortTitle(a))}</strong><div class="small muted">${escapeHtml(a.display_value || a.description || 'Teknik ayrıntı')}</div></div></div>`).join('')}</div></details>`;
   }).join('');
-  el.innerHTML = `<div class="card__title">CrUX — Gerçek Kullanıcı Verileri</div><div class="mt-8" style="margin-bottom:16px;">${renderCruxSection(result)}</div><div class="card__title">En yüksek etkili iyileştirmeler</div>${priorityHtml ? `<div class="t3-psi-priorities mt-12">${priorityHtml}</div>` : '<div class="t3-empty-state mt-12">Aksiyon gerektiren audit bulunamadı.</div>'}<div class="card__title mt-20">${strategy === 'mobile' ? 'Mobil' : 'Masaüstü'} — Tüm Lighthouse Denetimleri (${audits.length})</div><div class="mt-8">${sections || '<div class="t3-empty-state">Audit ayrıntısı bulunamadı.</div>'}</div>`;
+  const cruxAccordionHtml = `<div class="t3-crux-accordion" id="t3-crux-accordion">
+    <button type="button" class="t3-crux-accordion__toggle" id="t3-crux-toggle" aria-expanded="false" aria-controls="t3-crux-panel">
+      <span class="t3-crux-accordion__titlewrap">
+        <span class="t3-crux-accordion__title">28 Günlük Gerçek Kullanıcı Verileri</span>
+        <span class="t3-crux-accordion__desc">Google Chrome kullanıcılarından toplanan gerçek saha (CrUX) performans verileri</span>
+      </span>
+      <svg class="t3-crux-accordion__arrow" aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+    </button>
+    <div class="t3-crux-accordion__panel" id="t3-crux-panel" role="region" aria-labelledby="t3-crux-toggle" aria-hidden="true">
+      <div class="t3-crux-accordion__panel-inner">${renderCruxSection(result)}</div>
+    </div>
+  </div>`;
+  el.innerHTML = `${cruxAccordionHtml}<div class="card__title mt-20">En yüksek etkili iyileştirmeler</div>${priorityHtml ? `<div class="t3-psi-priorities mt-12">${priorityHtml}</div>` : '<div class="t3-empty-state mt-12">Aksiyon gerektiren audit bulunamadı.</div>'}<div class="card__title mt-20">${strategy === 'mobile' ? 'Mobil' : 'Masaüstü'} — Tüm Lighthouse Denetimleri (${audits.length})</div><div class="mt-8">${sections || '<div class="t3-empty-state">Audit ayrıntısı bulunamadı.</div>'}</div>`;
 }
 
 function renderOverview(data) {
@@ -614,6 +637,11 @@ function renderOverview(data) {
     <div class="t3-summary-card"><small>Etkilenen Sayfalar</small><strong>${affectedCount || '—'}</strong><span>${crawled} URL tarandı</span></div>
     <div class="t3-summary-card"><small>Performans</small><div class="t3-summary-card__split"><strong>${mobilePerf ?? '—'}<em>Mobil</em></strong><strong>${desktopPerf ?? '—'}<em>Masaüstü</em></strong></div><span>PageSpeed skorları</span></div>`;
   document.getElementById('t3-overview-meta').textContent = `${new Date().toLocaleString('tr-TR')} · ${data.url || ''}`;
+  const healthEl = document.getElementById('t3-score-health');
+  if (healthEl) {
+    healthEl.textContent = health;
+    healthEl.style.color = scoreValue === null || scoreValue === undefined ? '' : scoreColor(scoreValue);
+  }
   document.getElementById('t3-last-analysis-date').textContent = `Son analiz: ${new Date().toLocaleString('tr-TR')}`;
   document.getElementById('t3-overview-card').classList.remove('hidden');
   document.querySelectorAll('.t3-post-audit').forEach(el => el.classList.remove('hidden'));
@@ -789,53 +817,105 @@ function renderPsiErrors(psi) {
   el.classList.remove('hidden');
 }
 
+const T3_QA_ICONS = {
+  success: '<svg class="t3-qa-icon t3-qa-icon--success" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>',
+  warn: '<svg class="t3-qa-icon t3-qa-icon--warn" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
+  danger: '<svg class="t3-qa-icon t3-qa-icon--danger" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>',
+  unknown: '<svg class="t3-qa-icon t3-qa-icon--unknown" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>'
+};
+
+function t3SetQaRow(id, status, html) {
+  const valueEl = document.getElementById(id);
+  if (valueEl) valueEl.innerHTML = html;
+  const iconEl = document.getElementById(id + '-icon');
+  if (iconEl) iconEl.innerHTML = T3_QA_ICONS[status] || T3_QA_ICONS.unknown;
+  return status;
+}
+
+function renderQaSummary(statuses) {
+  const counts = { success: 0, warn: 0, danger: 0, unknown: 0 };
+  statuses.forEach(s => { counts[s] = (counts[s] || 0) + 1; });
+
+  const summaryEl = document.getElementById('t3-qa-summary');
+  if (summaryEl) {
+    if (counts.warn === 0 && counts.danger === 0 && counts.unknown === 0) {
+      summaryEl.innerHTML = `<span class="t3-qa-summary__ok">✓ ${counts.success} kontrol tamamlandı</span>`;
+    } else {
+      const parts = [];
+      if (counts.success) parts.push(`<span class="t3-qa-summary__ok">✓ ${counts.success} başarılı</span>`);
+      if (counts.warn) parts.push(`<span class="t3-qa-summary__warn">⚠ ${counts.warn} uyarı</span>`);
+      if (counts.danger) parts.push(`<span class="t3-qa-summary__danger">✕ ${counts.danger} hata</span>`);
+      if (counts.unknown) parts.push(`<span class="t3-qa-summary__unknown">${counts.unknown} doğrulanamadı</span>`);
+      summaryEl.innerHTML = parts.join('');
+    }
+  }
+
+  // yeni analizde bölüm her zaman kapalı başlasın
+  const toggle = document.getElementById('t3-qa-toggle');
+  const panel = document.getElementById('t3-qa-panel');
+  const accordion = document.getElementById('t3-quick-audit-card');
+  if (toggle) toggle.setAttribute('aria-expanded', 'false');
+  if (panel) panel.setAttribute('aria-hidden', 'true');
+  if (accordion) accordion.classList.remove('is-open');
+}
+
 function renderQuickAudit(data) {
   const qa = data.quick_audit || {};
+  const statuses = [];
 
   const ssl = qa.ssl || {};
-  document.getElementById('t3-qa-ssl').innerHTML = ssl.https_reachable && ssl.valid
-    ? `<span class="tag tag--success" style="font-weight:500;">Geçerli${ssl.days_remaining !== null && ssl.days_remaining !== undefined ? ' (' + ssl.days_remaining + ' gün kaldı)' : ''}</span>`
-    : ssl.https_reachable
-      ? `<span class="tag tag--warn" style="font-weight:500;">Erişilebilir ama geçersiz (${ssl.error || 'süresi dolmuş/host uyuşmuyor'})</span>`
-      : `<span class="tag tag--danger" style="font-weight:500;">HTTPS erişilemiyor</span>`;
+  statuses.push(t3SetQaRow('t3-qa-ssl', ssl.https_reachable && ssl.valid ? 'success' : ssl.https_reachable ? 'warn' : 'danger',
+    ssl.https_reachable && ssl.valid
+      ? `<span class="tag tag--success" style="font-weight:500;">Geçerli${ssl.days_remaining !== null && ssl.days_remaining !== undefined ? ' (' + ssl.days_remaining + ' gün kaldı)' : ''}</span>`
+      : ssl.https_reachable
+        ? `<span class="tag tag--warn" style="font-weight:500;">Erişilebilir ama geçersiz (${ssl.error || 'süresi dolmuş/host uyuşmuyor'})</span>`
+        : `<span class="tag tag--danger" style="font-weight:500;">HTTPS erişilemiyor</span>`));
 
   const robots = qa.robots_txt || {};
-  document.getElementById('t3-qa-robots').innerHTML = !robots.found
-    ? '<span class="tag tag--warn" style="font-weight:500;">Bulunamadı</span>'
-    : robots.blocks_entire_site
-      ? '<span class="tag tag--danger" style="font-weight:500;">TÜM SİTEYİ ENGELLİYOR</span>'
-      : '<span class="tag tag--success" style="font-weight:500;">Bulundu, site engellenmiyor</span>';
+  statuses.push(t3SetQaRow('t3-qa-robots', !robots.found ? 'warn' : robots.blocks_entire_site ? 'danger' : 'success',
+    !robots.found
+      ? '<span class="tag tag--warn" style="font-weight:500;">Bulunamadı</span>'
+      : robots.blocks_entire_site
+        ? '<span class="tag tag--danger" style="font-weight:500;">TÜM SİTEYİ ENGELLİYOR</span>'
+        : '<span class="tag tag--success" style="font-weight:500;">Bulundu, site engellenmiyor</span>'));
 
   const sitemap = qa.sitemap || {};
-  document.getElementById('t3-qa-sitemap').innerHTML = sitemap.found
-    ? `<span class="tag tag--success" style="font-weight:500;">Bulundu (${sitemap.url_count} URL)</span>`
-    : '<span class="tag tag--danger" style="font-weight:500;">Bulunamadı</span>';
+  statuses.push(t3SetQaRow('t3-qa-sitemap', sitemap.found ? 'success' : 'danger',
+    sitemap.found
+      ? `<span class="tag tag--success" style="font-weight:500;">Bulundu (${sitemap.url_count} URL)</span>`
+      : '<span class="tag tag--danger" style="font-weight:500;">Bulunamadı</span>'));
 
   const noindex = qa.noindex || {};
-  document.getElementById('t3-qa-noindex').innerHTML = noindex.noindex
-    ? '<span class="tag tag--danger" style="font-weight:500;">NOINDEX VAR (' + (noindex.source || '') + ')</span>'
-    : '<span class="tag tag--success" style="font-weight:500;">Yok, indekslenebilir</span>';
+  statuses.push(t3SetQaRow('t3-qa-noindex', noindex.noindex ? 'danger' : 'success',
+    noindex.noindex
+      ? '<span class="tag tag--danger" style="font-weight:500;">NOINDEX VAR (' + (noindex.source || '') + ')</span>'
+      : '<span class="tag tag--success" style="font-weight:500;">Yok, indekslenebilir</span>'));
 
   const canonical = qa.canonical || {};
-  document.getElementById('t3-qa-canonical').innerHTML = !canonical.present
-    ? '<span class="tag tag--warn" style="font-weight:500;">Etiket yok</span>'
-    : canonical.is_self_referencing
-      ? '<span class="tag tag--success" style="font-weight:500;">Kendine referans veriyor</span>'
-      : '<span class="tag tag--warn" style="font-weight:500;">Başka bir URL\'e işaret ediyor</span>'
-        + (canonical.canonical_url ? `<div class="small muted" style="margin-top:4px;">→ ${escapeHtml(canonical.canonical_url)}</div>` : '');
+  statuses.push(t3SetQaRow('t3-qa-canonical', !canonical.present ? 'warn' : canonical.is_self_referencing ? 'success' : 'warn',
+    !canonical.present
+      ? '<span class="tag tag--warn" style="font-weight:500;">Etiket yok</span>'
+      : canonical.is_self_referencing
+        ? '<span class="tag tag--success" style="font-weight:500;">Kendine referans veriyor</span>'
+        : '<span class="tag tag--warn" style="font-weight:500;">Başka bir URL\'e işaret ediyor</span>'
+          + (canonical.canonical_url ? `<div class="small muted" style="margin-top:4px;">→ ${escapeHtml(canonical.canonical_url)}</div>` : '')));
 
   const mobileParity = data.mobile_parity || {};
-  document.getElementById('t3-qa-mobile').innerHTML = !mobileParity.comparable
-    ? '<span class="tag" style="font-weight:500;">Karşılaştırılamadı</span>'
-    : mobileParity.significant_content_loss
-      ? `<span class="tag tag--danger" style="font-weight:500;">Kayıp var (%${mobileParity.word_count_drop_percent} kelime azalması)</span>`
-      : '<span class="tag tag--success" style="font-weight:500;">İçerik uyumlu</span>';
+  statuses.push(t3SetQaRow('t3-qa-mobile', !mobileParity.comparable ? 'unknown' : mobileParity.significant_content_loss ? 'danger' : 'success',
+    !mobileParity.comparable
+      ? '<span class="tag" style="font-weight:500;">Karşılaştırılamadı</span>'
+      : mobileParity.significant_content_loss
+        ? `<span class="tag tag--danger" style="font-weight:500;">Kayıp var (%${mobileParity.word_count_drop_percent} kelime azalması)</span>`
+        : '<span class="tag tag--success" style="font-weight:500;">İçerik uyumlu</span>'));
 
   const linkCheck = data.link_check || {};
   const brokenCount = (linkCheck.broken || []).length;
-  document.getElementById('t3-qa-links').innerHTML = brokenCount > 0
-    ? `<span class="tag tag--danger" style="font-weight:500;">${brokenCount} kırık link (${linkCheck.checked_count} test edildi)</span>`
-    : `<span class="tag tag--success" style="font-weight:500;">Kırık link yok (${linkCheck.checked_count} test edildi)</span>`;
+  statuses.push(t3SetQaRow('t3-qa-links', brokenCount > 0 ? 'danger' : 'success',
+    brokenCount > 0
+      ? `<span class="tag tag--danger" style="font-weight:500;">${brokenCount} kırık link (${linkCheck.checked_count} test edildi)</span>`
+      : `<span class="tag tag--success" style="font-weight:500;">Kırık link yok (${linkCheck.checked_count} test edildi)</span>`));
+
+  renderQaSummary(statuses);
 }
 
 function renderCompositeScore(score) {
@@ -852,21 +932,30 @@ function renderCompositeScore(score) {
   if (score.gates_triggered && score.gates_triggered.length > 0) {
     gatesEl.innerHTML = score.gates_triggered.map(g =>
       `<div class="tag tag--danger" style="display:block; font-weight:600; margin-bottom:6px; padding:10px 12px; white-space:normal;">
-        ⚠ Kritik kapı tetiklendi — skor en fazla ${g.cap}: ${escapeHtml(g.message)}
+        ⚠ Kritik eşik tetiklendi — skor en fazla ${g.cap}: ${escapeHtml(g.message)}
       </div>`
     ).join('');
   } else {
-    gatesEl.innerHTML = `<span class="small muted">Ağırlıklı ortalama: ${score.weighted_average_before_gates} — hiçbir kritik kapı tetiklenmedi, nihai skor ağırlıklı ortalamayla aynı.</span>`;
+    gatesEl.innerHTML = '';
+  }
+
+  const scoreInfoIcon = document.querySelector('#t3-overview-card .t3-score-hero .t3-info-icon');
+  if (scoreInfoIcon) {
+    const baseInfo = "Ağırlıklı kategori ortalaması + kritik eşik kontrolleri — Lighthouse'un düz ortalaması DEĞİLDİR.";
+    const gateInfo = (score.gates_triggered && score.gates_triggered.length > 0)
+      ? ' Kritik eşik(ler) tetiklendi, ayrıntı için yukarıdaki uyarıya bakın.'
+      : ` Ağırlıklı ortalama: ${score.weighted_average_before_gates} — hiçbir kritik eşik tetiklenmedi, nihai skor ağırlıklı ortalamayla aynı.`;
+    scoreInfoIcon.setAttribute('title', baseInfo + gateInfo);
   }
 
   const breakdownEl = document.getElementById('t3-category-breakdown');
   breakdownEl.innerHTML = (score.category_scores || []).map(cat => `
     <div class="meter-row">
       <div class="meter-row__head">
-        <span class="label">${escapeHtml(cat.label)} <span class="small muted">(ağırlık: %${cat.weight_percent}, güven: ${cat.confidence})</span></span>
+        <span class="label">${escapeHtml(cat.label)}</span>
         <span class="value-wrap">
           <span class="value">${cat.score}</span>
-          ${T3_CATEGORY_INFO[cat.key] ? `<button type="button" class="t3-info-btn" data-info-key="${escapeHtml(cat.key)}" aria-label="${escapeHtml(cat.label)} nasıl hesaplanıyor?">i</button>` : ''}
+          ${T3_CATEGORY_INFO[cat.key] ? `<button type="button" class="t3-info-btn" data-info-key="${escapeHtml(cat.key)}" data-weight="${cat.weight_percent}" data-confidence="${escapeHtml(cat.confidence)}" aria-label="${escapeHtml(cat.label)} nasıl hesaplanıyor?">i</button>` : ''}
         </span>
       </div>
       <div class="meter-track"><div class="meter-fill fill-${scoreStatus(cat.score)}" style="width:${cat.score}%;"></div></div>
@@ -883,6 +972,41 @@ const T3_SEVERITY_META = {
   minor: { tagClass: 'tag', label: 'Düşük', dotColor: 'var(--muted-2)' }
 };
 
+// Aşağıdaki üç sabit yalnızca Bulgular sekmesindeki bulgu listesinin (bkz.
+// updateIssueList) rozet/etiket görünümü içindir; T3_SEVERITY_META'ya (PDF
+// raporunda da kullanılıyor) dokunulmadı. Backend yalnızca critical/major/minor
+// üretir (bkz. ScoringEngine.php SEVERITY_WEIGHTS) - "Kritik" rozeti critical
+// için kullanılır, uygulamanın diğer yerlerindeki "kritik eşik" terimiyle aynı
+// anlamı taşır.
+const T3_ISSUE_SEVERITY_META = {
+  critical: { badgeClass: 't3-badge--danger', label: 'Kritik' },
+  major: { badgeClass: 't3-badge--warn', label: 'Orta' },
+  minor: { badgeClass: 't3-badge--muted', label: 'Düşük' }
+};
+
+const T3_ISSUE_CONFIDENCE_META = {
+  'kesin': { badgeClass: 't3-badge--info', label: 'Kesin' },
+  'olası': { badgeClass: 't3-badge--muted', label: 'Olası' }
+};
+
+// ScoringEngine.php'nin category anahtarlarını (finding.category) kullanıcıya
+// gösterilecek Türkçe etikete çevirir. Yalnızca arayüz gösterimi içindir;
+// backend anahtarı hiçbir şekilde değiştirilmez/gönderilmez.
+const T3_ISSUE_CATEGORY_LABELS = {
+  crawlability_indexability: 'Taranabilirlik ve İndekslenebilirlik',
+  site_structure_links: 'Site Yapısı ve Bağlantılar',
+  performance: 'Performans',
+  security_https: 'Güvenlik',
+  schema_structured_data: 'Yapılandırılmış Veri',
+  mobile_first: 'Mobil Uyumluluk'
+};
+
+function t3IssueCategoryLabel(key) {
+  if (!key) return '—';
+  if (T3_ISSUE_CATEGORY_LABELS[key]) return T3_ISSUE_CATEGORY_LABELS[key];
+  return String(key).replaceAll('_', ' ').replace(/\b\w/g, c => c.toLocaleUpperCase('tr-TR'));
+}
+
 let t3IssueFilters = { search: '', severity: '', category: '', solutionsOnly: false };
 
 function renderFindingsCompact(findings, totalPages) {
@@ -896,7 +1020,7 @@ function renderFindingsCompact(findings, totalPages) {
   });
   if (subtitle) subtitle.textContent = `${totalPages || '—'} URL tarandı · Bir satıra tıklayarak ayrıntıyı açın`;
   const categories = [...new Set((findings || []).map(f => f.category).filter(Boolean))];
-  el.innerHTML = `<div class="t3-issue-toolbar"><label><span class="sr-only">Sorun ara</span><input class="input" id="t3-issue-search" type="search" placeholder="Sorun ara…"></label><select class="input" id="t3-issue-severity" aria-label="Önem filtresi"><option value="">Tüm önem seviyeleri</option><option value="critical">Yüksek</option><option value="major">Orta</option><option value="minor">Düşük</option></select><select class="input" id="t3-issue-category" aria-label="Kategori filtresi"><option value="">Tüm kategoriler</option>${categories.map(c=>`<option value="${escapeHtml(c)}">${escapeHtml(T3_CATEGORY_INFO[c] ? c.replaceAll('_',' ') : c)}</option>`).join('')}</select><label class="t3-filter-check"><input id="t3-issue-solutions" type="checkbox"> Çözümü olanlar</label></div><div id="t3-issue-list"></div>`;
+  el.innerHTML = `<div class="t3-issue-toolbar"><label><span class="sr-only">Sorun ara</span><input class="input" id="t3-issue-search" type="search" placeholder="Sorun ara…"></label><select class="input" id="t3-issue-severity" aria-label="Önem filtresi"><option value="">Tüm önem seviyeleri</option><option value="critical">Kritik</option><option value="major">Orta</option><option value="minor">Düşük</option></select><select class="input" id="t3-issue-category" aria-label="Kategori filtresi"><option value="">Tüm kategoriler</option>${categories.map(c=>`<option value="${escapeHtml(c)}">${escapeHtml(t3IssueCategoryLabel(c))}</option>`).join('')}</select><label class="t3-filter-check"><input id="t3-issue-solutions" type="checkbox"> Çözümü olanlar</label></div><div class="t3-issue-header-row" aria-hidden="true"><span class="t3-issue-col-severity">Önem</span><span class="t3-issue-col-title">Bulgu</span><span class="t3-issue-col-category">Kategori</span><span class="t3-issue-col-affected">Etkilenen</span><span class="t3-issue-col-confidence">Güven<span class="t3-col-hint" tabindex="0" title="Kesin: doğrudan tespit edilen bulgu · Olası: sezgisel/olası tahmin">?</span></span><span class="t3-issue-col-action">İşlem</span></div><div id="t3-issue-list"></div>`;
   updateIssueList();
 }
 
@@ -907,13 +1031,260 @@ function updateIssueList() {
     const haystack = `${f.title || ''} ${f.detail || ''}`.toLocaleLowerCase('tr-TR');
     return (!t3IssueFilters.search || haystack.includes(t3IssueFilters.search)) && (!t3IssueFilters.severity || f.severity === t3IssueFilters.severity) && (!t3IssueFilters.category || f.category === t3IssueFilters.category) && (!t3IssueFilters.solutionsOnly || f.solution_available);
   });
-  list.innerHTML = findings.length ? `<div class="t3-issue-list">${findings.map(f => { const meta=T3_SEVERITY_META[f.severity]||T3_SEVERITY_META.minor; return `<div class="t3-issue-group"><button type="button" class="t3-issue-row" data-toggle-finding="${escapeHtml(f.id)}" aria-expanded="false"><span class="t3-issue-severity" data-severity="${escapeHtml(f.severity)}">${meta.label}</span><strong>${escapeHtml(f.title)}</strong><span>${escapeHtml(String(f.category || '').replaceAll('_',' '))}</span><span>${f.affected_pages ?? '—'} sayfa</span><span>${escapeHtml(f.confidence || '—')}</span><span class="t3-issue-chevron" aria-hidden="true">▾</span></button><div class="t3-issue-detail hidden" data-issue-detail="${escapeHtml(f.id)}"></div></div>`; }).join('')}</div>` : '<div class="t3-empty-state">Filtrelerle eşleşen sorun bulunamadı.</div>';
+  list.innerHTML = findings.length ? `<div class="t3-issue-list">${findings.map(f => {
+    const sevMeta = T3_ISSUE_SEVERITY_META[f.severity] || T3_ISSUE_SEVERITY_META.minor;
+    const confMeta = T3_ISSUE_CONFIDENCE_META[f.confidence] || null;
+    const categoryLabel = t3IssueCategoryLabel(f.category);
+    const affectedText = `${f.affected_pages ?? '—'} sayfa`;
+    const confidenceLabel = confMeta ? confMeta.label : (f.confidence || '—');
+    const confidenceBadgeClass = confMeta ? confMeta.badgeClass : 't3-badge--muted';
+    return `<div class="t3-issue-group"><button type="button" class="t3-issue-row" data-toggle-finding="${escapeHtml(f.id)}" aria-expanded="false"><span class="t3-badge ${sevMeta.badgeClass} t3-issue-severity" data-severity="${escapeHtml(f.severity)}">${sevMeta.label}</span><span class="t3-issue-main"><strong class="t3-issue-title">${escapeHtml(f.title)}</strong><span class="t3-issue-meta-mobile"><span class="t3-issue-meta-tag">${escapeHtml(categoryLabel)}</span><span class="t3-issue-meta-tag">${escapeHtml(affectedText)}</span><span class="t3-badge ${confidenceBadgeClass}">${escapeHtml(confidenceLabel)}</span></span></span><span class="t3-issue-category">${escapeHtml(categoryLabel)}</span><span class="t3-issue-affected">${escapeHtml(affectedText)}</span><span class="t3-badge ${confidenceBadgeClass} t3-issue-confidence">${escapeHtml(confidenceLabel)}</span><span class="t3-issue-action">İncele<svg class="t3-issue-action__arrow" aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg></span></button><div class="t3-issue-detail hidden" data-issue-detail="${escapeHtml(f.id)}"></div></div>`;
+  }).join('')}</div>` : '<div class="t3-empty-state">Filtrelerle eşleşen sorun bulunamadı.</div>';
 }
 
+// Bulgu ayrıntı panelinin gerçek render fonksiyonu - bkz. toggleFindingDetail
+// (Bulgular sekmesindeki her satırın altında açılan tek gerçek uygulama).
+// Kategori/Etkilenen/Güven bilgileri artık satırın kendisinde (bkz.
+// updateIssueList) gösterildiği için burada tekrar edilmiyor; "Neden
+// önemlidir?" kaldırıldı. Backend alanları (finding.category vb.) hiçbir
+// yerde ham anahtar olarak basılmıyor.
 function renderFindingDetailHtml(finding) {
   const items = Array.isArray(finding.items) ? finding.items : [];
-  const solutionLabels = { manual_steps:'Manuel uygulama', generated_sitemap:'Hazır dosya', code_snippet:'Kod önerisi', configuration_example:'Kod önerisi', generated_robots:'Hazır dosya', json_ld:'Kod önerisi' };
-  return `<dl class="t3-finding-meta"><div><dt>Kategori</dt><dd>${escapeHtml(String(finding.category||'—').replaceAll('_',' '))}</dd></div><div><dt>Etkilenen</dt><dd>${finding.affected_pages ?? '—'} sayfa</dd></div><div><dt>Güven</dt><dd>${escapeHtml(finding.confidence||'—')}</dd></div></dl><section><h3>Sorun nedir?</h3><p>${escapeHtml(finding.detail||'Ayrıntı bulunamadı.')}</p></section><section><h3>Neden önemlidir?</h3><p>${escapeHtml(finding.why_it_matters||finding.detail||'Bu bulgu teknik SEO görünürlüğünü etkileyebilir.')}</p></section><section><h3>Nasıl düzeltilir?</h3><p>${escapeHtml(finding.how_to_fix||'Manuel inceleme gerekli.')}</p>${finding.solution_available ? `<button class="btn btn--primary btn--sm" type="button" data-target="t3-solutions-card">${escapeHtml(solutionLabels[finding.solution_type]||'Çözümü aç')}</button>` : ''}</section>${items.length ? `<details class="t3-details"><summary>Etkilenen URL’ler <span>${items.length}</span></summary><div class="t3-drawer-urls" data-url-limit="10">${items.slice(0,10).map(it=>`<div><a href="${escapeHtml(it.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(it.url)}</a><small>${escapeHtml(it.status||'')}</small></div>`).join('')}</div>${items.length>10?`<button class="btn btn--ghost btn--sm" type="button" data-more-urls="${escapeHtml(finding.id)}">Daha fazla göster</button>`:''}</details>`:''}${finding.id ? `<section><button type="button" class="btn btn--ghost btn--sm t3-ai-explain-btn" data-explain-id="${escapeHtml(finding.id)}">AI ile Açıkla</button><div class="t3-ai-explain hidden" data-explain-panel="${escapeHtml(finding.id)}"></div></section>`:''}<section><h3>Doğrulama adımları</h3><ol>${(finding.verification_steps||[]).map(step=>`<li>${escapeHtml(step)}</li>`).join('')||'<li>Düzeltmeden sonra ilgili URL’yi yeniden analiz edin.</li>'}</ol></section>`;
+  if (isSitemapMissingPagesPilot(finding)) {
+    return `<section><h3>Sorun</h3><p>${escapeHtml(finding.detail||'Ayrıntı bulunamadı.')}</p></section>${renderFindingSitemapPanel(finding)}${items.length ? `<details class="t3-details"><summary>Etkilenen URL’ler <span>${items.length}</span></summary><div class="t3-drawer-urls" data-finding-urls></div></details>` : ''}`;
+  }
+  const canonicalRecords = buildCanonicalReadyRecords(finding);
+  if (canonicalRecords.length > 0) {
+    return `<section><h3>Sorun</h3><p>${escapeHtml(finding.detail||'Ayrıntı bulunamadı.')}</p></section>${renderFindingCanonicalPanel(finding, canonicalRecords)}<details class="t3-details"><summary>Etkilenen URL’ler <span>${canonicalRecords.length}</span></summary><div class="t3-drawer-urls" data-finding-urls></div></details>`;
+  }
+  if (finding.solution_type === 'h1_suggestion') {
+    const h1Records = buildH1ReadyRecords(finding);
+    if (h1Records.length > 0) {
+      // AI'in bu listeyi "gozden gecirip" yazdigi uyari kaldirildi - genellemeleri
+      // (ornegin sadece SITE ADI SONEKINI paylasan title'lari "ayni title" gibi
+      // sunmasi) yaniltici bulundu ve liste zaten kendi basina yeterince acik,
+      // ekstra bir AI yorumuna ihtiyac yok.
+      return `<section><h3>Sorun</h3><p>${escapeHtml(finding.detail||'Ayrıntı bulunamadı.')}</p></section>${renderFindingH1Panel(finding, h1Records)}${items.length ? `<details class="t3-details"><summary>Etkilenen URL’ler <span>${items.length}</span></summary><div class="t3-drawer-urls" data-finding-urls></div></details>` : ''}`;
+    }
+  }
+  const solutionLabels = { manual_steps:'Manuel uygulama', generated_sitemap:'Hazır dosya', code_snippet:'Hazır Kodu Gör', configuration_example:'Hazır Kodu Gör', generated_robots:'Hazır dosya', json_ld:'Hazır Kodu Gör' };
+  const hasReadyOutput = hasDeterministicReadyOutput(finding);
+  // Bu buton SADECE gercekten eslesen bir hazir panel varsa (sitemap/robots/
+  // canonical) gosterilsin - eskiden 'manual_steps'/'json_ld'/'configuration_example'
+  // gibi hicbir hazir paneli olmayan turlerde de gorunuyordu ve tiklaninca hep
+  // ayni genel 'solutions' kartina (sitemap bolumune) goturuyordu.
+  const readyOutputTypes = ['generated_sitemap', 'generated_robots', 'code_snippet'];
+  const showReadyAction = finding.solution_available && readyOutputTypes.includes(finding.solution_type) && hasReadyOutput;
+  const showAiAction = Boolean(finding.id) && !hasReadyOutput;
+  return `<section><h3>Sorun</h3><p>${escapeHtml(finding.detail||'Ayrıntı bulunamadı.')}</p></section><section><div class="t3-finding-actions">${showReadyAction ? `<button class="btn btn--primary btn--sm" type="button" data-target="t3-solutions-card">${escapeHtml(solutionLabels[finding.solution_type]||'Hazır Kodu Gör')}</button>` : ''}${showAiAction ? `<button type="button" class="btn btn--ghost btn--sm t3-ai-explain-btn" data-explain-id="${escapeHtml(finding.id)}">AI ile Çözüm Üret</button>` : ''}</div>${showAiAction ? `<div class="t3-ai-explain hidden" data-explain-panel="${escapeHtml(finding.id)}"></div>` : ''}</section>${items.length ? `<details class="t3-details"><summary>Etkilenen URL’ler <span>${items.length}</span></summary><div class="t3-drawer-urls" data-finding-urls></div></details>` : ''}`;
+}
+
+function buildCanonicalReadyRecords(finding) {
+  const canonical = t3LastAuditData?.solutions?.canonical;
+  if (finding?.solution_type !== 'code_snippet' || finding.solution_available !== true || finding.manual_review_required === true) return [];
+  if (Array.isArray(finding.items) && finding.items.length > 0) return [];
+  if (canonical?.available !== true || canonical.scope !== 'homepage_only') return [];
+  const sourceUrl = typeof t3LastAuditData?.url === 'string' ? t3LastAuditData.url.trim() : '';
+  const targetUrl = typeof canonical.target_url === 'string' ? canonical.target_url.trim() : '';
+  const snippet = typeof canonical.snippet === 'string' ? canonical.snippet.trim() : '';
+  if (!isTrustedCanonicalUrl(sourceUrl) || sourceUrl !== targetUrl || !isCanonicalSnippetForTarget(snippet, targetUrl)) return [];
+  return [{
+    sourceUrl,
+    current: typeof canonical.current_canonical === 'string' && canonical.current_canonical.trim() !== '' ? canonical.current_canonical.trim() : 'Canonical etiketi bulunmuyor.',
+    targetUrl,
+    snippet,
+  }];
+}
+
+function isTrustedCanonicalUrl(value) {
+  try {
+    const parsed = new URL(value);
+    return ['http:', 'https:'].includes(parsed.protocol) && !/(?:^|\.)(?:example|ornek|örnek|domain|alanadi)\.(?:com|net|org)$/iu.test(parsed.hostname);
+  } catch { return false; }
+}
+
+function isCanonicalSnippetForTarget(snippet, targetUrl) {
+  const match = snippet.match(/^<link\s+rel="canonical"\s+href="([^"]+)"\s*\/>$/i);
+  if (!match) return false;
+  const decodedHref = match[1].replaceAll('&amp;', '&').replaceAll('&quot;', '"').replaceAll('&#039;', "'").replaceAll('&lt;', '<').replaceAll('&gt;', '>');
+  return decodedHref === targetUrl;
+}
+
+function renderFindingCanonicalPanel(finding, records) {
+  const rows = records.map((record, index) => `<article class="t3-finding-canonical-row">
+    <div><strong>Düzenlenecek sayfa</strong><a href="${escapeHtml(record.sourceUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(record.sourceUrl)}</a></div>
+    <div><strong>Mevcut canonical veya hata</strong><span>${escapeHtml(record.current)}</span></div>
+    <div><strong>Önerilen canonical hedefi</strong><span>${escapeHtml(record.targetUrl)}</span></div>
+    <pre class="t3-code-preview"><code>${escapeHtml(record.snippet)}</code></pre>
+    <button class="btn btn--primary btn--sm" type="button" data-finding-canonical-copy="${index}">Kodu Kopyala</button>
+  </article>`).join('');
+  return `<section class="t3-finding-canonical-ready" data-finding-canonical-ready="${escapeHtml(finding.id || '')}"><h3>Hazır canonical düzeltmesi</h3><div class="t3-finding-canonical-ready__list">${rows}</div></section>`;
+}
+
+// H1 eksik bulgusu icin H1 onerisi AI'a hic sorulmuyor - sayfanin gercek
+// <title> etiketi zaten crawl'da elimizde, bu yuzden PHP/JS tarafinda
+// BIREBIR (kirpma/tahmin YOK) H1 onerisine ceviriyoruz. Boylece 21 sayfanin
+// hepsi icin fabrikasyon riski sifir bir liste gosterebiliyoruz - AI'in rolu
+// (bkz. GeminiSolutionExplainer h1ReviewInstruction) sadece bu listeyi kalite
+// acisindan gozden gecirip uyari yazmak.
+function buildH1ReadyRecords(finding) {
+  if (finding?.solution_type !== 'h1_suggestion') return [];
+  const items = Array.isArray(finding.items) ? finding.items : [];
+  const seen = new Set();
+  const records = [];
+  items.forEach(item => {
+    const url = typeof item?.url === 'string' ? item.url.trim() : '';
+    const pageTitle = typeof item?.title === 'string' ? item.title.trim() : '';
+    if (url === '' || pageTitle === '' || seen.has(url)) return;
+    seen.add(url);
+    records.push({ url, pageTitle, suggestedH1: pageTitle });
+  });
+  return records;
+}
+
+function renderFindingH1Panel(finding, records) {
+  const items = Array.isArray(finding.items) ? finding.items : [];
+  const readyUrls = new Set(records.map(r => r.url));
+  const missingTitleCount = items.filter(item => {
+    const url = typeof item?.url === 'string' ? item.url.trim() : '';
+    return url !== '' && !readyUrls.has(url);
+  }).length;
+  const rows = records.map(record => `<article class="t3-finding-canonical-row">
+    <div><strong>Sayfa</strong><a href="${escapeHtml(record.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(record.url)}</a></div>
+    <div><strong>Mevcut &lt;title&gt;</strong><span>${escapeHtml(record.pageTitle)}</span></div>
+    <pre class="t3-code-preview"><code>&lt;h1&gt;${escapeHtml(record.suggestedH1)}&lt;/h1&gt;</code></pre>
+    <button class="btn btn--ghost btn--sm t3-copy-text" type="button" data-copy="${escapeHtml('<h1>' + record.suggestedH1 + '</h1>')}">Kopyala</button>
+  </article>`).join('');
+  const missingNote = missingTitleCount > 0
+    ? `<p class="small muted">${missingTitleCount} sayfada &lt;title&gt; verisi de bulunamadığı için otomatik H1 önerisi üretilemedi; bu sayfalar için H1'i sayfa içeriğine bakarak elle yazmanız gerekir.</p>`
+    : '';
+  return `<section class="t3-finding-canonical-ready" data-finding-h1-ready="${escapeHtml(finding.id || '')}"><h3>Sayfa başlığından (title) türetilen H1 önerileri</h3><p class="small muted">Her öneri, sayfanın gerçek &lt;title&gt; etiketinden birebir alınmıştır; içerik uydurulmamıştır. Kullanmadan önce sayfa konusuyla uyumlu olduğunu kontrol edin.</p><div class="t3-finding-canonical-ready__list">${rows}</div>${missingNote}</section>`;
+}
+
+function getFindingDetailItems(finding) {
+  const canonicalRecords = buildCanonicalReadyRecords(finding);
+  if (canonicalRecords.length > 0) return canonicalRecords.map(record => ({ url: record.sourceUrl, status: 'Hazır canonical düzeltmesi mevcut' }));
+  return Array.isArray(finding?.items) ? finding.items : [];
+}
+
+function isSitemapMissingPagesPilot(finding) {
+  if (finding?.solution_type !== 'generated_sitemap') return false;
+  const findingUrls = (Array.isArray(finding.items) ? finding.items : []).map(item => item?.url).filter(Boolean);
+  const missingUrls = Array.isArray(t3LastAuditData?.solutions?.sitemap?.missing) ? t3LastAuditData.solutions.sitemap.missing.filter(Boolean) : [];
+  if (findingUrls.length === 0 || missingUrls.length === 0) return false;
+  const findingSet = new Set(findingUrls);
+  const missingSet = new Set(missingUrls);
+  return findingSet.size === missingSet.size && [...findingSet].every(url => missingSet.has(url));
+}
+
+function renderFindingSitemapPanel(finding) {
+  const sitemap = t3LastAuditData.solutions.sitemap;
+  const groups = buildSitemapDecisionGroups(sitemap);
+  const safeId = String(finding.id || 'pilot').replace(/[^a-zA-Z0-9_-]/g, '');
+  const previewId = `t3-finding-sitemap-preview-${safeId}`;
+  const groupConfig = [['safe', 'Eklenecek güvenli URL', groups.safe], ['excluded', 'Hariç bırakılan URL', groups.excluded], ['review', 'İnceleme gereken URL', groups.review]];
+  const groupButtons = groupConfig.map(([key, label, rows]) => {
+    const listId = `t3-finding-sitemap-list-${key}-${safeId}`;
+    return `<button type="button" data-finding-sitemap-group="${key}" aria-expanded="false" aria-controls="${listId}"><strong>${label}</strong><span>${rows.length}</span></button>`;
+  }).join('');
+  const groupLists = groupConfig.map(([key, label, rows]) => {
+    const listId = `t3-finding-sitemap-list-${key}-${safeId}`;
+    const rowsHtml = rows.map(row => `<div class="t3-finding-sitemap-row"><a href="${escapeHtml(row.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(row.url)}</a><span class="t3-finding-sitemap-row__decision">${escapeHtml(row.decision)}</span><p>${escapeHtml(row.reason)}</p></div>`).join('');
+    return `<div class="t3-finding-sitemap-list hidden" id="${listId}" data-finding-sitemap-list="${key}" aria-label="${escapeHtml(label)}">${rowsHtml || '<p class="small muted">Bu grupta URL bulunmuyor.</p>'}</div>`;
+  }).join('');
+  return `<section class="t3-finding-sitemap-ready" data-finding-sitemap-ready>
+    <h3>Hazır sitemap.xml özeti</h3>
+    <div class="t3-sitemap-decision t3-finding-sitemap-groups">${groupButtons}</div>
+    <div class="t3-finding-sitemap-lists">${groupLists}</div>
+    <div class="t3-finding-sitemap-ready__actions">
+      <button class="btn btn--ghost btn--sm" type="button" data-finding-sitemap-preview-toggle aria-expanded="false" aria-controls="${previewId}">XML’i Önizle</button>
+      <button class="btn btn--primary btn--sm" type="button" data-finding-sitemap-copy>XML’i Kopyala</button>
+      <button class="btn btn--ghost btn--sm" type="button" data-finding-sitemap-download>XML’i İndir</button>
+    </div>
+    <pre class="t3-code-preview hidden" id="${previewId}" data-finding-sitemap-preview><code>${escapeHtml(sitemap.xml || '')}</code></pre>
+  </section>`;
+}
+
+function buildSitemapDecisionGroups(sitemap) {
+  const decisions = new Map();
+  const cleanUrl = value => typeof value === 'string' ? value.trim() : '';
+  const put = (url, group, decision, reason, priority) => {
+    const clean = cleanUrl(url);
+    if (!clean) return;
+    const current = decisions.get(clean);
+    if (!current || priority > current.priority) decisions.set(clean, { url: clean, group, decision, reason, priority });
+  };
+  (Array.isArray(sitemap?.excluded) ? sitemap.excluded : []).forEach(item => {
+    const reason = typeof item?.reason === 'string' ? item.reason.trim() : '';
+    if (reason) put(item.url, 'excluded', 'Hariç', formatSitemapDecisionReason(reason), 3);
+    else put(item?.url, 'review', 'İnceleme gerekli', 'Hariç bırakılma nedeni belirlenemedi', 4);
+  });
+  (Array.isArray(sitemap?.review_required) ? sitemap.review_required : []).forEach(item => {
+    const reason = typeof item?.reason === 'string' && item.reason.trim() ? item.reason.trim() : 'İnceleme nedeni belirlenemedi';
+    put(item?.url, 'review', 'İnceleme gerekli', formatSitemapDecisionReason(reason), 2);
+  });
+  (Array.isArray(sitemap?.safe_to_add) ? sitemap.safe_to_add : []).forEach(item => {
+    const url = typeof item === 'string' ? item : item?.url;
+    const reason = typeof item?.reason === 'string' && item.reason.trim() ? item.reason.trim() : 'Teknik kontrollerden geçti ve sitemap.xml’e güvenle eklenebilir.';
+    put(url, 'safe', 'Eklenecek', reason, 1);
+  });
+  (Array.isArray(sitemap?.missing) ? sitemap.missing : []).forEach(url => {
+    if (!decisions.has(cleanUrl(url))) put(url, 'review', 'İnceleme gerekli', 'Sitemap kararı için yeterli teknik gerekçe bulunamadı.', 2);
+  });
+  const groups = { safe: [], excluded: [], review: [] };
+  decisions.forEach(({ priority, ...row }) => groups[row.group].push(row));
+  return groups;
+}
+
+function formatSitemapDecisionReason(reason) {
+  const text = String(reason || '').trim();
+  if (/^HTTP\s+3\d\d$/i.test(text)) return `${text}: URL başka bir adrese yönlendiriliyor.`;
+  if (/^HTTP\s+[45]\d\d$/i.test(text)) return `${text}: URL başarılı bir sayfa yanıtı vermiyor.`;
+  if (/^HTTP\s+0$/i.test(text)) return 'URL’nin HTTP durumu doğrulanamadı.';
+  if (text.toLocaleLowerCase('tr-TR') === 'noindex') return 'Sayfa noindex direktifi taşıdığı için sitemap.xml’e eklenmemeli.';
+  if (text === 'Yönlendirme yapan URL') return 'URL başka bir adrese yönlendirildiği için sonuç URL’si kullanılmalı.';
+  if (text === 'Canonical başka URL’ye işaret ediyor') return 'Canonical etiketi başka bir URL’yi tercih edilen sürüm olarak gösteriyor.';
+  if (text === 'Canonical yapısı belirsiz') return 'Canonical yapısı kesin olarak doğrulanamadı.';
+  if (text === 'Yönetim/sistem sayfası') return 'Yönetim veya sistem sayfaları arama sonuçları için sitemap.xml’e eklenmemeli.';
+  return text;
+}
+
+function hasDeterministicReadyOutput(finding) {
+  if (!finding?.solution_available) return false;
+  if (finding.solution_type === 'generated_sitemap') {
+    const sitemap = t3LastAuditData?.solutions?.sitemap;
+    return sitemap?.available === true && typeof sitemap.xml === 'string' && sitemap.xml.trim() !== '';
+  }
+  if (finding.solution_type === 'generated_robots') {
+    const robots = t3LastAuditData?.solutions?.robots;
+    return robots?.available === true && typeof robots.content === 'string' && robots.content.trim() !== '';
+  }
+  if (finding.solution_type === 'code_snippet') return buildCanonicalReadyRecords(finding).length > 0;
+  return false;
+}
+
+// Etkilenen URL listesini (sayfalama/parçalama YOK - panel zaten kendi
+// scrollbar'ına sahip, bkz. .t3-drawer-urls CSS max-height) tek seferde
+// bir DocumentFragment içinde kurup DOM'a tek defada ekler - string
+// birleştirmek yerine gerçek DOM node'ları kullanır, escapeHtml'e gerek
+// bırakmaz (textContent/href doğrudan atanır).
+function renderFindingUrls(container, items) {
+  if (!container) return;
+  const frag = document.createDocumentFragment();
+  items.forEach(item => {
+    const row = document.createElement('div');
+    const a = document.createElement('a');
+    a.href = item.url || '#';
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    a.textContent = item.url || '';
+    const status = document.createElement('small');
+    status.textContent = item.status || '';
+    row.appendChild(a);
+    row.appendChild(status);
+    frag.appendChild(row);
+  });
+  container.appendChild(frag);
 }
 
 function toggleFindingDetail(findingId, rowBtn) {
@@ -924,6 +1295,7 @@ function toggleFindingDetail(findingId, rowBtn) {
   const willExpand = detail.classList.contains('hidden');
   if (willExpand && detail.dataset.loaded !== 'true') {
     detail.innerHTML = renderFindingDetailHtml(finding);
+    renderFindingUrls(detail.querySelector('[data-finding-urls]'), getFindingDetailItems(finding));
     detail.dataset.loaded = 'true';
   }
   detail.classList.toggle('hidden', !willExpand);
@@ -991,13 +1363,14 @@ document.addEventListener('click', (e) => {
 // bir kez yuklendiyse tekrar istek atmadan sadece ac/kapa yapar (backend zaten
 // bulgu-hash'ine gore session icinde cache'liyor, ama gereksiz agi trafigini
 // burada da onluyoruz).
-async function handleAiExplainClick(btn) {
+async function handleAiExplainClick(btn, options = {}) {
+  const force = options.force === true;
   const findingId = btn.dataset.explainId;
   const finding = t3FindingsById[findingId];
   const panel = btn.closest('[data-issue-detail]')?.querySelector('.t3-ai-explain');
   if (!finding || !panel) return;
 
-  if (panel.dataset.loaded === 'true') {
+  if (!force && panel.dataset.loaded === 'true') {
     panel.classList.toggle('hidden');
     return;
   }
@@ -1005,7 +1378,7 @@ async function handleAiExplainClick(btn) {
 
   panel.dataset.loading = 'true';
   panel.classList.remove('hidden');
-  panel.innerHTML = '<div class="t3-ai-explain__loading"><span class="spinner--dark"></span> AI açıklama hazırlanıyor…</div>';
+  panel.innerHTML = '<div class="t3-ai-explain__loading"><span class="spinner--dark"></span> Çözüm hazırlanıyor…</div>';
   btn.disabled = true;
 
   try {
@@ -1019,15 +1392,32 @@ async function handleAiExplainClick(btn) {
           how_to_fix: finding.how_to_fix,
           severity: finding.severity,
           confidence: finding.confidence,
+          solution_type: finding.solution_type,
+          solution_available: finding.solution_available,
+          // title/meta_description: sadece schema bulgusunda (ana sayfaya ait,
+          // zaten crawl edilmis gercek veri) dolu geliyor - GeminiSolutionExplainer
+          // bunlari SADECE gercek/bilinen veri olarak kullaniyor, baska hicbir sey
+          // uydurmuyor (bkz. extractSchemaContext). Onceden bu alanlar burada elenip
+          // sunucuya hic gitmiyordu, AI da gercek veriye hic erisemiyordu.
+          // Alan bazli beyaz liste yerine tum item objesini gonderiyoruz -
+          // her yeni bulgu turu (schema, yetim sayfa, ...) kendi ekstra
+          // alanlarini (candidate_url, meta_description, vb.) tasiyabiliyor,
+          // burada tek tek eklemeyi unutma riski kalmiyor.
+          items: Array.isArray(finding.items) ? finding.items.slice(0, 10) : [],
         },
+        force,
       }),
     });
-    const json = await res.json().catch(() => ({}));
-    if (!res.ok || json.error) throw new Error(json.error || 'AI açıklama alınamadı.');
-    renderAiExplainPanel(panel, json.data || {});
+    const json = await res.json().catch(() => null);
+    if (!json || !res.ok || json.success !== true || !json.solution) {
+      throw new Error(json?.error || 'AI çözümü alınamadı.');
+    }
+    if (!renderAiExplainPanel(panel, json.solution)) throw new Error('AI boş bir çözüm döndürdü.');
     panel.dataset.loaded = 'true';
   } catch (err) {
-    panel.innerHTML = `<div class="t3-ai-explain__error">${escapeHtml(err.message || 'AI destekli açıklama şu anda kullanılamıyor. Deterministik çözüm adımları kullanılmaya devam edebilir.')}</div>`;
+    const message = err.message || 'AI ile çözüm şu anda oluşturulamadı. Deterministik çözüm adımlarını kullanmaya devam edebilirsiniz.';
+    panel.innerHTML = `<div class="t3-ai-explain__error">${escapeHtml(message)}</div><button type="button" class="btn btn--ghost btn--sm t3-ai-explain-retry" data-explain-id="${escapeHtml(findingId)}">Tekrar Dene</button>`;
+    panel.dataset.loaded = 'false';
   } finally {
     panel.dataset.loading = 'false';
     btn.disabled = false;
@@ -1035,21 +1425,25 @@ async function handleAiExplainClick(btn) {
 }
 
 function renderAiExplainPanel(panel, data) {
-  const confColorMap = { 'Yüksek': 'var(--success)', 'Orta': 'var(--warn)', 'İnceleme gerekli': 'var(--danger)' };
-  const confidence = data.confidence || 'İnceleme gerekli';
-  const confColor = confColorMap[confidence] || 'var(--muted-2)';
-  const steps = Array.isArray(data.implementation_steps) ? data.implementation_steps : [];
+  const summary = typeof data.summary === 'string' ? data.summary.trim() : '';
+  const steps = Array.isArray(data.steps) ? data.steps.filter(step => String(step).trim() !== '') : [];
+  const example = typeof data.example === 'string' ? data.example.trim() : '';
+  const warning = typeof data.warning === 'string' ? data.warning.trim() : '';
+  if (!summary && steps.length === 0 && !example) return false;
+  const findingId = panel.dataset.explainPanel || '';
   const stepsHtml = steps.map(s => `<li>${escapeHtml(s)}</li>`).join('');
   panel.innerHTML = `
     <div class="t3-ai-explain__head">
-      <span class="t3-ai-badge">AI destekli açıklama</span>
-      <span class="t3-ai-confidence" style="color:${confColor};">güven: ${escapeHtml(confidence)}</span>
+      <span class="t3-ai-badge">AI destekli çözüm</span>
+      <button type="button" class="btn btn--ghost btn--sm t3-ai-explain-refresh" data-explain-id="${escapeHtml(findingId)}" title="Önbelleği atlayıp yeni bir cevap üret">⟳ Yenile</button>
     </div>
-    <p class="t3-ai-explain__summary">${escapeHtml(data.summary || '')}</p>
+    ${summary ? `<p class="t3-ai-explain__summary">${escapeHtml(summary)}</p>` : ''}
     ${stepsHtml ? `<ol class="t3-ai-explain__steps">${stepsHtml}</ol>` : ''}
-    ${data.risk_note ? `<p class="small muted t3-ai-explain__risk"><strong>Risk notu:</strong> ${escapeHtml(data.risk_note)}</p>` : ''}
-    <p class="small muted t3-ai-explain__disclaimer">Bu açıklama yapay zekâ tarafından üretilmiştir, kesinlik iddia etmez ve yukarıdaki deterministik "Nasıl düzeltilir" adımlarının yerini almaz.</p>
+    ${example ? `<pre class="t3-code-preview"><code>${escapeHtml(example)}</code></pre><button type="button" class="btn btn--ghost btn--sm t3-copy-text" data-copy="${escapeHtml(example)}">Kopyala</button>` : ''}
+    ${warning ? `<p class="small muted t3-ai-explain__risk"><strong>Uyarı:</strong> ${escapeHtml(warning)}</p>` : ''}
+    <p class="small muted t3-ai-explain__disclaimer">AI tarafından oluşturulan bu öneriyi uygulamadan önce teknik olarak doğrulayın.</p>
   `;
+  return true;
 }
 
 function setSmallGauge(id, score) {
@@ -1082,6 +1476,26 @@ document.getElementById('tab-2')?.addEventListener('click', async (event) => {
   const toggleRow = event.target.closest('[data-toggle-finding]');
   if (toggleRow) toggleFindingDetail(toggleRow.dataset.toggleFinding, toggleRow);
 
+  const cruxToggle = event.target.closest('.t3-crux-accordion__toggle');
+  if (cruxToggle) {
+    const accordion = cruxToggle.closest('.t3-crux-accordion');
+    const panel = document.getElementById('t3-crux-panel');
+    const expanded = cruxToggle.getAttribute('aria-expanded') === 'true';
+    cruxToggle.setAttribute('aria-expanded', expanded ? 'false' : 'true');
+    if (panel) panel.setAttribute('aria-hidden', expanded ? 'true' : 'false');
+    accordion?.classList.toggle('is-open', !expanded);
+  }
+
+  const qaToggle = event.target.closest('.t3-qa-accordion__toggle');
+  if (qaToggle) {
+    const qaAccordion = qaToggle.closest('.t3-qa-accordion');
+    const qaPanel = document.getElementById('t3-qa-panel');
+    const qaExpanded = qaToggle.getAttribute('aria-expanded') === 'true';
+    qaToggle.setAttribute('aria-expanded', qaExpanded ? 'false' : 'true');
+    if (qaPanel) qaPanel.setAttribute('aria-hidden', qaExpanded ? 'true' : 'false');
+    qaAccordion?.classList.toggle('is-open', !qaExpanded);
+  }
+
   const jumpAuditBtn = event.target.closest('[data-jump-audit]');
   if (jumpAuditBtn) jumpToAudit(jumpAuditBtn.dataset.jumpAudit);
 
@@ -1094,30 +1508,40 @@ document.getElementById('tab-2')?.addEventListener('click', async (event) => {
   const explainBtn = event.target.closest('.t3-ai-explain-btn');
   if (explainBtn) await handleAiExplainClick(explainBtn);
 
-  const moreUrls = event.target.closest('[data-more-urls]');
-  if (moreUrls) {
-    const finding = t3FindingsById[moreUrls.dataset.moreUrls];
-    const wrap = moreUrls.closest('details')?.querySelector('.t3-drawer-urls');
-    const shown = wrap?.children.length || 0;
-    (finding?.items || []).slice(shown, shown + 10).forEach(item => {
-      const row = document.createElement('div');
-      row.innerHTML = `<a href="${escapeHtml(item.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(item.url)}</a><small>${escapeHtml(item.status||'')}</small>`;
-      wrap?.appendChild(row);
-    });
-    if (!finding || shown + 10 >= finding.items.length) moreUrls.remove();
+  // "Tekrar Dene" (AI çözümü hata verdiğinde gösterilir) - gerçek tetikleyici
+  // butonu (.t3-ai-explain-btn) bulup handleAiExplainClick'i onunla yeniden
+  // çağırır; ayrı bir istek/render yolu YOK, aynı tek implementasyon kullanılır.
+  const retryBtn = event.target.closest('.t3-ai-explain-retry');
+  if (retryBtn) {
+    const originalBtn = retryBtn.closest('[data-issue-detail]')?.querySelector('.t3-ai-explain-btn');
+    if (originalBtn) await handleAiExplainClick(originalBtn);
   }
 
-  if (event.target.closest('#t3-copy-sitemap') && t3LastAuditData?.solutions?.sitemap?.xml) {
-    try { await navigator.clipboard.writeText(t3LastAuditData.solutions.sitemap.xml); showToast('Sitemap XML panoya kopyalandı.', 'success'); }
-    catch { showToast('Kopyalama izni verilmedi.', 'error'); }
+  // Yenile ikonu - kullanici oturum cache'ini atlayip AI'dan yeni bir
+  // cevap uretilmesini istiyor; force:true ile ayni fetch/render yolunu
+  // (handleAiExplainClick) tekrar cagiriyoruz.
+  const refreshBtn = event.target.closest('.t3-ai-explain-refresh');
+  if (refreshBtn) {
+    const originalBtn = refreshBtn.closest('[data-issue-detail]')?.querySelector('.t3-ai-explain-btn');
+    if (originalBtn) await handleAiExplainClick(originalBtn, { force: true });
   }
-  if (event.target.closest('#t3-download-sitemap') && t3LastAuditData?.solutions?.sitemap?.xml) {
-    const blob = new Blob([t3LastAuditData.solutions.sitemap.xml], { type: 'application/xml;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement('a');
-    anchor.href = url; anchor.download = 'sitemap-duzeltilmis.xml'; anchor.click();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+  const sitemapPreviewToggle = event.target.closest('[data-finding-sitemap-preview-toggle]');
+  if (sitemapPreviewToggle) {
+    const panel = sitemapPreviewToggle.closest('[data-finding-sitemap-ready]');
+    const preview = panel?.querySelector('[data-finding-sitemap-preview]');
+    const willOpen = preview?.classList.contains('hidden') === true;
+    preview?.classList.toggle('hidden', !willOpen);
+    sitemapPreviewToggle.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+    sitemapPreviewToggle.textContent = willOpen ? 'XML’i Gizle' : 'XML’i Önizle';
   }
+
+  const canonicalCopyButton = event.target.closest('[data-finding-canonical-copy]');
+  if (canonicalCopyButton) await copyFindingCanonicalCode(canonicalCopyButton);
+  const sitemapGroupToggle = event.target.closest('[data-finding-sitemap-group]');
+  if (sitemapGroupToggle) toggleFindingSitemapGroup(sitemapGroupToggle);
+  if (event.target.closest('#t3-copy-sitemap, [data-finding-sitemap-copy]')) await copyCurrentSitemapXml();
+  if (event.target.closest('#t3-download-sitemap, [data-finding-sitemap-download]')) downloadCurrentSitemapXml();
 
   if (event.target.closest('#t3-copy-robots') && t3LastAuditData?.solutions?.robots?.content) {
     try { await navigator.clipboard.writeText(t3LastAuditData.solutions.robots.content); showToast('robots.txt içeriği panoya kopyalandı.', 'success'); }
@@ -1131,6 +1555,53 @@ document.getElementById('tab-2')?.addEventListener('click', async (event) => {
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 });
+
+async function copyCurrentSitemapXml() {
+  const xml = t3LastAuditData?.solutions?.sitemap?.xml;
+  if (!xml) return;
+  try { await navigator.clipboard.writeText(xml); showToast('Sitemap XML panoya kopyalandı.', 'success'); }
+  catch { showToast('Kopyalama izni verilmedi.', 'error'); }
+}
+
+function downloadCurrentSitemapXml() {
+  const xml = t3LastAuditData?.solutions?.sitemap?.xml;
+  if (!xml) return;
+  const blob = new Blob([xml], { type: 'application/xml;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = url; anchor.download = 'sitemap-duzeltilmis.xml'; anchor.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function toggleFindingSitemapGroup(toggle) {
+  const panel = toggle.closest('[data-finding-sitemap-ready]');
+  if (!panel) return;
+  const selected = toggle.dataset.findingSitemapGroup;
+  const wasOpen = toggle.getAttribute('aria-expanded') === 'true';
+  panel.querySelectorAll('[data-finding-sitemap-group]').forEach(button => {
+    const open = button === toggle && !wasOpen;
+    button.setAttribute('aria-expanded', open ? 'true' : 'false');
+    button.classList.toggle('is-active', open);
+  });
+  panel.querySelectorAll('[data-finding-sitemap-list]').forEach(list => {
+    list.classList.toggle('hidden', wasOpen || list.dataset.findingSitemapList !== selected);
+  });
+}
+
+async function copyFindingCanonicalCode(button) {
+  const panel = button.closest('[data-finding-canonical-ready]');
+  const finding = t3FindingsById[panel?.dataset.findingCanonicalReady || ''];
+  const index = Number.parseInt(button.dataset.findingCanonicalCopy || '', 10);
+  const record = buildCanonicalReadyRecords(finding)[index];
+  if (!record) return;
+  try {
+    await navigator.clipboard.writeText(record.snippet);
+    const originalLabel = button.textContent;
+    button.textContent = 'Kopyalandı';
+    button.disabled = true;
+    setTimeout(() => { button.textContent = originalLabel; button.disabled = false; }, 1400);
+  } catch { showToast('Kopyalama izni verilmedi.', 'error'); }
+}
 
 document.getElementById('t3-findings-card')?.addEventListener('input', event => {
   if (event.target.id === 't3-issue-search') { t3IssueFilters.search = event.target.value.trim().toLocaleLowerCase('tr-TR'); updateIssueList(); }
@@ -1797,8 +2268,7 @@ function initAuditLogSection() {
 const T3_RESULT_TAB_MAP = {
   't3-findings-card': 'findings',
   't3-solutions-card': 'solutions',
-  't3-output-card': 'pagespeed',
-  't3-quick-audit-card': 'scan'
+  't3-output-card': 'pagespeed'
 };
 
 function activateResultsTab(tabKey) {
@@ -2338,7 +2808,7 @@ function t3ReportBuildSummaryHtml(score, previousScore, findings) {
 
   let gateSentence = '';
   if (score.gates_triggered && score.gates_triggered.length) {
-    gateSentence = ` Ayrıca ${score.gates_triggered.length} kritik kapı kısıtlaması tetiklendi (aşağıda "Genel Teknik SEO Skoru" bölümünde detaylandırılmıştır).`;
+    gateSentence = ` Ayrıca ${score.gates_triggered.length} kritik eşik kısıtlaması tetiklendi (aşağıda "Genel Teknik SEO Skoru" bölümünde detaylandırılmıştır).`;
   }
 
   const scoreLineHtml = `<p class="rpt-summary__text"><strong>${escapeHtml(score.final_score)}/100</strong> (<span style="color:${color}; font-weight:700;">${label}</span>) genel teknik SEO skoru ölçüldü${deltaSentence}.${gateSentence}</p>`;
@@ -2379,8 +2849,8 @@ function buildT3ReportHtml(payload) {
   `).join('');
 
   const gatesHtml = (score.gates_triggered && score.gates_triggered.length)
-    ? score.gates_triggered.map(g => `<div class="rpt-gate">⚠ Kritik kapı tetiklendi — skor en fazla ${escapeHtml(g.cap)}: ${escapeHtml(g.message)}</div>`).join('')
-    : `<div class="rpt-note">Ağırlıklı ortalama: ${escapeHtml(score.weighted_average_before_gates)} — hiçbir kritik kapı tetiklenmedi, nihai skor ağırlıklı ortalamayla aynı.</div>`;
+    ? score.gates_triggered.map(g => `<div class="rpt-gate">⚠ Kritik eşik tetiklendi — skor en fazla ${escapeHtml(g.cap)}: ${escapeHtml(g.message)}</div>`).join('')
+    : `<div class="rpt-note">Ağırlıklı ortalama: ${escapeHtml(score.weighted_average_before_gates)} — hiçbir kritik eşik tetiklenmedi, nihai skor ağırlıklı ortalamayla aynı.</div>`;
 
   const findings = score.findings || [];
   const findingsHtml = findings.length

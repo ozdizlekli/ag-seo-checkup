@@ -256,7 +256,7 @@ final class OnPageIndexabilityChecker
      *
      * @return list<string>
      */
-    public function parseSitemapUrls(?string $xml): array
+    public function parseSitemapUrls(?string $xml, ?Crawler $crawler = null, int $maxSubSitemaps = 20): array
     {
         if ($xml === null || trim($xml) === '') {
             return [];
@@ -271,15 +271,54 @@ final class OnPageIndexabilityChecker
         }
 
         $urls = [];
-        // Hem <urlset><url><loc> hem <sitemapindex><sitemap><loc> desteklenir.
         foreach ($doc->url ?? [] as $url) {
             if (isset($url->loc)) {
                 $urls[] = trim((string) $url->loc);
             }
         }
+
+        // <sitemapindex><sitemap><loc> girdileri GERCEK bir sayfa DEGIL, baska
+        // bir sitemap dosyasina isaret ediyor (WordPress/Yoast/RankMath'te cok
+        // yaygin bir yapi). Bunlari sanki normal bir sayfaymis gibi listeye
+        // eklemek yanlisti - hicbir HTML sayfadan bir XML dosyasina link
+        // verilmez, bu yuzden bu girdiler her zaman "yetim sayfa" ya da
+        // "sitemap disi sayfa" olarak yanlis pozitif uretiyordu. Crawler
+        // verildiyse alt-sitemap'lerin ICINE girip gercek sayfa URL'lerini
+        // cikariyoruz; verilmediyse bu girdiler sessizce atlaniyor - bir daha
+        // hicbir zaman sayfa listesine dogrudan eklenmiyorlar.
+        $subSitemapUrls = [];
         foreach ($doc->sitemap ?? [] as $sitemap) {
             if (isset($sitemap->loc)) {
-                $urls[] = trim((string) $sitemap->loc);
+                $subSitemapUrls[] = trim((string) $sitemap->loc);
+            }
+        }
+
+        if (!empty($subSitemapUrls) && $crawler !== null) {
+            $subSitemapUrls = array_slice(array_values(array_unique(array_filter($subSitemapUrls))), 0, $maxSubSitemaps);
+            $results = $crawler->fetchMultiple($subSitemapUrls, 5, false, true);
+            foreach ($results as $result) {
+                if (($result['error'] ?? null) !== null) {
+                    continue;
+                }
+                $body = (string) ($result['body'] ?? '');
+                if ($body === '') {
+                    continue;
+                }
+                $prevInner = libxml_use_internal_errors(true);
+                $subDoc = simplexml_load_string($body);
+                libxml_use_internal_errors($prevInner);
+                if ($subDoc === false) {
+                    continue;
+                }
+                // NOT: alt-sitemap'in KENDISI de bir index olsa (nadir, cok
+                // katmanli kurulumlarda), ikinci seviyeye inmiyoruz - sonsuz/
+                // derin ozyineleme riskini almaktansa boyle durumlari eksik
+                // birakmayi tercih ediyoruz.
+                foreach ($subDoc->url ?? [] as $url) {
+                    if (isset($url->loc)) {
+                        $urls[] = trim((string) $url->loc);
+                    }
+                }
             }
         }
 

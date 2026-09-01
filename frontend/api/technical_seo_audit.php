@@ -385,7 +385,7 @@ try {
         $sitemapResult = $crawler->fetch($sitemapUrl);
         $sitemapFound = $sitemapResult['error'] === null && $sitemapResult['status_code'] === 200;
         $sitemapXml = $sitemapFound ? (string) $sitemapResult['body'] : '';
-        $sitemapUrls = $sitemapFound ? $indexChecker->parseSitemapUrls($sitemapResult['body']) : [];
+        $sitemapUrls = $sitemapFound ? $indexChecker->parseSitemapUrls($sitemapResult['body'], $crawler) : [];
     });
 
     // 5) noindex + canonical (ana sayfa üzerinden)
@@ -540,13 +540,28 @@ try {
 
     // 13) ---- Hepsini ScoringEngine'e besle ----
     $scoreResult = runStep('scoring', 'Nihai skor hesaplanıyor', function () use (
-        $siteStructure, $homepage, $noindex, $robotsBlocksSite, $robotsFound, $sitemapFound,
+        $siteStructure, $homepage, $finalUrl, $noindex, $robotsBlocksSite, $robotsFound, $sitemapFound,
         $sitemapUrls, $canonical, $orphanRatio, $crossRef, $psi,
         $linkCheckResult, $ssl, $schemaIssues, $mobileParity, $jsDependency, $contentQuality
     ) {
+        // "Sema sorunu: hic JSON-LD yok / Organization-WebSite eksik" bulgusunda
+        // AI'a gercek, zaten bilinen site verisi (baslik/aciklama) verebilmek
+        // icin ana sayfanin crawl kaydini buluyoruz - fiyat/urun gibi
+        // UYDURULMASI gereken hicbir veri yok, sadece zaten cekilmis title/
+        // meta_description tasiniyor (bkz. ScoringEngine::buildFindings).
+        $homepageContext = ['url' => $finalUrl, 'title' => '', 'meta_description' => ''];
+        foreach ($siteStructure['pages'] as $page) {
+            if (($page['url'] ?? null) === $finalUrl) {
+                $homepageContext['title'] = (string) ($page['title'] ?? '');
+                $homepageContext['meta_description'] = (string) ($page['meta_description'] ?? '');
+                break;
+            }
+        }
+
         $scoringInput = [
             'crawled_page_count' => max(1, count($siteStructure['pages'])),
             'homepage_status_code' => $homepage['status_code'],
+            'homepage_context' => $homepageContext,
             'indexability' => [
                 'noindex' => $noindex,
                 'robots_blocks_site' => $robotsBlocksSite,

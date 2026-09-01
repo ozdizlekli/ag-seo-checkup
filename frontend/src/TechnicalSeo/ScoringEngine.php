@@ -389,7 +389,17 @@ final class ScoringEngine
             if (stripos($title, 'sitemap') !== false) $solutionType = 'generated_sitemap';
             elseif (stripos($title, 'canonical') !== false) $solutionType = 'code_snippet';
             elseif (stripos($title, 'robots') !== false) $solutionType = 'generated_robots';
-            elseif (stripos($title, 'şema') !== false || stripos($title, 'schema') !== false) $solutionType = 'json_ld';
+            // Not: Once buradaki kontrol stripos(\$title, 'şema') seklindeydi -
+            // stripos() Turkce 'Ş'/'ş' harflerini multibyte-farkinda eslestirmedigi
+            // icin "Şema sorunu: ..." basligindaki buyuk Ş HICBIR ZAMAN eslesmiyordu,
+            // solutionType sessizce 'manual_steps'te kaliyordu. Performance kategorisinde
+            // zaten yapildigi gibi, kategoriye gore (guvenilir) kontrol ediliyor.
+            elseif ($category === 'schema_structured_data') $solutionType = 'json_ld';
+            elseif (stripos($title, 'yetim sayfa') !== false) $solutionType = 'internal_link_suggestion';
+            // 'H1 başlığı yok' - stripos() yerine str_contains() (case-sensitive,
+            // sabit metinle birebir eşleşen başlik icin guvenli) kullaniyoruz - Turkce
+            // buyuk/kucuk harf donusum sorununu bastan onlemek icin.
+            elseif (str_contains($title, 'H1 başlığı yok')) $solutionType = 'h1_suggestion';
             elseif (stripos($title, 'PageSpeed') !== false || $category === 'performance') $solutionType = 'configuration_example';
 
             $findings[] = [
@@ -646,8 +656,17 @@ final class ScoringEngine
         $headingHierarchy = $indexability['heading_hierarchy'] ?? [];
         $missingH1 = $headingHierarchy['missing_h1'] ?? [];
         if (!empty($missingH1)) {
+            // H1 icin AI'a gercek sayfa baslik verisi verilir - crawl sirasinda
+            // zaten toplanan <title> etiketini kullaniyoruz, boylece AI H1 metnini
+            // URL'den tahmin etmek yerine gercek, dogrulanmis veriden turetiyor.
+            $h1PageTitleByUrl = [];
+            foreach (($input['site_structure']['pages'] ?? []) as $page) {
+                $pageUrl = (string) ($page['url'] ?? '');
+                if ($pageUrl === '') continue;
+                $h1PageTitleByUrl[$pageUrl] = (string) ($page['title'] ?? '');
+            }
             $missingH1Items = array_map(
-                static fn (string $url): array => ['url' => $url, 'status' => 'H1 yok'],
+                static fn (string $url): array => ['url' => $url, 'status' => 'H1 yok', 'title' => $h1PageTitleByUrl[$url] ?? ''],
                 $missingH1
             );
             $add('crawlability_indexability', 'major', 'kesin', count($missingH1) . ' sayfada H1 başlığı yok',
@@ -706,8 +725,60 @@ final class ScoringEngine
 
         $orphanPages = $indexability['sitemap_only_pages'] ?? [];
         if (!empty($orphanPages)) {
+            // Yetim sayfaya HANGI sayfadan link verilecegini AI'a tahmin
+            // ettirmiyoruz - bu, URL yapisindan DETERMINISTIK olarak araniyor:
+            // yetim URL'nin ust yol segmentleri (ornegin /tr/blog/yazi-1 icin
+            // /tr/blog) taranan gercek sayfalar arasinda var mi diye kontrol
+            // ediliyor. Eslesme varsa gercek, dogrulanmis bir aday sunuluyor;
+            // yoksa hicbir aday/kod uretilmiyor (dusuk guven = bos hedef kurali,
+            // bkz. canonical/sema bulgularinda kurulan ayni prensip).
+            $sitePages = $input['site_structure']['pages'] ?? [];
+            $pagesByPath = [];
+            $pageTitleByUrl = [];
+            foreach ($sitePages as $page) {
+                $pageUrl = (string) ($page['url'] ?? '');
+                if ($pageUrl === '') continue;
+                $pageTitleByUrl[$pageUrl] = (string) ($page['title'] ?? '');
+                $parts = parse_url($pageUrl);
+                if ($parts === false) continue;
+                $host = mb_strtolower((string) ($parts['host'] ?? ''));
+                $path = rtrim((string) ($parts['path'] ?? ''), '/');
+                $pagesByPath[$host . '|' . $path] = $pageUrl;
+            }
+
+            $findInternalLinkCandidate = static function (string $orphanUrl) use ($pagesByPath, $pageTitleByUrl): ?array {
+                $parts = parse_url($orphanUrl);
+                if ($parts === false) return null;
+                $host = mb_strtolower((string) ($parts['host'] ?? ''));
+                $path = rtrim((string) ($parts['path'] ?? ''), '/');
+                $segments = array_values(array_filter(explode('/', $path), static fn (string $s): bool => $s !== ''));
+                array_pop($segments); // kendi son segmentini at, ustten baslayarak ara
+                while (!empty($segments)) {
+                    $candidatePath = '/' . implode('/', $segments);
+                    $key = $host . '|' . $candidatePath;
+                    if (isset($pagesByPath[$key]) && $pagesByPath[$key] !== $orphanUrl) {
+                        return ['url' => $pagesByPath[$key], 'title' => $pageTitleByUrl[$pagesByPath[$key]] ?? ''];
+                    }
+                    array_pop($segments);
+                }
+                return null;
+            };
+
             $orphanItems = array_map(
-                static fn (string $url): array => ['url' => $url, 'status' => 'iç linkle ulaşılamadı'],
+                static function (string $url) use ($pageTitleByUrl, $findInternalLinkCandidate): array {
+                    $ownTitle = $pageTitleByUrl[$url] ?? '';
+                    $candidate = $findInternalLinkCandidate($url);
+                    $item = [
+                        'url' => $url,
+                        'status' => $candidate !== null ? 'önerilen link kaynağı bulundu' : 'iç linkle ulaşılamadı',
+                        'title' => $ownTitle,
+                    ];
+                    if ($candidate !== null) {
+                        $item['candidate_url'] = $candidate['url'];
+                        $item['candidate_title'] = $candidate['title'];
+                    }
+                    return $item;
+                },
                 $orphanPages
             );
             $add('crawlability_indexability', 'minor', 'olası', count($orphanPages) . ' yetim sayfa (orphan page) tespit edildi',
@@ -732,10 +803,38 @@ final class ScoringEngine
                 $totalPages);
         }
 
+        // Not: yalnizca site geneline ait, ZATEN BILINEN gercek veriyle (site
+        // adi, URL, meta aciklamasi) guvenle doldurulabilecek sema turleri
+        // (JSON-LD tamamen eksik / Organization-WebSite semasi eksik) icin
+        // AI'a gercek 'item' veriliyor - bu sayede AI uydurma yapmadan dolu
+        // kod uretebilir. Product/Offer gibi sayfaya ozel, crawl'da hic
+        // bulunmayan veri (fiyat, stok) gerektiren turlerde item verilmiyor -
+        // AI'in bu bilgileri uydurmasini onlemek icin kasitli olarak bos.
+        // Ham tur kodu (missing_structured_data vb.) kullaniciya HICBIR ZAMAN
+        // ham metin olarak gosterilmemeli - bulgu basligina gecmeden once Turkce
+        // okunabilir etikete cevriliyor (bkz. \$canonicalReasonLabels ile ayni desen).
+        $schemaIssueLabels = [
+            'missing_structured_data' => 'Yapılandırılmış veri (JSON-LD) bulunamadı',
+            'missing_organization_schema' => 'Organization/WebSite şeması eksik',
+            'incomplete_product_schema' => "Product şemasında eksik alan",
+            'incomplete_offer_schema' => "Offer şemasında eksik alan",
+        ];
+        $schemaSafeItemTypes = ['missing_structured_data', 'missing_organization_schema'];
+        $homepageContext = $input['homepage_context'] ?? [];
         foreach (($input['schema_issues'] ?? []) as $issue) {
-            $add('schema_structured_data', $issue['severity'] ?? 'minor', 'kesin', 'Şema sorunu: ' . ($issue['type'] ?? ''),
+            $issueType = $issue['type'] ?? '';
+            $schemaItems = [];
+            if (in_array($issueType, $schemaSafeItemTypes, true) && !empty($homepageContext['url'])) {
+                $schemaItems[] = [
+                    'url' => $homepageContext['url'],
+                    'status' => $homepageContext['title'] !== '' ? $homepageContext['title'] : 'Ana sayfa',
+                    'title' => $homepageContext['title'] ?? '',
+                    'meta_description' => $homepageContext['meta_description'] ?? '',
+                ];
+            }
+            $add('schema_structured_data', $issue['severity'] ?? 'minor', 'kesin', 'Şema sorunu: ' . ($schemaIssueLabels[$issueType] ?? $issueType),
                 $issue['message'] ?? '', 'schema.org belgelerine göre eksik/hatalı alanları tamamlayın ve Google\'ın Zengin Sonuç Testi ile doğrulayın.',
-                1);
+                1, $schemaItems);
         }
 
         $linkCheck = $input['link_check'] ?? [];

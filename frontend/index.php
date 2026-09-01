@@ -725,16 +725,36 @@ require_once __DIR__ . '/db.php';
           </div>
           <div class="t3-overview__stats hidden" id="t3-overview-stats"></div>
 
-          <div class="t3-score-hero">
-            <div class="t3-score-hero__circle">
-              <svg viewBox="0 0 36 36"><circle class="bg" cx="18" cy="18" r="15.9155"/><circle class="fill" id="t3-final-score-circle" cx="18" cy="18" r="15.9155" stroke-dasharray="100 100" stroke-dashoffset="100"/></svg>
-              <div class="val" id="t3-final-score-val">—</div>
-            </div>
-            <div class="t3-score-hero__meta">
-              <div class="t3-score-hero__title">SEO Sağlık Skoru
-                <span class="t3-info-icon" tabindex="0" title="Ağırlıklı kategori ortalaması + kritik kapı kontrolleri — Lighthouse'un düz ortalaması DEĞİLDİR">i</span>
+          <div class="t3-overview-top">
+            <div class="t3-score-hero">
+              <div class="t3-score-hero__circle">
+                <svg viewBox="0 0 36 36"><circle class="bg" cx="18" cy="18" r="15.9155"/><circle class="fill" id="t3-final-score-circle" cx="18" cy="18" r="15.9155" stroke-dasharray="100 100" stroke-dashoffset="100"/></svg>
+                <div class="val" id="t3-final-score-val">—</div>
               </div>
-              <div id="t3-gates-warning"></div>
+              <div class="t3-score-hero__meta">
+                <div class="t3-score-hero__title">SEO Sağlık Skoru
+                  <span class="t3-info-icon" tabindex="0" title="Ağırlıklı kategori ortalaması + kritik eşik kontrolleri — Lighthouse'un düz ortalaması DEĞİLDİR">i</span>
+                </div>
+                <div class="t3-score-hero__health" id="t3-score-health">—</div>
+                <div id="t3-gates-warning"></div>
+              </div>
+            </div>
+
+            <div class="t3-psi-summary hidden" id="t3-psi-summary-card">
+              <div class="t3-psi-summary__head">
+                <span class="t3-psi-summary__title">PageSpeed Özeti</span>
+                <button type="button" class="btn btn--ghost btn--sm" data-target="t3-output-card">Ayrıntılar</button>
+              </div>
+              <div class="t3-psi-summary-row">
+                <div class="t3-psi-summary-col">
+                  <small>Mobil</small>
+                  <strong id="t3-psi-summary-mobile-val">—</strong>
+                </div>
+                <div class="t3-psi-summary-col">
+                  <small>Masaüstü</small>
+                  <strong id="t3-psi-summary-desktop-val">—</strong>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -753,19 +773,39 @@ require_once __DIR__ . '/db.php';
             </div>
           </div>
 
-          <div class="mt-20" id="t3-category-breakdown"></div>
+          <div class="mt-12" id="t3-category-breakdown"></div>
         </div>
 
-        <div class="t3-results-tabs toggle-group mt-20 hidden t3-post-audit" id="t3-results-tab-toggle" role="tablist" aria-label="Teknik SEO sonuç sekmeleri">
+        <div class="t3-qa-accordion mt-12 hidden" id="t3-quick-audit-card">
+          <button type="button" class="t3-qa-accordion__toggle" id="t3-qa-toggle" aria-expanded="false" aria-controls="t3-qa-panel">
+            <span class="t3-qa-accordion__title">Hızlı Teknik Kontroller</span>
+            <span class="t3-qa-accordion__summary" id="t3-qa-summary">—</span>
+            <span class="t3-qa-accordion__cta">Ayrıntıları Gör
+              <svg class="t3-qa-accordion__arrow" aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </span>
+          </button>
+          <div class="t3-qa-accordion__panel" id="t3-qa-panel" role="region" aria-labelledby="t3-qa-toggle" aria-hidden="true">
+            <div class="t3-qa-accordion__panel-inner">
+              <div class="t3-qa-grid">
+                <div class="t3-qa-row"><span class="t3-qa-row__icon" id="t3-qa-ssl-icon"></span><span class="t3-qa-row__label">SSL</span><span class="t3-qa-row__value" id="t3-qa-ssl"><span class="tag">Bekleniyor</span></span></div>
+                <div class="t3-qa-row"><span class="t3-qa-row__icon" id="t3-qa-robots-icon"></span><span class="t3-qa-row__label">Robots.txt</span><span class="t3-qa-row__value" id="t3-qa-robots"><span class="tag">Bekleniyor</span></span></div>
+                <div class="t3-qa-row"><span class="t3-qa-row__icon" id="t3-qa-sitemap-icon"></span><span class="t3-qa-row__label">Sitemap</span><span class="t3-qa-row__value" id="t3-qa-sitemap"><span class="tag">Bekleniyor</span></span></div>
+                <div class="t3-qa-row"><span class="t3-qa-row__icon" id="t3-qa-noindex-icon"></span><span class="t3-qa-row__label">Noindex</span><span class="t3-qa-row__value" id="t3-qa-noindex"><span class="tag">Bekleniyor</span></span></div>
+                <div class="t3-qa-row"><span class="t3-qa-row__icon" id="t3-qa-canonical-icon"></span><span class="t3-qa-row__label">Canonical</span><span class="t3-qa-row__value" id="t3-qa-canonical"><span class="tag">Bekleniyor</span></span></div>
+                <div class="t3-qa-row"><span class="t3-qa-row__icon" id="t3-qa-mobile-icon"></span><span class="t3-qa-row__label">Mobil Uyum</span><span class="t3-qa-row__value" id="t3-qa-mobile"><span class="tag">Bekleniyor</span></span></div>
+                <div class="t3-qa-row"><span class="t3-qa-row__icon" id="t3-qa-links-icon"></span><span class="t3-qa-row__label">Kırık Link</span><span class="t3-qa-row__value" id="t3-qa-links"><span class="tag">Bekleniyor</span></span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="t3-results-tabs toggle-group mt-12 hidden t3-post-audit" id="t3-results-tab-toggle" role="tablist" aria-label="Teknik SEO sonuç sekmeleri">
           <button type="button" class="toggle-btn active" data-result-tab="findings" role="tab" aria-selected="true">Bulgular</button>
           <button type="button" class="toggle-btn" data-result-tab="solutions" role="tab" aria-selected="false">Düzeltilmiş Çıktılar</button>
           <button type="button" class="toggle-btn" data-result-tab="pagespeed" role="tab" aria-selected="false">PageSpeed</button>
-          <button type="button" class="toggle-btn" data-result-tab="scan" role="tab" aria-selected="false">Tarama Geçmişi</button>
         </div>
 
         <div class="t3-results-panel" id="t3-results-panel-findings" data-panel="findings">
-          <div class="t3-results-grid">
-            <div class="t3-results-col-left">
         <div class="card hidden" id="t3-findings-card">
           <div class="card__head">
             <div class="card__title">Önceliklendirilmiş Teknik SEO Bulguları</div>
@@ -773,27 +813,6 @@ require_once __DIR__ . '/db.php';
           </div>
           <div class="mt-16" id="t3-findings-body"></div>
         </div>
-            </div>
-            <div class="t3-results-col-right">
-        <div class="card hidden" id="t3-psi-summary-card">
-          <div class="card__head">
-            <div class="card__title">PageSpeed Özeti</div>
-            <button type="button" class="btn btn--ghost btn--sm" data-target="t3-output-card">Ayrıntılar</button>
-          </div>
-          <div class="t3-psi-summary-row">
-            <div class="t3-psi-summary-col">
-              <small>Mobil</small>
-              <strong id="t3-psi-summary-mobile-val">—</strong>
-            </div>
-            <div class="t3-psi-summary-col">
-              <small>Masaüstü</small>
-              <strong id="t3-psi-summary-desktop-val">—</strong>
-            </div>
-          </div>
-        </div>
-
-            </div>
-          </div>
         </div>
 
         <div class="t3-results-panel hidden" id="t3-results-panel-solutions" data-panel="solutions">
@@ -892,50 +911,6 @@ require_once __DIR__ . '/db.php';
             </div>
           </div>
           <div class="t3-psi-details mt-20" id="t3-psi-details"></div>
-        </div>
-
-        </div>
-
-        <div class="t3-results-panel hidden" id="t3-results-panel-scan" data-panel="scan">
-        <div class="card mt-20 hidden" id="t3-quick-audit-card">
-          <div class="card__head">
-            <div class="card__title">Hızlı Teknik Denetim (Sunucu Taraflı)</div>
-            <span class="small muted">robots.txt, sitemap.xml, SSL, canonical</span>
-          </div>
-          <div class="table-wrap mt-16">
-            <table class="table" style="width: 100%; text-align: left; border-collapse: collapse;">
-              <tbody>
-                <tr style="border-bottom: 1px solid var(--border-soft);">
-                  <td style="padding:12px; font-weight:600; width:220px;">SSL (HTTPS)</td>
-                  <td style="padding:12px;" id="t3-qa-ssl"><span class="tag">Bekleniyor</span></td>
-                </tr>
-                <tr style="border-bottom: 1px solid var(--border-soft);">
-                  <td style="padding:12px; font-weight:600;">Robots.txt</td>
-                  <td style="padding:12px;" id="t3-qa-robots"><span class="tag">Bekleniyor</span></td>
-                </tr>
-                <tr style="border-bottom: 1px solid var(--border-soft);">
-                  <td style="padding:12px; font-weight:600;">Sitemap.xml</td>
-                  <td style="padding:12px;" id="t3-qa-sitemap"><span class="tag">Bekleniyor</span></td>
-                </tr>
-                <tr style="border-bottom: 1px solid var(--border-soft);">
-                  <td style="padding:12px; font-weight:600;">Noindex</td>
-                  <td style="padding:12px;" id="t3-qa-noindex"><span class="tag">Bekleniyor</span></td>
-                </tr>
-                <tr style="border-bottom: 1px solid var(--border-soft);">
-                  <td style="padding:12px; font-weight:600;">Canonical</td>
-                  <td style="padding:12px;" id="t3-qa-canonical"><span class="tag">Bekleniyor</span></td>
-                </tr>
-                <tr style="border-bottom: 1px solid var(--border-soft);">
-                  <td style="padding:12px; font-weight:600;">Mobil-Öncelikli Uyum</td>
-                  <td style="padding:12px;" id="t3-qa-mobile"><span class="tag">Bekleniyor</span></td>
-                </tr>
-                <tr>
-                  <td style="padding:12px; font-weight:600;">Kırık Linkler</td>
-                  <td style="padding:12px;" id="t3-qa-links"><span class="tag">Bekleniyor</span></td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
         </div>
 
         </div>
