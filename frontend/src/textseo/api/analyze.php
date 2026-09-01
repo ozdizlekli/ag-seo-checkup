@@ -56,14 +56,16 @@ try {
 
     // SSRF Koruması
     $host = parse_url($url, PHP_URL_HOST);
-    if ($host) {
-        $ips = gethostbynamel($host);
-        if ($ips) {
-            foreach ($ips as $ip) {
-                if (!filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
-                    throw new InvalidArgumentException('Dahili (private/reserved) IP adreslerine istek yapılamaz.');
-                }
-            }
+    if (!$host) {
+        throw new InvalidArgumentException('URL\'den geçerli bir host bilgisi çıkarılamadı.');
+    }
+    $ips = gethostbynamel($host);
+    if (!$ips) {
+        throw new InvalidArgumentException('Host adresi çözümlenemedi: ' . $host);
+    }
+    foreach ($ips as $ip) {
+        if (!filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
+            throw new InvalidArgumentException('Dahili (private/reserved) IP adreslerine istek yapılamaz.');
         }
     }
 
@@ -147,6 +149,9 @@ try {
             'word_count'  => $scraped['word_count']
         ];
         
+        // Karşılaştırma tabanını (originalData) N-1'in çıktısı olacak şekilde güncelle
+        $originalData = $inputForReOpt;
+        
         $reOptResult = $gemini->quickReOptimizeWithDifferentKeywords($inputForReOpt, $excludedKeywords);
         
         $keywords = [
@@ -158,9 +163,9 @@ try {
         ];
         
         $optimized = [
-            'title'       => $reOptResult['title'] ?? $inputForReOpt['title'],
-            'description' => $reOptResult['description'] ?? $inputForReOpt['description'],
-            'body_text'   => $reOptResult['body_text'] ?? $inputForReOpt['body_text']
+            'title'       => $reOptResult['title'] ?? $originalData['title'],
+            'description' => $reOptResult['description'] ?? $originalData['description'],
+            'body_text'   => $reOptResult['body_text'] ?? $originalData['body_text']
         ];
         
         // Yeni analizi TextAnalyzer ile yap (sonuçları görmek için)
