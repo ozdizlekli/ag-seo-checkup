@@ -1641,6 +1641,7 @@ Kurallar:
       document.getElementById('csm-step-1').style.display = 'none';
       document.getElementById('csm-step-2').style.display = 'block';
       saveBtn.style.display = 'none';
+      saveBtn.disabled = false; // Kilidi aç ki modal kapanabilsin
       
       const confirmBtn = document.getElementById('csm-confirm');
       confirmBtn.style.display = 'block';
@@ -1683,68 +1684,6 @@ Kurallar:
   });
 }
 
-// ============================================================
-// GEÇMİŞ
-// ============================================================
-
-  async function saveAnalysis() {
-    if (!state.targetUrl || Object.keys(state.serviceResults).length === 0) return;
-    await fetch('ai_seo/api/save_chat.php', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        chatId:            state.currentChatId,
-        url:               state.targetUrl,
-        type:              state.siteType,
-        serviceResults:    state.serviceResults,
-        completedServices: Array.from(state.completedServices).filter(id => !String(id).startsWith('loading_')),
-        messages:          []
-      })
-    });
-    loadHistory().catch(() => {});
-  }
-  
-  async function loadHistory() {
-    const list = document.getElementById('copilot-sidebar-history-list');
-    try {
-      const data    = await (await fetch('ai_seo/api/save_chat.php?t=' + Date.now())).json();
-      const history = data.history || [];
-      window.agChatHistory = history;
-      if (typeof window.renderDashboard === 'function') window.renderDashboard();
-      if (!list) return;
-      list.innerHTML = '';
-      if (!history.length) { list.innerHTML = '<p class="empty-note">Henüz geçmiş analiz yok.</p>'; return; }
-      history.forEach(item => {
-        const div = document.createElement('div');
-        div.style.cssText = 'padding:12px;background:#f9fafb;border:1px solid var(--border);border-radius:8px;display:flex;align-items:center;gap:8px;';
-        const cnt = (item.completedServices || []).filter(id => !String(id).startsWith('loading_')).length;
-        div.innerHTML = `
-          <div style="flex:1;cursor:pointer;min-width:0;" class="hist-load-btn" data-idx="${history.indexOf(item)}">
-            <div style="font-weight:600;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${item.url}</div>
-            <div style="font-size:11px;color:#666;margin-top:2px;">${item.date || ''} • ${cnt} hizmet</div>
-          </div>
-          <button data-del-id="${item.chatId}" style="background:none;border:none;cursor:pointer;color:#ef4444;flex-shrink:0;padding:4px;">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-          </button>`;
-  
-        div.querySelector('[data-del-id]').onclick = async e => {
-          e.stopPropagation();
-          if (!confirm('Bu analizi silmek istiyor musunuz?')) return;
-          await fetch('ai_seo/api/save_chat.php?id=' + item.chatId, { method: 'DELETE' });
-          loadHistory();
-        };
-        div.querySelector('.hist-load-btn').onclick = () => {
-          loadFromHistory(item);
-          document.getElementById('ai-history-sidebar').style.right = '-380px';
-        };
-        list.appendChild(div);
-      });
-    } catch(e) { console.warn('Geçmiş yükleme hatası:', e); }
-  }
-  
-  
-  // ============================================================
-  // GEÇMİŞ
   // ============================================================
   
   async function saveAnalysis() {
@@ -1997,23 +1936,23 @@ function loadFromHistory(item) {
     document.head.appendChild(s);
   })();
   
-<<<<<<< HEAD
+  // Re-open tab if reset
+  if (sessionStorage.getItem('ag_reopen_aiseo')) {
+      sessionStorage.removeItem('ag_reopen_aiseo');
+      setTimeout(() => {
+          const tabs = document.querySelectorAll('.tab');
+          for (const t of tabs) {
+              if (t.textContent.includes('AI SEO')) {
+                  t.click();
+                  break;
+              }
+          }
+          // Also re-open the customization modal so they see it worked!
+          setTimeout(() => {
+             const cBtn = document.getElementById('btn-customize-services');
+             if (cBtn) cBtn.click();
+          }, 100);
+      }, 100);
+  }
+
 })();
-
-document.addEventListener('DOMContentLoaded', () => {
-    if (sessionStorage.getItem('ag_reopen_aiseo_modal')) {
-        sessionStorage.removeItem('ag_reopen_aiseo_modal');
-        setTimeout(() => {
-            const aiTabBtn = document.querySelector('.nav__item[data-tab="3"]');
-            if (aiTabBtn) aiTabBtn.click();
-            setTimeout(() => {
-                const modalBtn = document.getElementById('btn-customize-services');
-                if (modalBtn) modalBtn.click();
-            }, 300);
-        }, 300);
-    }
-});
-=======
-  })(); // /IIFE — copilot.js scope sonu
-
->>>>>>> main

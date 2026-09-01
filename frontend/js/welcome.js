@@ -22,35 +22,42 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     // Kart Tıklamaları
-    const btnContent = document.getElementById('wc-card-content');
-    if(btnContent) btnContent.addEventListener('click', () => {
-        const val = document.getElementById('welcome-main-url-input')?.value.trim();
-        if (val) {
-            const input = document.getElementById('urlInput');
-            if (input) input.value = val;
+    const clearOtherInputs = (excludeId) => {
+        const urlInputs = ['aiseo-url-input', 'urlInput', 't3-url'];
+        urlInputs.forEach(id => {
+            if (id !== excludeId) {
+                const input = document.getElementById(id);
+                if (input) input.value = '';
+            }
+        });
+    };
+
+    const handleCardClick = (tabNum, targetId) => {
+        const inputEl = document.getElementById('welcome-main-url-input');
+        const val = inputEl ? inputEl.value.trim() : '';
+        if (val !== '' && inputEl && !inputEl.checkValidity()) {
+            inputEl.reportValidity();
+            return;
         }
-        dismissWelcome(1);
-    });
+        const input = document.getElementById(targetId);
+        if (input) input.value = val;
+        
+        // Eğer bu URL daha önce "URL'yi Gönder" ile tüm sayfalara gönderilmediyse diğer sayfaları temizle
+        if (window.agLastSentUrl !== val || val === '') {
+            clearOtherInputs(targetId);
+        }
+        
+        dismissWelcome(tabNum);
+    };
+
+    const btnContent = document.getElementById('wc-card-content');
+    if(btnContent) btnContent.addEventListener('click', () => handleCardClick(1, 'urlInput'));
     
     const btnTech = document.getElementById('wc-card-tech');
-    if(btnTech) btnTech.addEventListener('click', () => {
-        const val = document.getElementById('welcome-main-url-input')?.value.trim();
-        if (val) {
-            const input = document.getElementById('t3-url');
-            if (input) input.value = val;
-        }
-        dismissWelcome(2);
-    });
+    if(btnTech) btnTech.addEventListener('click', () => handleCardClick(2, 't3-url'));
     
     const btnAi = document.getElementById('wc-card-ai');
-    if(btnAi) btnAi.addEventListener('click', () => {
-        const val = document.getElementById('welcome-main-url-input')?.value.trim();
-        if (val) {
-            const input = document.getElementById('aiseo-url-input');
-            if (input) input.value = val;
-        }
-        dismissWelcome(3);
-    });
+    if(btnAi) btnAi.addEventListener('click', () => handleCardClick(3, 'aiseo-url-input'));
     
     // GEO AI Bot Hızlı Başlangıç
     const btnBotStart = document.getElementById('wc-bot-start');
@@ -106,5 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+
+
 
 

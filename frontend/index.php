@@ -1130,10 +1130,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const sendUrlBtn = document.getElementById('welcome-send-url-btn');
     if (sendUrlBtn) {
         sendUrlBtn.addEventListener('click', () => {
-            const val = document.getElementById('welcome-main-url-input').value.trim();
+            const inputEl = document.getElementById('welcome-main-url-input');
+            const val = inputEl ? inputEl.value.trim() : '';
+            if (val !== '' && inputEl && !inputEl.checkValidity()) {
+                inputEl.reportValidity();
+                return;
+            }
             const headerName = document.getElementById('top-header-client-name');
             if (typeof window.appState === 'undefined') return;
 
+            window.agLastSentUrl = val;
             // 1. Sync to all inputs
             const urlInputs = [
                 document.getElementById('aiseo-url-input'),
@@ -1159,10 +1165,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     headerName.textContent = 'Bekleniyor...';
                 }
                 
-                // Show toast and hide welcome screen
+                // Sadece bildirim ver, asistanı kapama
                 if (typeof showToast !== 'undefined') showToast('URL kutuları temizlendi.', 'info');
-                document.getElementById('welcome-overlay').style.opacity = '0';
-                setTimeout(() => document.getElementById('welcome-overlay').style.display = 'none', 400);
                 return;
             }
 
@@ -1184,9 +1188,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             if (typeof showToast !== 'undefined') showToast('URL tüm sekmelere başarıyla gönderildi!', 'success');
             
-            // Hide welcome screen
-            document.getElementById('welcome-overlay').style.opacity = '0';
-            setTimeout(() => document.getElementById('welcome-overlay').style.display = 'none', 400);
+            // Hızlı asistan ekranından ÇIKMAMALI.
         });
     }
 
@@ -1233,3 +1235,4 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 </body>
 </html>
+

@@ -42,7 +42,11 @@ function get_env_value($key, $default = '') {
 }
 
 // Gemini API Ayarları
-define('GEMINI_API_KEY', get_env_value('GEMINI_API_KEY', 'FALLBACK_API_KEY'));
+$apiKey = get_env_value('GEMINI_API_KEY', '');
+if (empty($apiKey)) {
+    error_log('[SEO Text Module] UYARI: GEMINI_API_KEY bulunamadı veya boş. Lütfen .env dosyasını kontrol edin.');
+}
+define('GEMINI_API_KEY', $apiKey);
 define('GEMINI_MODEL', get_env_value('GEMINI_MODEL', 'gemini-3.6-flash'));
 define('GEMINI_ENDPOINT', 'https://generativelanguage.googleapis.com/v1beta/models/');
 
@@ -58,5 +62,5 @@ define('WORD_COUNT_TOLERANCE', 0.10);  // Kelime sayısı ±%10 tolerans
 
 // Teknik Ayarlar
 define('MAX_SCRAPE_TIMEOUT', 15);      // Sayfa çekme timeout (saniye)
-define('GEMINI_TIMEOUT', 180);         // Gemini API timeout (saniye)
+define('GEMINI_TIMEOUT', 45);         // Maksimum 45 saniye
 define('LOG_DIR', __DIR__ . '/logs/'); // Log dosyaları dizini
