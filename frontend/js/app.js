@@ -111,9 +111,9 @@ async function fetchClients(){
     if(error) throw error;
     state.clients = data || [];
     renderClientSelect();
-  }catch(err){
-    console.error('[Supabase] clients select hatası:', err);
-    showToast('Müşteri listesi yüklenemedi. supabase-migration.sql çalıştırıldı mı?', 'error');
+  } catch(err) {
+    console.error('[API] Müşteri listesi çekilemedi:', err);
+    // showToast('Müşteri listesi yüklenemedi.', 'error'); // Supabase hatası gizlendi
   }
 }
 
@@ -125,11 +125,27 @@ async function fetchClients(){
 // yazan ve 'change' olayini dinleyen TUM mevcut kod DEGISMEDEN calismaya
 // devam ediyor; sadece gorunen metni ayrica senkronlamamiz gerekiyor.
 function renderClientSelect(){
-  const hidden = document.getElementById('client-select');
+  const select = document.getElementById('client-select');
   const visible = document.getElementById('client-select-input');
-  const stillExists = hidden.value && state.clients.some(c => String(c.id) === String(hidden.value));
-  if (!stillExists) hidden.value = '';
-  const selected = hidden.value ? state.clients.find(c => String(c.id) === String(hidden.value)) : null;
+  if (!select) return;
+
+  const currentVal = select.value;
+
+  if (select.tagName === 'SELECT') {
+    select.innerHTML = '<option value="">— Müşteri seçin —</option>' + 
+      state.clients.map(c => `<option value="${c.id}">${escapeHtml(c.name)}${c.domain_url ? ' — ' + escapeHtml(c.domain_url) : ''}</option>`).join('');
+    
+    if (currentVal && state.clients.some(c => String(c.id) === String(currentVal))) {
+      select.value = currentVal;
+    } else {
+      select.value = '';
+    }
+  } else {
+    const stillExists = select.value && state.clients.some(c => String(c.id) === String(select.value));
+    if (!stillExists) select.value = '';
+  }
+
+  const selected = select.value ? state.clients.find(c => String(c.id) === String(select.value)) : null;
   if (visible) visible.value = selected ? selected.name : '';
 }
 
@@ -201,13 +217,9 @@ document.getElementById('client-add-btn')?.addEventListener('click', async () =>
       document.getElementById('client-select').dispatchEvent(new Event('change'));
     }
     showToast('Müşteri eklendi: ' + name, 'success');
-  }catch(err){
-    console.error('[Supabase] clients insert hatası:', err);
-    if(err.message && err.message.includes('domain_url')) {
-      showToast('Lütfen Supabase SQL Editor üzerinden "domain_url" sütununu ekleyin: ALTER TABLE clients ADD COLUMN domain_url TEXT;', 'error');
-    } else {
-      showToast('Müşteri eklenemedi: ' + (err.message || 'bilinmeyen hata'), 'error');
-    }
+  } catch(err) {
+    console.error('[API] Müşteri ekleme hatası:', err);
+    showToast('Müşteri eklenemedi: ' + (err.message || 'bilinmeyen hata'), 'error');
   }
 });
 
@@ -302,7 +314,7 @@ document.getElementById('client-select')?.addEventListener('change', async (e) =
     // Sitemap Explorer artık kendi pure-PHP api/sitemap.php endpoint'imizi
     // kullanıyor (eskiden var olmayan localhost:3000 Node servisine
     // bağımlıydı, bu yüzden her zaman "Failed to fetch" veriyordu).
-    explorerEl.hidden = false;
+    explorerEl.style.display = 'block';
     loadClientSitemap(state.currentClient.domain_url);
     
     // Auto-fill AI SEO URL input
@@ -315,9 +327,9 @@ document.getElementById('client-select')?.addEventListener('change', async (e) =
     sitemapLoadSequence++;
     domainEl.style.display = 'none';
     domainEl.textContent = '';
-    explorerEl.hidden = true;
+    explorerEl.style.display = 'none';
     const sitemapBadge = document.getElementById('sitemap-url-count');
-    if (sitemapBadge) sitemapBadge.hidden = true;
+    if (sitemapBadge) sitemapBadge.style.display = 'none';
     const sitemapTree = document.getElementById('site-explorer-tree');
     if (sitemapTree) sitemapTree.innerHTML = '<div class="t3-sitemap__empty">Müşteri seçiniz...</div>';
   }
@@ -624,26 +636,27 @@ document.getElementById('schedule-night-btn')?.addEventListener('click', () => {
 });
 
 function autofillClientUrlFields(domainUrl) {
-  // YENİ: bir müşteri seçildiğinde (kök domain_url'i varsa) o URL'yi ilgili
-  // sekmelerdeki URL giriş alanlarına otomatik doldurur. domainUrl null/boşsa
-  // hiçbir şeye dokunmuyoruz (kullanıcının elle girdiği bir değeri yanlışlıkla
-  // silmemek için). Not: Metin Bazlı SEO (tab 1) artık URL değil, doğrudan
-  // yapıştırılan metinle çalışıyor (bkz. src/TextSeo/views/tab1_view.php
-  // #rawText) - o yüzden burada bir t1 alanı doldurmuyoruz, öyle bir alan yok.
   if (!domainUrl) return;
 
-  const t3Url = document.getElementById('t3-url');
-  if (t3Url) t3Url.value = domainUrl;
-  const t3SchemaUrl = document.getElementById('t3-schema-url');
-  if (t3SchemaUrl) t3SchemaUrl.value = domainUrl;
+  const activeElement = document.activeElement;
 
-  // Skor Geçmişi > "URL ile Ara" alanı - daha önce unutulmuştu, otomatik
-  // doldurmaya dahil edilmemişti.
+  const t3Url = document.getElementById('t3-url');
+  if (t3Url && t3Url !== activeElement) t3Url.value = domainUrl;
+  
+  const t3SchemaUrl = document.getElementById('t3-schema-url');
+  if (t3SchemaUrl && t3SchemaUrl !== activeElement) t3SchemaUrl.value = domainUrl;
+
   const t3HistoryLookupUrl = document.getElementById('t3-history-lookup-url');
-  if (t3HistoryLookupUrl) t3HistoryLookupUrl.value = domainUrl;
+  if (t3HistoryLookupUrl && t3HistoryLookupUrl !== activeElement) t3HistoryLookupUrl.value = domainUrl;
 
   const copilotUrl = document.getElementById('copilot-text-input');
-  if (copilotUrl) copilotUrl.value = domainUrl;
+  if (copilotUrl && copilotUrl !== activeElement) copilotUrl.value = domainUrl;
+  
+  const aiseoUrlInput = document.getElementById('aiseo-url-input');
+  if (aiseoUrlInput && aiseoUrlInput !== activeElement) aiseoUrlInput.value = domainUrl;
+  
+  const wcUrlInput = document.getElementById('wc-url-input');
+  if (wcUrlInput && wcUrlInput !== activeElement) wcUrlInput.value = domainUrl;
 }
 
 function routeUrlToActiveTab(url) {
@@ -659,44 +672,42 @@ function routeUrlToActiveTab(url) {
     schedBtn.disabled = false;
   }
   
+  // 1) Metin Bazlı SEO Sekmesi
+  const urlInput = document.getElementById('urlInput');
+  if (urlInput) urlInput.value = url;
+
+  // 2) Teknik SEO Sekmesi
+  const t3Url = document.getElementById('t3-url');
+  if (t3Url) t3Url.value = url;
+  
+  const t3SchemaUrl = document.getElementById('t3-schema-url');
+  if (t3SchemaUrl) t3SchemaUrl.value = url;
+  
+  const t3HistoryLookupUrl = document.getElementById('t3-history-lookup-url');
+  if (t3HistoryLookupUrl) t3HistoryLookupUrl.value = url;
+
+  // 3) AI SEO Hizmetleri Sekmesi
+  const aiseoUrlInput = document.getElementById('aiseo-url-input');
+  if (aiseoUrlInput) aiseoUrlInput.value = url;
+  
+  const copilotTextInput = document.getElementById('copilot-text-input');
+  if (copilotTextInput) copilotTextInput.value = url;
+  
+  const wcUrlInput = document.getElementById('wc-url-input');
+  if (wcUrlInput) wcUrlInput.value = url;
+
+  // Ortak Toast Mesajı
+  showToast('Seçilen URL tüm SEO sekmelerine (Metin, Teknik, AI) başarıyla aktarıldı.', 'success');
+
+  // Eski ek sekmeler (Tab 4/5) için mevcut mantığı koruyalım (kapsam dışı olası kullanım)
+  const rootDomain = (state.currentClient && state.currentClient.domain_url) ? state.currentClient.domain_url : url;
   const activeTabBtn = document.querySelector('.nav__item.active');
   const tabId = activeTabBtn ? activeTabBtn.getAttribute('data-tab') : null;
-  const rootDomain = (state.currentClient && state.currentClient.domain_url) ? state.currentClient.domain_url : url;
   
-  if (tabId === '1') {
-    // NOT: t1-fetch-url artık mevcut arayüzde yok (Metin Bazlı SEO metin
-    // yapıştırma tabanlı çalışıyor) - bu dal muhtemelen eski bir sürümden
-    // kalma, kapsamımız dışında bıraktık (element yoksa güvenle no-op olur).
-    const t1FetchUrl = document.getElementById('t1-fetch-url');
-    if (t1FetchUrl) t1FetchUrl.value = url;
-    showToast('URL aktarıldı, işlemi manuel başlatabilirsiniz.', 'info');
-  } else if (tabId === '2') {
-    // DÜZELTME: burası eskiden yanlışlıkla '3' kontrol ediyordu - nav sekmeleri
-    // yeniden numaralandırıldığında (Teknik SEO artık data-tab="2") bu dal
-    // güncellenmemişti, yani Teknik SEO sekmesindeyken hiçbir alan dolmuyordu.
-    document.getElementById('t3-url').value = url;
-    document.getElementById('t3-schema-url').value = url;
-    // Skor Geçmişi > "URL ile Ara" alanı - Sitemap Explorer'dan bir sayfa
-    // seçildiğinde bu da doldurulmalı, daha önce unutulmuştu.
-    const t3HistoryLookupUrlEl = document.getElementById('t3-history-lookup-url');
-    if (t3HistoryLookupUrlEl) t3HistoryLookupUrlEl.value = url;
-    showToast('URL aktarıldı, işlemi manuel başlatabilirsiniz.', 'info');
-  } else if (tabId === '3') {
-    // AI SEO Analizi sekmesi (data-tab="3") - eskiden bu dal yanlışlıkla
-    // Teknik SEO'nun alanlarını dolduruyordu (bkz. yukarıdaki not).
-    const copilotUrl = document.getElementById('copilot-text-input');
-    if (copilotUrl) copilotUrl.value = url;
-    showToast('URL aktarıldı, işlemi manuel başlatabilirsiniz.', 'info');
-  } else if (tabId === '4') {
-    // Tab 4 için sitemap kutusunu ana domain üzerinden doldur
+  if (tabId === '4') {
     const sitemapUrl = rootDomain + (rootDomain.endsWith('/') ? 'sitemap.xml' : '/sitemap.xml');
-    document.getElementById('t4-sitemap-url').value = sitemapUrl;
-    showToast(`Master llms.txt için hedef URL (${rootDomain}) olarak ayarlandı.`, 'info');
-  } else if (tabId === '5') {
-    // Tab 5 (Backlink) için doğrudan URL kopyala
-    showToast(`Seçilen URL kopyalandı: ${url}`, 'info');
-  } else {
-    showToast(`Seçilen URL kopyalandı veya hafızaya alındı: ${url}`, 'info');
+    const t4Sitemap = document.getElementById('t4-sitemap-url');
+    if (t4Sitemap) t4Sitemap.value = sitemapUrl;
   }
 }
 
@@ -1356,9 +1367,8 @@ async function fetchContentHistory(){
       newText: row.new_text
     }));
     renderArchive();
-  }catch(err){
-    console.error('[Supabase] content_history select hatası:', err);
-    showToast('Arşiv verileri Supabase\'den yüklenemedi.', 'error');
+  } catch (err) {
+    console.error('[API] Arşiv verileri çekilemedi:', err);
   }
 }
 
@@ -1588,12 +1598,8 @@ t2SaveBtn?.addEventListener('click', async () => {
     if(selectAllCb) selectAllCb.checked = false;
 
   } catch (err) {
-    console.error('[Supabase] Keyword kayıt hatası:', err);
-    if (err.message && err.message.includes('row-level security')) {
-      showToast('Hata: Tabloda RLS açık. Lütfen Supabase SQL Editörde şunu çalıştırın: ALTER TABLE client_keywords DISABLE ROW LEVEL SECURITY;', 'error');
-    } else {
-      showToast('Kaydedilirken bir hata oluştu: ' + (err.message || 'Bilinmeyen hata'), 'error');
-    }
+    console.error('[API] Keyword kayıt hatası:', err);
+    showToast('Kaydedilirken bir hata oluştu: ' + (err.message || 'Bilinmeyen hata'), 'error');
   } finally {
     // Butonu eski haline döndür
     t2SaveBtn.disabled = false;
@@ -3493,36 +3499,38 @@ document.addEventListener('input', (e) => {
   if (e.target && e.target.tagName === 'INPUT' && (e.target.type === 'url' || e.target.id.toLowerCase().includes('url'))) {
     const val = e.target.value.trim();
     const headerName = document.getElementById('top-header-client-name');
-    if (headerName) {
-      // Eğer bir müşteri seçiliyse (dropdown üzerinden) ismi kalsın
-      if (state.currentClient && state.currentClient.name) {
-        headerName.textContent = state.currentClient.name;
-        return;
-      }
-      
-      if (!val) {
-        headerName.textContent = 'Bekleniyor...';
-        return;
-      }
+    
+    if (!val) {
+      if (headerName) headerName.textContent = state.currentClient ? state.currentClient.name : 'Bekleniyor...';
+      return;
+    }
 
-      // Girilen URL, kayıtlı müşterilerden birinin URL'siyle eşleşiyor mu?
-      // (Birebir eşleşme veya http/https farklılıklarını bir nebze tolere edelim)
-      let matchedClient = null;
-      if (state.clients && state.clients.length > 0) {
-         matchedClient = state.clients.find(c => {
-           if (!c.domain_url) return false;
-           // Basit domain eşleştirmesi (protokolü görmezden gelerek)
-           let domain1 = c.domain_url.replace(/^https?:\/\//, '').replace(/\/$/, '');
-           let domain2 = val.replace(/^https?:\/\//, '').replace(/\/$/, '');
-           return domain2.startsWith(domain1);
-         });
-      }
+    // Girilen URL, kayıtlı müşterilerden birinin URL'siyle eşleşiyor mu?
+    let matchedClient = null;
+    if (state.clients && state.clients.length > 0) {
+        matchedClient = state.clients.find(c => {
+          if (!c.domain_url) return false;
+          let domain1 = c.domain_url.replace(/^https?:\/\//, '').replace(/\/$/, '');
+          let domain2 = val.replace(/^https?:\/\//, '').replace(/\/$/, '');
+          return domain2.startsWith(domain1);
+        });
+    }
 
-      if (matchedClient) {
-        headerName.textContent = matchedClient.name;
-      } else {
-        // Eşleşme yoksa direkt URL'yi yaz
-        headerName.textContent = val;
+    if (matchedClient) {
+      // Eşleşen bir müşteri varsa ve şu an seçili olan müşteri bu değilse, dropdown'u güncelle
+      if (!state.currentClient || state.currentClient.id !== matchedClient.id) {
+        const clientSelect = document.getElementById('client-select');
+        if (clientSelect) {
+          clientSelect.value = matchedClient.id;
+          clientSelect.dispatchEvent(new Event('change'));
+        }
+      }
+      if (headerName) headerName.textContent = matchedClient.name;
+    } else {
+      // Eşleşme yoksa, mevcut bir müşteri seçili olsa bile sadece URL'yi mi göstersin?
+      // Yoksa seçili müşteri adını mı korusun? "Müşteri adı kalsın" mantığı daha güvenli.
+      if (headerName) {
+        headerName.textContent = state.currentClient ? state.currentClient.name : val;
       }
     }
   }
@@ -3612,3 +3620,17 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 
+
+// Otomatik Tooltip (Title) ve Genislik Tasmasi Icin Observer
+document.addEventListener('DOMContentLoaded', () => {
+  const headerNameEl = document.getElementById('top-header-client-name');
+  if (headerNameEl) {
+    headerNameEl.title = headerNameEl.textContent;
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach(() => {
+        headerNameEl.title = headerNameEl.textContent;
+      });
+    });
+    observer.observe(headerNameEl, { childList: true, characterData: true, subtree: true });
+  }
+});

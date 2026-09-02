@@ -1198,3 +1198,25 @@ tbody td input.input{ padding:7px 9px; font-size:12.5px; }
   transition:transform .15s ease;
 }
 .t3-client-match__arrow.is-open{ transform:rotate(180deg); }
+
+/* Top Header Client Name Limits */
+.top-header-client-name {
+  font-weight: 700;
+  color: #1F1D30;
+  display: inline-block;
+  max-width: 220px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+}
+
+/* Header Client Name Truncation */
+#top-header-client-name {
+  max-width: 200px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: inline-block;
+  vertical-align: bottom;
+}

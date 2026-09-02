@@ -519,12 +519,14 @@ require_once __DIR__ . '/db.php';
   </div>
   
   <div class="gh-sitemap-box" id="sidebar-site-explorer" style="display:none;">
-    <div style="font-size: 10.5px; font-weight: 700; color: #94A3B8; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.05em; display: flex; justify-content: space-between; align-items: center;">
-      SİTEMAP EXPLORER
-      <button id="refresh-sitemap-btn" style="background:none; border:none; color:#FBBA00; cursor:pointer; font-size:12px;" title="Yenile">&#x21bb;</button>
+    <div class="t3-sitemap__head">
+      <div class="t3-sitemap__title">SİTEMAP EXPLORER</div>
+      <button id="refresh-sitemap-btn" class="t3-sitemap__refresh" title="Yenile">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2v6h-6"></path><path d="M3 12a9 9 0 0 1 15-6.7L21 8"></path><path d="M3 22v-6h6"></path><path d="M21 12a9 9 0 0 1-15 6.7L3 16"></path></svg>
+      </button>
     </div>
-    <div id="site-explorer-tree" style="max-height: 400px; overflow-y: auto; font-size: 12px; line-height: 2; color: #E4E7EE;">
-       <span style="font-size:11px;">Müşteri seçin...</span>
+    <div id="site-explorer-tree" class="t3-sitemap__body">
+       <div class="t3-sitemap__empty">Müşteri seçin...</div>
     </div>
   </div>
 </aside>
@@ -1181,7 +1183,14 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             
             if (matchedClient) {
-                headerName.textContent = 'Eşleşti: ' + matchedClient.name;
+                if (!window.appState.currentClient || window.appState.currentClient.id !== matchedClient.id) {
+                    const clientSelect = document.getElementById('client-select');
+                    if (clientSelect) {
+                        clientSelect.value = matchedClient.id;
+                        clientSelect.dispatchEvent(new Event('change'));
+                    }
+                }
+                headerName.textContent = matchedClient.name;
             } else {
                 headerName.textContent = val;
             }
