@@ -42,39 +42,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const historyList = document.getElementById('historyList');
     const clearHistoryBtn = document.getElementById('clearHistoryBtn');
 
-    // Debug Referansları
-    const debugBtn = document.getElementById('debugBtn');
-    const debugModalOverlay = document.getElementById('debugModalOverlay');
-    const closeDebugBtn = document.getElementById('closeDebugBtn');
-    const debugContent = document.getElementById('debugContent');
-    let currentDebugTrace = [];
-
-    debugBtn.addEventListener('click', function() {
-        debugContent.innerHTML = ''; // Temizle
-        if (currentDebugTrace && currentDebugTrace.length > 0) {
-            currentDebugTrace.forEach((trace, index) => {
-                const traceHtml = `
-                    <div style="margin-bottom: 25px; border: 1px solid #ddd; padding: 10px; border-radius: 5px; background: #fff;">
-                        <h3 style="margin-top:0; color:#1a73e8;">#${index + 1} - ${trace.step}</h3>
-                        <strong>Sistem Talimatı (System Instruction):</strong>
-                        <pre style="background:#f1f3f4; padding:8px; border-radius:4px; margin:5px 0 15px;">${escapeHTML(trace.system)}</pre>
-                        <strong>Kullanıcı İsteği (Prompt):</strong>
-                        <pre style="background:#f1f3f4; padding:8px; border-radius:4px; margin:5px 0 15px;">${escapeHTML(trace.prompt)}</pre>
-                        <strong>Yapay Zeka Yanıtı (Response):</strong>
-                        <pre style="background:#e8f0fe; padding:8px; border-radius:4px; margin:5px 0; color:#174ea6;">${escapeHTML(trace.response)}</pre>
-                    </div>
-                `;
-                debugContent.innerHTML += traceHtml;
-            });
-        } else {
-            debugContent.innerHTML = '<i>Hata ayıklama (debug) verisi bulunamadı.</i>';
-        }
-        debugModalOverlay.style.display = 'flex';
-    });
-
-    closeDebugBtn.addEventListener('click', function() {
-        debugModalOverlay.style.display = 'none';
-    });
 
     // Toggle Referansları
     const toggleMissingTopicsBtn = document.getElementById('toggleMissingTopicsBtn');
@@ -176,7 +143,6 @@ document.addEventListener('DOMContentLoaded', function() {
             fetchHistory();
 
             // Analiz başarılı, sonuçları göster
-            currentDebugTrace = data.debug_trace || [];
             analyzedUrlText.textContent = url;
             document.getElementById('analyzedUrlTooltip').textContent = url;
             
@@ -256,9 +222,9 @@ document.addEventListener('DOMContentLoaded', function() {
             const el = document.createElement('div');
             el.className = 'history-item';
             el.innerHTML = `
-                <div class="history-main-info" style="flex:1;">
-                    <div style="display:flex; align-items:center; flex-wrap:wrap; gap:8px;">
-                        <span class="history-keyword">${escapeHTML(titleText)}</span>
+                <div class="history-main-info">
+                    <span class="history-keyword" title="${escapeHTML(titleText)}">${escapeHTML(titleText)}</span>
+                    <div class="history-badge-container">
                         ${badgeHtml}
                     </div>
                     <span class="history-meta">${escapeHTML(dateStr)} · ${escapeHTML(item.url)}</span>
@@ -286,7 +252,6 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 const resultData = data.data || data; 
                 
-                currentDebugTrace = resultData.debug_trace || [];
                 analyzedUrlText.textContent = resultData.url || resultData.data?.url || '';
                 document.getElementById('analyzedUrlTooltip').textContent = resultData.url || '';
                 
@@ -550,24 +515,18 @@ document.addEventListener('DOMContentLoaded', function() {
                         const trimmedToken = textToDisplay.trimStart();
                         let hLevel = 0;
                         
-                        if (trimmedToken.startsWith('# ')) { hLevel = 1; textToDisplay = textToDisplay.replace(/^[\s]*#\s*/, ''); }
+                        if (trimmedToken.startsWith('### ')) { hLevel = 3; textToDisplay = textToDisplay.replace(/^[\s]*###\s*/, ''); }
                         else if (trimmedToken.startsWith('## ')) { hLevel = 2; textToDisplay = textToDisplay.replace(/^[\s]*##\s*/, ''); }
-                        else if (trimmedToken.startsWith('### ')) { hLevel = 3; textToDisplay = textToDisplay.replace(/^[\s]*###\s*/, ''); }
-                        else if (trimmedToken.startsWith('H1:')) { hLevel = 1; textToDisplay = textToDisplay.replace(/^[\s]*H1:\s*/i, ''); }
-                        else if (trimmedToken.startsWith('H2:')) { hLevel = 2; textToDisplay = textToDisplay.replace(/^[\s]*H2:\s*/i, ''); }
-                        else if (trimmedToken.startsWith('H3:')) { hLevel = 3; textToDisplay = textToDisplay.replace(/^[\s]*H3:\s*/i, ''); }
+                        else if (trimmedToken.startsWith('# ')) { hLevel = 1; textToDisplay = textToDisplay.replace(/^[\s]*#\s*/, ''); }
+                        else if (trimmedToken.match(/^[\s]*H3:\s*/i)) { hLevel = 3; textToDisplay = textToDisplay.replace(/^[\s]*H3:\s*/i, ''); }
+                        else if (trimmedToken.match(/^[\s]*H2:\s*/i)) { hLevel = 2; textToDisplay = textToDisplay.replace(/^[\s]*H2:\s*/i, ''); }
+                        else if (trimmedToken.match(/^[\s]*H1:\s*/i)) { hLevel = 1; textToDisplay = textToDisplay.replace(/^[\s]*H1:\s*/i, ''); }
                         
                         if (hLevel > 0) {
-                            const newElement = document.createElement('div');
+                            const newElement = document.createElement('h' + hLevel);
                             newElement.className = 'diff-h' + hLevel;
                             
-                            const badge = document.createElement('span');
-                            badge.className = 'heading-tag-badge';
-                            badge.textContent = 'H' + hLevel;
-                            
-                            newElement.appendChild(badge);
-                            
-                            // Replace current <p> with this new heading div
+                            // Replace current <p> with this new heading tag
                             currentBlock.replaceChild(newElement, currentElement);
                             currentElement = newElement;
                         }

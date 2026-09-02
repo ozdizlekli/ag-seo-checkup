@@ -591,42 +591,27 @@ body.is-loading, body.is-loading * {
 }
 
 .diff-h1, .diff-h2, .diff-h3 {
-    display: flex;
-    align-items: center;
-    gap: 8px;
     margin: 28px 0 12px 0;
     color: #1a1a1a;
     font-weight: 700;
 }
 
-.diff-h1 {
+h1.diff-h1 {
     font-size: 22px;
     border-bottom: 2px solid #e8eaed;
     padding-bottom: 8px;
 }
 
-.diff-h2 {
+h2.diff-h2 {
     font-size: 18px;
     border-bottom: 1px solid #f1f3f4;
     padding-bottom: 6px;
     margin-top: 24px;
 }
 
-.diff-h3 {
+h3.diff-h3 {
     font-size: 16px;
     margin-top: 18px;
-}
-
-/* Başlık Seviye Rozeti (H1, H2, H3) */
-.heading-tag-badge {
-    display: inline-block;
-    font-size: 11px;
-    font-weight: 700;
-    padding: 2px 6px;
-    border-radius: 4px;
-    background: #e8f0fe;
-    color: #1a73e8;
-    letter-spacing: 0.5px;
 }
 
 .diff-added {
@@ -728,18 +713,37 @@ body.is-loading, body.is-loading * {
 .history-main-info {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 6px;
+    flex: 1;
+    overflow: hidden;
 }
 
 .history-keyword {
     font-weight: 600;
     font-size: 15px;
     color: #202124;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+    width: 100%;
+}
+
+.history-badge-container {
+    display: flex;
+    align-items: center;
+}
+
+.history-badge-container .analyze-badge {
+    margin-left: 0;
 }
 
 .history-meta {
     font-size: 12px;
     color: #5f6368;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .delete-item-btn {

@@ -219,7 +219,7 @@ EOT;
      * @return array
      */
     public function quickReOptimizeWithDifferentKeywords(array $original, array $excludedKeywords = []): array {
-        $systemInstruction = "Sen Türkçe SEO ve içerik geliştirme uzmanısın. Yanıtını SADECE JSON formatında ver.";
+        $systemInstruction = "Sen Türkçe SEO ve içerik geliştirme uzmanısın. Yanıtını SADECE JSON formatında ver. KESİN KURAL: Gövde metnini üretirken ana başlığı '# Başlık', alt başlıkları '## Başlık', '### Başlık' şeklinde standart Markdown formatında yapılandır ve paragrafları temiz satır boşluklarıyla ayır.";
         
         $title = $original['title'] ?? '';
         $description = $original['description'] ?? '';
@@ -326,7 +326,7 @@ EOT;
     }
 
     private function step1KeywordIntegration(string $text, array $keywords): string {
-        $systemInstruction = "Sen uzman bir SEO editörüsün. Görevin, verilen orijinal metnin içerisine istenen anahtar kelimeleri akışı bozmayacak şekilde, organik ve doğal olarak yerleştirmektir. KESİN KURAL: Orijinal metnin yazar üslubunu, cümle yapısını ve kelime sayısını olabildiğince koru. Gereksiz yere hiçbir kelimeyi eş anlamlısıyla değiştirme (örneğin 'önemli' yerine 'mühim' yazma). Sadece ve sadece anahtar kelimeleri yedir. Yanıtını SADECE JSON formatında ver.";
+        $systemInstruction = "Sen uzman bir SEO editörüsün. Görevin, verilen orijinal metnin içerisine istenen anahtar kelimeleri akışı bozmayacak şekilde, organik ve doğal olarak yerleştirmektir. KESİN KURAL: Orijinal metnin yazar üslubunu, cümle yapısını ve kelime sayısını olabildiğince koru. Gereksiz yere hiçbir kelimeyi eş anlamlısıyla değiştirme (örneğin 'önemli' yerine 'mühim' yazma). Sadece ve sadece anahtar kelimeleri yedir. Gövde metnini üretirken ana başlığı '# Başlık', alt başlıkları '## Başlık', '### Başlık' şeklinde standart Markdown formatında yapılandır ve paragrafları temiz satır boşluklarıyla ayır. Yanıtını SADECE JSON formatında ver.";
         
         $focus = $keywords['focus'] ?? '';
         $secondary = isset($keywords['secondary']) && is_array($keywords['secondary']) ? implode(', ', $keywords['secondary']) : '';
@@ -359,7 +359,7 @@ EOT;
     }
 
     private function step2Readability(string $text, array $analysis): string {
-        $systemInstruction = "Sen bir içerik geliştirme uzmanısın. Görevin, verilen eksiklik raporundaki (sadece gövde metni, başlıklar ve okunabilirlik ile ilgili olan) önerileri dikkate alarak metni iyileştirmektir. KESİN KURAL: Metnin asıl anlamını ve bilgi bütünlüğünü asla bozma. Orijinal üslubu koru. Hiçbir kelimeyi daha şık durması için eş anlamlısıyla değiştirme. Sadece rapordaki içerik/akış sorunlarını çöz. Yanıtını SADECE JSON formatında ver.";
+        $systemInstruction = "Sen bir içerik geliştirme uzmanısın. Görevin, verilen eksiklik raporundaki (sadece gövde metni, başlıklar ve okunabilirlik ile ilgili olan) önerileri dikkate alarak metni iyileştirmektir. KESİN KURAL: Metnin asıl anlamını ve bilgi bütünlüğünü asla bozma. Orijinal üslubu koru. Hiçbir kelimeyi daha şık durması için eş anlamlısıyla değiştirme. Sadece rapordaki içerik/akış sorunlarını çöz. Gövde metnini üretirken ana başlığı '# Başlık', alt başlıkları '## Başlık', '### Başlık' şeklinde standart Markdown formatında yapılandır ve paragrafları temiz satır boşluklarıyla ayır. Yanıtını SADECE JSON formatında ver.";
         $deficiencyReport = $analysis['deficiency_report'] ?? 'Ciddi bir eksiklik tespit edilmedi.';
 
         $prompt = <<<EOT
@@ -388,7 +388,7 @@ EOT;
     }
 
     private function step3GrammarAndMeta(string $text, array $original, array $analysis, array $keywords): array {
-        $systemInstruction = "Sen profesyonel bir Türkçe Dil Bilgisi ve SEO Uzmanısın. Görevin, metindeki açık yazım ve noktalama hatalarını düzeltmek, ayrıca sayfa için SEO uyumlu Title ve Description etiketleri oluşturmaktır. KESİN KURAL: Metnin uzunluğunu veya kelime seçimlerini keyfi olarak DEĞİŞTİRME. Eş anlamlı kelime ataması YAPMA. Sadece imla/noktalama düzelt. Yanıtını SADECE JSON formatında ver.";
+        $systemInstruction = "Sen profesyonel bir Türkçe Dil Bilgisi ve SEO Uzmanısın. Görevin, metindeki açık yazım ve noktalama hatalarını düzeltmek, ayrıca sayfa için SEO uyumlu Title ve Description etiketleri oluşturmaktır. KESİN KURAL: Metnin uzunluğunu veya kelime seçimlerini keyfi olarak DEĞİŞTİRME. Eş anlamlı kelime ataması YAPMA. Sadece imla/noktalama düzelt. Gövde metnini üretirken ana başlığı '# Başlık', alt başlıkları '## Başlık', '### Başlık' şeklinde standart Markdown formatında yapılandır ve paragrafları temiz satır boşluklarıyla ayır. Yanıtını SADECE JSON formatında ver.";
         $title = $original['title'] ?? '';
         $description = $original['description'] ?? '';
         $focus = $keywords['focus'] ?? '';

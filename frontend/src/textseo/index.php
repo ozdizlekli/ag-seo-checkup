@@ -88,7 +88,6 @@ if ($authEnabled && !empty($authToken)) {
                     <span id="analyzeBadge" class="analyze-badge" style="display:none;"></span>
                     <div id="analyzedUrlTooltip" class="url-tooltip"></div>
                 </div>
-                <button type="button" id="debugBtn" class="nav-btn" style="background:#ffc107; color:#000; font-weight:bold;">🐛 AI Sürecini Gör (Geçici)</button>
             </div>
         </nav>
 
@@ -189,16 +188,6 @@ if ($authEnabled && !empty($authToken)) {
         </main>
     </div>
 
-    <!-- HATA AYIKLAMA MODALI -->
-    <div id="debugModalOverlay" class="loading-overlay" style="display:none; z-index:10000; align-items:flex-start; padding-top:40px; overflow-y:auto;">
-        <div class="loading-modal-card" style="max-width: 900px; width:100%; text-align:left; position:relative; margin-bottom:40px;">
-            <button id="closeDebugBtn" style="position:absolute; top:20px; right:20px; background:none; border:none; font-size:24px; cursor:pointer;">&times;</button>
-            <h2 style="margin-top:0; border-bottom:2px solid #e8eaed; padding-bottom:10px;">🐛 Yapay Zeka Süreç Kaydı (Debug)</h2>
-            <div id="debugContent" style="margin-top:20px; font-family:'Source Sans Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; font-size:13px; background:#f8f9fa; padding:15px; border-radius:8px; overflow-x:auto; white-space:pre-wrap;">
-                <!-- İçerik JS ile eklenecek -->
-            </div>
-        </div>
-    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/diff/dist/diff.min.js"></script>
     <script src="src/textseo/assets/js/app.js"></script>

@@ -110,6 +110,8 @@ document.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => {
                 welcomeOverlay.style.opacity = '1';
             }, 10);
+            // Tarayıcı geçmişine ekle ki geri tuşuyla çıkılabilsin
+            history.pushState({ view: 'welcome' }, '', '');
         });
     }
 });

@@ -736,18 +736,35 @@ const topbarMeta = {
   4:{ eyebrow:'04 · AKSİYON', title:'Yapılacaklar / Eksiklikler', desc:'Yapay zeka analizleri sonucunda siteniz için önerilen teknik ve metin bazlı iyileştirme tavsiyeleri.' },
 };
 
+window.switchTab = function(tabId, pushToHistory = true) {
+  const btn = document.querySelector(`.nav__item[data-tab="${tabId}"]`);
+  if(!btn) return;
+  navItems.forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  panels.forEach(p => p.classList.remove('active'));
+  const targetPanel = document.getElementById('tab-' + tabId);
+  if(targetPanel) targetPanel.classList.add('active');
+  
+  const meta = topbarMeta[tabId];
+  if(meta) {
+    const eyebrow = document.getElementById('topbar-eyebrow');
+    const title = document.getElementById('topbar-title');
+    const desc = document.getElementById('topbar-desc');
+    if(eyebrow) eyebrow.textContent = meta.eyebrow;
+    if(title) title.textContent = meta.title;
+    if(desc) desc.textContent = meta.desc;
+  }
+  window.scrollTo({top:0, behavior:'instant' in window ? 'instant' : 'auto'});
+  
+  if(pushToHistory) {
+    history.pushState({ view: 'tab', tabId: tabId }, '', `#tab=${tabId}`);
+  }
+};
+
 navItems.forEach(btn => {
   btn.addEventListener('click', () => {
     const tab = btn.getAttribute('data-tab');
-    navItems.forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    panels.forEach(p => p.classList.remove('active'));
-    document.getElementById('tab-' + tab).classList.add('active');
-    const meta = topbarMeta[tab];
-    document.getElementById('topbar-eyebrow').textContent = meta.eyebrow;
-    document.getElementById('topbar-title').textContent = meta.title;
-    document.getElementById('topbar-desc').textContent = meta.desc;
-    window.scrollTo({top:0, behavior:'instant' in window ? 'instant' : 'auto'});
+    window.switchTab(tab, true);
   });
 });
 
@@ -3518,18 +3535,80 @@ document.addEventListener('DOMContentLoaded', () => {
   const overlay = document.getElementById('gh-sidebar-overlay');
   const closeBtn = document.getElementById('gh-sidebar-close');
   
-  function openSidebar() {
+  window.openSidebar = function() {
     sidebar.classList.add('open');
     overlay.classList.add('show');
-  }
-  function closeSidebar() {
+    history.pushState({ view: 'sidebar' }, '', '');
+  };
+
+  window.closeSidebar = function(isPopState = false) {
     sidebar.classList.remove('open');
     overlay.classList.remove('show');
-  }
+    if (!isPopState && history.state && history.state.view === 'sidebar') {
+      history.back();
+    }
+  };
   
-  if (hamburger) hamburger.addEventListener('click', openSidebar);
-  if (closeBtn) closeBtn.addEventListener('click', closeSidebar);
-  if (overlay) overlay.addEventListener('click', closeSidebar);
+  if (hamburger) hamburger.addEventListener('click', window.openSidebar);
+  if (closeBtn) closeBtn.addEventListener('click', () => window.closeSidebar(false));
+  if (overlay) overlay.addEventListener('click', () => window.closeSidebar(false));
+
+  // --- HTML5 HISTORY API (POPSTATE) YÖNETİMİ ---
+  
+  // İlk yüklemede başlangıç durumunu belirle
+  const initHistoryState = () => {
+    // Hash'te bir tab var mı kontrol et (örn: #tab=2)
+    let currentTab = 1;
+    if (window.location.hash.startsWith('#tab=')) {
+      currentTab = window.location.hash.split('=')[1];
+      window.switchTab(currentTab, false);
+      history.replaceState({ view: 'tab', tabId: currentTab }, '', window.location.hash);
+    } else if (sessionStorage.getItem('ag_welcome_seen') !== 'true' && document.getElementById('welcome-overlay')) {
+      // Hızlı Asistan (Welcome) gösteriliyor
+      history.replaceState({ view: 'welcome' }, '', '');
+    } else {
+      // Varsayılan ilk sekme
+      history.replaceState({ view: 'tab', tabId: 1 }, '', '#tab=1');
+    }
+  };
+  initHistoryState();
+
+  // Geri/İleri tuşlarını dinle
+  window.addEventListener('popstate', (e) => {
+    // Menü açıksa ve kullanıcı geri bastıysa (state artık sidebar değilse) menüyü kapat
+    if (sidebar.classList.contains('open')) {
+      window.closeSidebar(true);
+      // Eğer menüden çıkmak için geri tuşuna bastıysa, diğer işlemleri (sekme geçişi vs.) yapmadan dönebiliriz.
+      // Ancak popstate olan state'i da işlemek iyi olur, o yüzden devam ediyoruz.
+    }
+
+    if (e.state) {
+      if (e.state.view === 'welcome') {
+        // Hızlı Asistan ekranına dön
+        const welcomeOverlay = document.getElementById('welcome-overlay');
+        if (welcomeOverlay) {
+          welcomeOverlay.style.display = 'flex';
+          setTimeout(() => welcomeOverlay.style.opacity = '1', 10);
+          sessionStorage.removeItem('ag_welcome_seen'); // Kullanıcı tekrar görebilsin
+        }
+      } else if (e.state.view === 'tab') {
+        // Hızlı Asistan'ı gizle
+        const welcomeOverlay = document.getElementById('welcome-overlay');
+        if (welcomeOverlay && welcomeOverlay.style.display !== 'none') {
+            welcomeOverlay.style.opacity = '0';
+            setTimeout(() => welcomeOverlay.style.display = 'none', 400);
+            sessionStorage.setItem('ag_welcome_seen', 'true');
+        }
+        
+        // Sekme değiştir (false = history.pushState yapma)
+        if(window.switchTab) window.switchTab(e.state.tabId, false);
+      } else if (e.state.view === 'sidebar') {
+        // İleri tuşu ile menü tekrar açıldıysa
+        sidebar.classList.add('open');
+        overlay.classList.add('show');
+      }
+    }
+  });
 });
 
 
