@@ -141,31 +141,12 @@ try {
             $lastKeywords['secondary'] ?? []
         ));
         
-        // DB'deki optimize metinden headings ve word_count türet (canlı siteden alma)
-        $dbBodyText = !empty($lastOptimized['body_text']) ? $lastOptimized['body_text'] : $scraped['body_text'];
-        
-        $dbHeadings = [];
-        if (preg_match_all('/^(#{1,3})\s+(.+)$/m', $dbBodyText, $hMatches, PREG_SET_ORDER)) {
-            foreach ($hMatches as $hMatch) {
-                $dbHeadings[] = [
-                    'tag'  => 'h' . strlen($hMatch[1]),
-                    'text' => trim($hMatch[2])
-                ];
-            }
-        }
-        
-        $dbWordCount = 0;
-        if ($dbBodyText !== '') {
-            $dbWords = preg_split('/\s+/u', $dbBodyText, -1, PREG_SPLIT_NO_EMPTY);
-            $dbWordCount = is_array($dbWords) ? count($dbWords) : 0;
-        }
-        
         $inputForReOpt = [
             'title'       => !empty($lastOptimized['title']) ? $lastOptimized['title'] : $scraped['title'],
             'description' => !empty($lastOptimized['description']) ? $lastOptimized['description'] : $scraped['description'],
-            'body_text'   => $dbBodyText,
-            'headings'    => $dbHeadings,
-            'word_count'  => $dbWordCount
+            'body_text'   => !empty($lastOptimized['body_text']) ? $lastOptimized['body_text'] : $scraped['body_text'],
+            'headings'    => $scraped['headings'],
+            'word_count'  => $scraped['word_count']
         ];
         
         // Karşılaştırma tabanını (originalData) N-1'in çıktısı (paraphrase edilmemiş hali) olacak şekilde güncelle
@@ -178,6 +159,7 @@ try {
         $paraphrasedInput['body_text'] = $paraphrasedBodyText;
         
         // 2. ADIM: Yeni Anahtar Kelime Entegrasyonu ve Re-Optimizasyon
+        // Çeşitlendirilmiş ara metin üzerinden yeni kelimelerle optimize et
         $reOptResult = $gemini->quickReOptimizeWithDifferentKeywords($paraphrasedInput, $excludedKeywords);
         
         $keywords = [
@@ -185,7 +167,7 @@ try {
             'secondary'      => $reOptResult['secondary'] ?? [],
             'intent'         => $reOptResult['intent'] ?? 'bilgi alma',
             'topic_summary'  => $reOptResult['topic_summary'] ?? '',
-            'missing_topics' => []
+            'missing_topics' => [] // Tekrar analizlerde (2+) ek içerik önerilerini gizlemek için her zaman boş dizi
         ];
         
         $optimized = [
@@ -194,35 +176,13 @@ try {
             'body_text'   => $reOptResult['body_text'] ?? $originalData['body_text']
         ];
         
-        // Post-optimizasyon analizi: headings ve word_count da optimize çıktıdan türetilir
-        $finalBodyText = $optimized['body_text'] ?? '';
-        
-        $finalHeadings = [];
-        if (preg_match_all('/^(#{1,3})\s+(.+)$/m', $finalBodyText, $fhMatches, PREG_SET_ORDER)) {
-            foreach ($fhMatches as $fhMatch) {
-                $finalHeadings[] = [
-                    'tag'  => 'h' . strlen($fhMatch[1]),
-                    'text' => trim($fhMatch[2])
-                ];
-            }
-        }
-        
-        $finalWordCount = 0;
-        if ($finalBodyText !== '') {
-            $fWords = preg_split('/\s+/u', $finalBodyText, -1, PREG_SPLIT_NO_EMPTY);
-            $finalWordCount = is_array($fWords) ? count($fWords) : 0;
-        }
-        
-        $scrapedForAnalysis = [
-            'url'         => $scraped['url'],
-            'title'       => $optimized['title'] ?? $originalData['title'],
-            'description' => $optimized['description'] ?? $originalData['description'],
-            'body_text'   => $finalBodyText,
-            'headings'    => $finalHeadings,
-            'word_count'  => $finalWordCount,
-            'status'      => 'success',
-            'error'       => null
-        ];
+        // Yeni analizi TextAnalyzer ile yap (sonuçları görmek için)
+        // Optimizasyon sonrası olduğu için keywords'e göre yapıyoruz
+        // Fake scraped data with optimized text to get a post-optimization analysis
+        $scrapedForAnalysis = $scraped;
+        $scrapedForAnalysis['title'] = $optimized['title'] ?? $scraped['title'];
+        $scrapedForAnalysis['description'] = $optimized['description'] ?? $scraped['description'];
+        $scrapedForAnalysis['body_text'] = $optimized['body_text'] ?? $scraped['body_text'];
         
         $fullAnalysis = $analyzer->analyze($scrapedForAnalysis, $keywords);
         
