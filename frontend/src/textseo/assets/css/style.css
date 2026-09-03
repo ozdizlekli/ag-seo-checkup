@@ -110,10 +110,8 @@ body {
     backdrop-filter: blur(6px);
     -webkit-backdrop-filter: blur(6px);
     z-index: 9999;
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    padding: 15vh 20px 20px;
+    /* Flex kullanılmıyor, sticky hizalama margin ile yapılacak */
+    display: block;
 }
 
 .loading-modal-card {
@@ -125,9 +123,15 @@ body {
     max-width: 420px;
     width: 100%;
     animation: fadeIn 0.3s ease-out;
+    
+    /* Kartı ekranda dikeyde ortada tut, yatayda ortala */
+    position: sticky;
+    top: 50vh;
+    transform: translateY(-50%);
+    margin: 0 auto;
 }
 
-/* Scroll engelleme ve wait imleci kapatıldı
+/* Scroll engelleme ve wait imleci kapatıldı (Kullanıcı sayfa kaydırması yapabilsin)
 body.is-loading {
     overflow: hidden;
 }

@@ -159,7 +159,7 @@ try {
             'secondary'      => $reOptResult['secondary'] ?? [],
             'intent'         => $reOptResult['intent'] ?? 'bilgi alma',
             'topic_summary'  => $reOptResult['topic_summary'] ?? '',
-            'missing_topics' => $reOptResult['missing_topics'] ?? []
+            'missing_topics' => [] // Tekrar analizlerde (2+) ek içerik önerilerini gizlemek için her zaman boş dizi
         ];
         
         $optimized = [

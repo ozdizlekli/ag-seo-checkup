@@ -659,7 +659,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function showLoading() {
         document.body.classList.add('is-loading');
-        loadingSection.style.display = 'flex';
+        loadingSection.style.display = 'block';
         analyzeBtn.disabled = true;
         analyzeBtn.querySelector('.btn-text').style.display = 'none';
         analyzeBtn.querySelector('.btn-spinner').style.display = 'inline-flex';

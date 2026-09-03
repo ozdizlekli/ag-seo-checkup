@@ -39,7 +39,7 @@ class GeminiClient {
             $payload['generationConfig']['responseMimeType'] = 'application/json';
         }
 
-        $maxAttempts = 2;
+        $maxAttempts = 3;
         $attempt = 0;
         $lastError = '';
         $response = '';
@@ -94,7 +94,11 @@ class GeminiClient {
             if ($errNo || $httpCode === 429 || $httpCode === 503) {
                 if ($attempt < $maxAttempts) {
                     error_log("Gemini API geçici olarak meşgul (HTTP $httpCode). $attempt. yeniden deneme yapılıyor...");
-                    sleep(pow(2, $attempt));
+                    if ($attempt === 1) {
+                        sleep(2);
+                    } elseif ($attempt === 2) {
+                        sleep(4);
+                    }
                     continue;
                 }
             } else {
@@ -250,7 +254,6 @@ YANIT FORMATI (SADECE JSON):
   "secondary": ["yan1", "yan2", "yan3"],
   "intent": "bilgi alma/satın alma...",
   "topic_summary": "özet",
-  "missing_topics": ["öneri 1", "öneri 2"],
   "title": "Yeni Meta Title (50-60 kar.)",
   "description": "Yeni Meta Description (150-160 kar.)",
   "body_text": "Yeni kelimelerin entegre edildiği optimize gövde metni"
@@ -264,7 +267,6 @@ EOT;
             'secondary' => [],
             'intent' => 'bilgi alma',
             'topic_summary' => '',
-            'missing_topics' => [],
             'title' => $title,
             'description' => $description,
             'body_text' => $bodyText
@@ -279,6 +281,10 @@ EOT;
         if (json_last_error() !== JSON_ERROR_NONE) {
             $this->warnings[] = "Re-optimizasyon JSON hatası, orijinal metin korundu";
             return $fallback;
+        }
+
+        if (isset($decoded['body_text'])) {
+            $decoded['body_text'] = str_replace(['**', '__'], '', $decoded['body_text']);
         }
 
         return $decoded;
@@ -355,7 +361,8 @@ EOT;
 
         $response = $this->callAPI($prompt, $systemInstruction, true, 'Adım 1: Anahtar Kelime Entegrasyonu');
         $decoded = json_decode($response, true);
-        return $decoded['body_text'] ?? '';
+        $bodyText = $decoded['body_text'] ?? '';
+        return str_replace(['**', '__'], '', $bodyText);
     }
 
     private function step2Readability(string $text, array $analysis): string {
@@ -384,7 +391,8 @@ EOT;
 
         $response = $this->callAPI($prompt, $systemInstruction, true, 'Adım 2: Okunabilirlik ve Akış');
         $decoded = json_decode($response, true);
-        return $decoded['body_text'] ?? '';
+        $bodyText = $decoded['body_text'] ?? '';
+        return str_replace(['**', '__'], '', $bodyText);
     }
 
     private function step3GrammarAndMeta(string $text, array $original, array $analysis, array $keywords): array {
@@ -418,6 +426,11 @@ EOT;
 
         $response = $this->callAPI($prompt, $systemInstruction, true, 'Adım 3: İmla ve Meta Etiketleri');
         $decoded = json_decode($response, true);
+        
+        if (isset($decoded['body_text'])) {
+            $decoded['body_text'] = str_replace(['**', '__'], '', $decoded['body_text']);
+        }
+        
         return $decoded ?? [];
     }
 }
