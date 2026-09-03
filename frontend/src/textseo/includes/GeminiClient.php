@@ -216,6 +216,50 @@ EOT;
     }
 
     /**
+     *
+     * @param string $bodyText
+     * @return string
+     */
+    public function paraphraseContent(string $bodyText): string {
+        $systemInstruction = "Sen Türkçe SEO ve metin yazarlığı uzmanısın. Yanıtını SADECE JSON formatında ver. KESİN KURAL: Gövde metnini üretirken ana başlığı '# Başlık', alt başlıkları '## Başlık', '### Başlık' şeklinde standart Markdown formatında yapılandır ve paragrafları temiz satır boşluklarıyla ayır.";
+        
+        $prompt = <<<EOT
+Aşağıdaki gövde metnini, anlamını ve verdiği bilgiyi KESİNLİKLE değiştirmeden, kontrollü bir şekilde çeşitlendir (paraphrase).
+
+KURALLAR:
+1. Metnin en az %90'ini yapısal olarak koru. Yalnızca maksimum %10 oranında bir değişiklik yap.
+2. Ana fikri, bilgi bütünlüğünü ve yorumlamayı asla değiştirme; hiçbir anlam kaybına izin verme.
+3. Sadece cümlelerin kuruluş sırasını, öge dizilişini (örneğin A-B-C yerine C-B-A gibi) ve ifade biçimlerini akıcı olacak şekilde değiştir.
+4. Başlıkları (#, ##) ve paragraf düzenini bozmadan, temiz bir gövde metni olarak teslim et.
+
+Metin:
+{$bodyText}
+
+YANIT FORMATI (SADECE JSON):
+{
+  "body_text": "Çeşitlendirilmiş (paraphrase edilmiş) gövde metni"
+}
+EOT;
+
+        $response = $this->callAPI($prompt, $systemInstruction, true, 'Kontrollü Cümle Çeşitlendirme (Paraphrase)');
+        $fallback = $bodyText;
+
+        if (empty($response)) {
+            $this->warnings[] = "Paraphrase API çağrısı başarısız, orijinal metin korundu";
+            return $fallback;
+        }
+
+        $decoded = json_decode($response, true);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            $this->warnings[] = "Paraphrase JSON hatası, orijinal metin korundu";
+            return $fallback;
+        }
+
+        $newBodyText = $decoded['body_text'] ?? $fallback;
+        return str_replace(['*','**', '__'], '', $newBodyText);
+    }
+
+    /**
      * Daha önce kullanılmış odak kelimeleri hariç tutarak tek seferde keşif ve optimizasyon yapar.
      *
      * @param array $original
@@ -223,7 +267,7 @@ EOT;
      * @return array
      */
     public function quickReOptimizeWithDifferentKeywords(array $original, array $excludedKeywords = []): array {
-        $systemInstruction = "Sen Türkçe SEO ve içerik geliştirme uzmanısın. Yanıtını SADECE JSON formatında ver. KESİN KURAL: Gövde metnini üretirken ana başlığı '# Başlık', alt başlıkları '## Başlık', '### Başlık' şeklinde standart Markdown formatında yapılandır ve paragrafları temiz satır boşluklarıyla ayır.";
+        $systemInstruction = "Sen Türkçe SEO ve içerik geliştirme uzmanısın. Yanıtını SADECE JSON formatında ver. KESİN KURAL: Gövde metnini üretirken ana başlığı '# Başlık', alt başlıkları '## Başlık', '### Başlık' şeklinde standart Markdown formatında yapılandır ve paragrafları temiz satır boşluklarıyla ayır. ZORUNLU KURAL: Belirlediğin 1 adet odak anahtar kelimenin ve TÜM yan anahtar kelimelerin optimize gövde metninde EN AZ 1 KEZ kesinlikle geçmesi şarttır. Metne entegre etmeden sadece JSON listesinde kelime üretmek KESİNLİKLE YASAKTIR.";
         
         $title = $original['title'] ?? '';
         $description = $original['description'] ?? '';
@@ -242,6 +286,7 @@ GÖREVİN:
 2. Bu YENİ anahtar kelimeleri, verilen optimize gövde metnine organik ve akıcı bir şekilde entegre et (metnin mevcut düzenini bozma).
 3. Bu yeni odak anahtar kelimeyi kullanarak; 50-60 karakter arası yeni bir Meta Title ve 150-160 karakter arası aksiyon çağrısı (CTA) içeren yeni bir Meta Description üret.
 
+ZORUNLU KURAL: Belirlediğin 1 adet odak anahtar kelimenin ve TÜM yan anahtar kelimelerin (her birinin) optimize gövde metni (body_text) içerisinde EN AZ 1 KEZ KESİNLİKLE geçmesi şarttır. Sadece JSON listesinde kelime üretip metne yerleştirmemek KESİNLİKLE YASAKTIR. Belirlediğin her bir anahtar kelimeyi metindeki uygun cümlelere organik, doğal ve akıcı bir şekilde mutlaka entegre et.
 Sayfa Verileri:
 Title: {$title}
 Description: {$description}
@@ -284,7 +329,7 @@ EOT;
         }
 
         if (isset($decoded['body_text'])) {
-            $decoded['body_text'] = str_replace(['**', '__'], '', $decoded['body_text']);
+            $decoded['body_text'] = str_replace(['**','*', '__'], '', $decoded['body_text']);
         }
 
         return $decoded;
@@ -362,7 +407,7 @@ EOT;
         $response = $this->callAPI($prompt, $systemInstruction, true, 'Adım 1: Anahtar Kelime Entegrasyonu');
         $decoded = json_decode($response, true);
         $bodyText = $decoded['body_text'] ?? '';
-        return str_replace(['**', '__'], '', $bodyText);
+        return str_replace(['*','**', '__'], '', $bodyText);
     }
 
     private function step2Readability(string $text, array $analysis): string {
@@ -392,7 +437,7 @@ EOT;
         $response = $this->callAPI($prompt, $systemInstruction, true, 'Adım 2: Okunabilirlik ve Akış');
         $decoded = json_decode($response, true);
         $bodyText = $decoded['body_text'] ?? '';
-        return str_replace(['**', '__'], '', $bodyText);
+        return str_replace(['*','**', '__'], '', $bodyText);
     }
 
     private function step3GrammarAndMeta(string $text, array $original, array $analysis, array $keywords): array {
@@ -428,7 +473,7 @@ EOT;
         $decoded = json_decode($response, true);
         
         if (isset($decoded['body_text'])) {
-            $decoded['body_text'] = str_replace(['**', '__'], '', $decoded['body_text']);
+            $decoded['body_text'] = str_replace(['*','**', '__'], '', $decoded['body_text']);
         }
         
         return $decoded ?? [];
